@@ -1,9 +1,18 @@
 #include <FreenSync/ImageProcessor.hpp>
+#include <FreenSync/BridgeData.hpp>
 
 using namespace std;
 
 int main()
 {
+  BridgeData bd;
+
+  for(const auto& light : bd.lights()){
+    cout << light.dump(2) << endl;
+  }
+
+
+  /*
   ImageProcessor ip;
 
   ImageData id;
@@ -24,6 +33,7 @@ int main()
     cv::imshow("Display window", mat);
     cv::waitKey(0);
   }
+  */
 
   return 0;
 }
