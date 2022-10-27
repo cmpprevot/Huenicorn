@@ -17,6 +17,7 @@ add_executable(FreenSync
   src/ImageProcessor.cpp
   src/Light.cpp
   include/FreenSync/BridgeData.hpp
+  include/FreenSync/Color.hpp
   include/FreenSync/Communicator.hpp
   include/FreenSync/ImageProcessor.hpp
   include/FreenSync/Light.hpp

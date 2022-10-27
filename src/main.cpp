@@ -3,22 +3,35 @@
 
 #include <thread>
 
+#include <glm/gtx/string_cast.hpp>
+
 using namespace std;
 
 int main()
 {
   BridgeData bd;
-
+  //*/
   auto& lights = bd.lights();
 
   if(lights.size() > 0){
     auto& light = lights.back();
 
-    for(int i = 0; i < 100; i++){
-      light->setState(!light->state());
-      this_thread::sleep_for(0.5s);
+    int max = 255;
+    // Loop on primary colors to check color conversion accuracy
+    for(int i = 0; i < 32; i++){
+      light->setColor(Color(
+        (i & 1) * max,
+        (i & 2) * max,
+        (i & 4) * max)
+      );
+      this_thread::sleep_for(1s);
     }
   }
+  /*/
+
+  SharedLight light = make_shared<Light>(&bd, "test", nlohmann::json::object());
+  light->setColor({0, 127, 255});
+  //*/
 
   /*
   for(const auto& light : bd.lights()){

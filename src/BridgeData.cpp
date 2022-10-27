@@ -66,23 +66,15 @@ const Lights& BridgeData::lights()
 void BridgeData::_notify(SharedLight light, Light::NotifyReason reason)
 {
   //https://<bridge ip address>/api/1028d66426293e821ecfd9ef1a0731df/lights/1/state
-  json request = json::object();
-  //request["on"] = light->state();
-  //request["sat"] = 254;
-  //request["bri"] = 254;
-  //request["hue"] = 10000;
-
-
-  request["sat"] = 89;
-  request["bri"] = 82;
-  request["hue"] = light->m_i;
-  light->m_i += 100;
+  json request{
+    {"on", light->m_state},
+    {"bri", light->m_brightness},
+    {"xy", {light->m_xy.x, light->m_xy.y}}
+  };
   
   filesystem::path url = m_bridgeAddress / "api" / m_apiKey.value() / "lights" / light->id() / "state";
 
-  //cout << url << endl;
   cout << request.dump() << endl;
-
   auto data = Communicator::sendRequest(url, "PUT", request.dump());
   cout << data.dump() << endl;
 }
