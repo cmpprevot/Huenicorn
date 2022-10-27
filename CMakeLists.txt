@@ -15,9 +15,11 @@ add_executable(FreenSync
   src/BridgeData.cpp
   src/Communicator.cpp
   src/ImageProcessor.cpp
+  src/Light.cpp
   include/FreenSync/BridgeData.hpp
   include/FreenSync/Communicator.hpp
   include/FreenSync/ImageProcessor.hpp
+  include/FreenSync/Light.hpp
 )
 
 set_target_properties(FreenSync PROPERTIES CXX_STANDARD 20)

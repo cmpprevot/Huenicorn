@@ -15,7 +15,7 @@ BridgeData::BridgeData()
   ifstream configFile("config.json");
   json jsonConfig = json::parse(configFile);
 
-  m_bridgeAddress = jsonConfig.at("bridgeAddress");
+  m_bridgeAddress = filesystem::path(jsonConfig.at("bridgeAddress"));
 
   if(!jsonConfig.contains("apiKey")){
     // Todo : Registration procedure
@@ -47,24 +47,42 @@ const json& BridgeData::bridgeData() const
 }
 
 
-const json& BridgeData::lights() const
+const Lights& BridgeData::lights()
 {
-  try{
-    m_lights.emplace(bridgeData().at("lights"));
-  }
-  catch(const json::exception& e){
-    cout << e.what() << endl;
-    m_lights.emplace(json::object());
-  }
-
-  //cout << bridgeData().size() << endl;
-  //cout << lights.size() << endl;
-
-  for(const auto& k : bridgeData()){
-    //cout << k << endl;
+  if(!m_lights.has_value()){
+    const auto& bridge = bridgeData();
+    if(bridge.contains("lights")){
+      m_lights.emplace();
+      for(const auto& [key, lightData] : bridge.at("lights").items()){
+        m_lights.value().push_back(make_shared<Light>(this, key, lightData));
+      }
+    }
   }
 
   return m_lights.value();
 }
 
 
+void BridgeData::_notify(SharedLight light, Light::NotifyReason reason)
+{
+  //https://<bridge ip address>/api/1028d66426293e821ecfd9ef1a0731df/lights/1/state
+  json request = json::object();
+  //request["on"] = light->state();
+  //request["sat"] = 254;
+  //request["bri"] = 254;
+  //request["hue"] = 10000;
+
+
+  request["sat"] = 89;
+  request["bri"] = 82;
+  request["hue"] = light->m_i;
+  light->m_i += 100;
+  
+  filesystem::path url = m_bridgeAddress / "api" / m_apiKey.value() / "lights" / light->id() / "state";
+
+  //cout << url << endl;
+  cout << request.dump() << endl;
+
+  auto data = Communicator::sendRequest(url, "PUT", request.dump());
+  cout << data.dump() << endl;
+}

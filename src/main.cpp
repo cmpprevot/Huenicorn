@@ -1,15 +1,30 @@
 #include <FreenSync/ImageProcessor.hpp>
 #include <FreenSync/BridgeData.hpp>
 
+#include <thread>
+
 using namespace std;
 
 int main()
 {
   BridgeData bd;
 
+  auto& lights = bd.lights();
+
+  if(lights.size() > 0){
+    auto& light = lights.back();
+
+    for(int i = 0; i < 100; i++){
+      light->setState(!light->state());
+      this_thread::sleep_for(0.5s);
+    }
+  }
+
+  /*
   for(const auto& light : bd.lights()){
     cout << light.dump(2) << endl;
   }
+  */
 
 
   /*
