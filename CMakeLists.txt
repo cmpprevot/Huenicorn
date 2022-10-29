@@ -14,11 +14,13 @@ add_executable(FreenSync
   src/main.cpp
   src/BridgeData.cpp
   src/Communicator.cpp
+  src/FreenSync.cpp
   src/ImageProcessor.cpp
   src/Light.cpp
   include/FreenSync/BridgeData.hpp
   include/FreenSync/Color.hpp
   include/FreenSync/Communicator.hpp
+  include/FreenSync/FreenSync.hpp
   include/FreenSync/ImageProcessor.hpp
   include/FreenSync/Light.hpp
 )

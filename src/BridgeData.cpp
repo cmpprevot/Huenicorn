@@ -38,8 +38,6 @@ const json& BridgeData::bridgeData() const
     string url = m_bridgeAddress;
     url += "/api/" + m_apiKey.value();
 
-    std::cout << url << std::endl;
-
     m_bridgeData.emplace(Communicator::sendRequest(url, "GET", ""));
   }
 
@@ -74,7 +72,6 @@ void BridgeData::_notify(SharedLight light, Light::NotifyReason reason)
   
   filesystem::path url = m_bridgeAddress / "api" / m_apiKey.value() / "lights" / light->id() / "state";
 
-  cout << request.dump() << endl;
-  auto data = Communicator::sendRequest(url, "PUT", request.dump());
-  cout << data.dump() << endl;
+  auto response = Communicator::sendRequest(url, "PUT", request.dump());
+  //cout << response.dump() << endl;
 }

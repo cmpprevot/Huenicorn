@@ -73,7 +73,7 @@ Colors ImageProcessor::getDominantColors(cv::Mat& img, unsigned k)
 
   for(int i = 0; i < centers.rows; i++){
     const uint8_t* Mi = centers.ptr<uint8_t>(i);
-    dominantColors.emplace_back(Mi[0], Mi[1], Mi[2]);
+    dominantColors.emplace_back(Mi[2], Mi[1], Mi[0]);
   }
 
   return dominantColors;

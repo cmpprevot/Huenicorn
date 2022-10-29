@@ -19,6 +19,20 @@ public:
   {}
 
 
+  bool operator==(const Color& other) const
+  {
+    return  m_r == other.m_r &&
+            m_g == other.m_g &&
+            m_b == other.m_b;
+  }
+
+
+  bool operator!=(const Color& other) const
+  {
+    return  !(*this == other);
+  }
+
+
   std::string toStr() const
   {
     std::stringstream ss;

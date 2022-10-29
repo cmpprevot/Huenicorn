@@ -1,5 +1,4 @@
-#include <FreenSync/ImageProcessor.hpp>
-#include <FreenSync/BridgeData.hpp>
+#include <FreenSync/FreenSync.hpp>
 
 #include <thread>
 
@@ -7,10 +6,9 @@
 
 using namespace std;
 
-int main()
+void testPrimaryColors()
 {
   BridgeData bd;
-  //*/
   auto& lights = bd.lights();
 
   if(lights.size() > 0){
@@ -27,41 +25,24 @@ int main()
       this_thread::sleep_for(1s);
     }
   }
-  /*/
-
-  SharedLight light = make_shared<Light>(&bd, "test", nlohmann::json::object());
-  light->setColor({0, 127, 255});
-  //*/
-
-  /*
-  for(const auto& light : bd.lights()){
-    cout << light.dump(2) << endl;
-  }
-  */
+}
 
 
-  /*
-  ImageProcessor ip;
+void startFreenSync()
+{
+  FreenSync fs;
 
-  ImageData id;
-  ImageProcessor::getScreenCapture(id);
-  cv::Mat img = cv::Mat(id.height, id.width, id.bitsPerPixel > 24 ? CV_8UC4 : CV_8UC3, id.pixels.data());
+  fs.start(20.f);
 
-  cv::imshow("Display window", img);
-  cv::waitKey(0);
-  ImageProcessor::rescale(img, 100);
-  cv::imshow("Display window", img);
-  cv::waitKey(0);
+  cout << "Hit enter to stop" << endl;
+  cin.get();
+  fs.stop();
+}
 
-  Colors colors = ip.getDominantColors(img, 2);
 
-  for(const Color& color : colors){
-    cout << color.toStr() << endl;
-    cv::Mat mat(480, 640, CV_8UC3, color.toScalar());
-    cv::imshow("Display window", mat);
-    cv::waitKey(0);
-  }
-  */
+int main()
+{
+  startFreenSync();
 
   return 0;
 }

@@ -51,4 +51,6 @@ private:
   glm::vec2 m_xy;
   uint8_t m_brightness;
   bool m_state;
+
+  Color m_lastColor;
 };

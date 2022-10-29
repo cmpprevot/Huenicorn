@@ -75,7 +75,12 @@ void Light::setState(bool state)
 
 void Light::setColor(const Color& color)
 {
-  vec3 normalizedRgb = color.toNormalized();
+  if(color == m_lastColor){
+    return;
+  }
+  
+  m_lastColor = color;
+  vec3 normalizedRgb = m_lastColor.toNormalized();
 
   m_xy = rgbToXY(normalizedRgb);
   m_brightness = glm::length(normalizedRgb) * 255;
