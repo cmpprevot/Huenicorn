@@ -46,7 +46,7 @@ void ImageProcessor::getScreenCapture(ImageData& imageData)
 
   XImage* img = XGetImage(display, root, 0, 0 , imageData.width, imageData.height, AllPlanes, ZPixmap);
   imageData.bitsPerPixel = img->bits_per_pixel;
-  imageData.pixels.resize(imageData.width * imageData.height * (img->bits_per_pixel / attributes.visual->bits_per_rgb));
+  imageData.pixels.resize(imageData.width * imageData.height * 4);
 
   memcpy(imageData.pixels.data(), img->data, imageData.pixels.size());
 
