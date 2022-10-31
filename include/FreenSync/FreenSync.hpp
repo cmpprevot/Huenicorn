@@ -6,6 +6,9 @@
 #include <FreenSync/ImageProcessor.hpp>
 #include <FreenSync/BridgeData.hpp>
 
+class FreenSync;
+using SharedFreenSync = std::shared_ptr<FreenSync>;
+
 class FreenSync
 {
 public:

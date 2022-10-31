@@ -8,7 +8,12 @@ find_package(CURL REQUIRED)
 include_directories(
   ${OpenCV_INCLUDE_DIRS}
   include
+  ext/restbed/source
 )
+
+
+add_subdirectory(ext/restbed)
+link_directories(build/ext/restbed) # ToDo : Fix path
 
 add_executable(FreenSync
   src/main.cpp
@@ -17,17 +22,20 @@ add_executable(FreenSync
   src/FreenSync.cpp
   src/ImageProcessor.cpp
   src/Light.cpp
+  src/RestServer.cpp
   include/FreenSync/BridgeData.hpp
   include/FreenSync/Color.hpp
   include/FreenSync/Communicator.hpp
   include/FreenSync/FreenSync.hpp
   include/FreenSync/ImageProcessor.hpp
   include/FreenSync/Light.hpp
+  include/FreenSync/RestServer.hpp
 )
 
 set_target_properties(FreenSync PROPERTIES CXX_STANDARD 20)
 
-target_link_libraries(FreenSync PUBLIC X11 ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp)
+target_link_libraries(FreenSync PUBLIC X11 ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp restbed)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+

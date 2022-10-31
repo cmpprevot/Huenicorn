@@ -1,11 +1,13 @@
-#include <FreenSync/FreenSync.hpp>
-
 #include <thread>
 
-#include <glm/gtx/string_cast.hpp>
+#include <FreenSync/FreenSync.hpp>
+#include <FreenSync/RestServer.hpp>
+
+
 
 using namespace std;
 
+/*
 void testPrimaryColors()
 {
   BridgeData bd;
@@ -26,17 +28,21 @@ void testPrimaryColors()
     }
   }
 }
-
+*/
 
 void startFreenSync()
 {
-  FreenSync fs;
 
-  fs.start(20.f);
+  SharedFreenSync fs = make_shared<FreenSync>();
+
+  fs->start(20.f);
+
+  RestServer rs(fs, 8080);
+  rs.start();
 
   cout << "Hit enter to stop" << endl;
   cin.get();
-  fs.stop();
+  fs->stop();
 }
 
 
