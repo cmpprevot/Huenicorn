@@ -59,7 +59,7 @@ bool Light::state() const
 }
 
 
-const Light::GamutCoordinates& Light::gamutCoordinates() const
+const Color::GamutCoordinates& Light::gamutCoordinates() const
 {
   return m_gamutCoordinates;
 }
@@ -80,46 +80,10 @@ void Light::setColor(const Color& color)
   }
   
   m_lastColor = color;
-  vec3 normalizedRgb = m_lastColor.toNormalized();
 
-  m_xy = rgbToXY(normalizedRgb);
-  m_brightness = glm::length(normalizedRgb) * 255;
+  m_xy = m_lastColor.toXY(m_gamutCoordinates);
+  m_brightness = glm::length(m_lastColor.toNormalized()) * 255;
 
+  cout << (int)m_brightness << endl;
   m_bridgeData->_notify(shared_from_this(), NotifyReason::COLOR);
-}
-
-
-vec2 Light::rgbToXY(const vec3& color)
-{
-  // Following https://gist.github.com/popcorn245/30afa0f98eea1c2fd34d
-  vec3 normalizedRgb = color;
-
-  // Apply gamma
-  for(int i = 0; i < normalizedRgb.length(); i++){
-    auto& channel = normalizedRgb[i];
-    channel = (channel > 0.04045f) ? pow((channel + 0.055f) / (1.0f + 0.055f), 2.4f) : (channel / 12.92f);
-  }
-
-  // Apply some magic "Wide RGB D65 conversion formula"
-  float& r = normalizedRgb.r;
-  float& g = normalizedRgb.g;
-  float& b = normalizedRgb.b;
-
-  float X = r * 0.649926f + g * 0.103455f + b * 0.197109f;
-  float Y = r * 0.234327f + g * 0.743075f + b * 0.022598f;
-  float Z = r * 0.000000f + g * 0.053077f + b * 1.035763f;
-
-  float sum = X + Y + Z;
-  
-  // White coordinates to be neutral in case of black (skip dividing by zero)
-  vec2 xy = vec2(0.315f, 0.3312f);
-
-  if(sum != 0.f){
-    xy[0] = X / sum;
-    xy[1] = Y / sum;
-  }
-
-  // ToDo : Check if x,y fit in light gammut
-
-  return xy;
 }

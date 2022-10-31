@@ -21,8 +21,6 @@ class Light : public std::enable_shared_from_this<Light>
 friend BridgeData;
 
 public:
-  using GamutCoordinates = std::array<glm::vec2, 3>;
-
   enum class NotifyReason{
     STATE,
     COLOR
@@ -33,7 +31,7 @@ public:
   // Getters
   const std::string& id() const;
   bool state() const;
-  const GamutCoordinates& gamutCoordinates() const;
+  const Color::GamutCoordinates& gamutCoordinates() const;
 
   // Setters
   void setState(bool state);
@@ -41,12 +39,10 @@ public:
 
 
 private:
-  static glm::vec2 rgbToXY(const glm::vec3& color);
-
   // Attributes
   BridgeData* m_bridgeData;
   std::string m_id;
-  GamutCoordinates m_gamutCoordinates;
+  Color::GamutCoordinates m_gamutCoordinates;
 
   glm::vec2 m_xy;
   uint8_t m_brightness;
