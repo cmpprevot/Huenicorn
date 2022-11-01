@@ -16,6 +16,10 @@ public:
 
   void stop();
 
+
+  // Getters
+  const Lights& lights();
+
 private:
 
   void _loop();

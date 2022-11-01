@@ -31,6 +31,12 @@ void FreenSync::stop()
 }
 
 
+const Lights& FreenSync::lights()
+{
+  return m_bridge.lights();
+}
+
+
 void FreenSync::_loop()
 {
 

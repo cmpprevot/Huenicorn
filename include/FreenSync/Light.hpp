@@ -33,6 +33,8 @@ public:
   bool state() const;
   const Color::GamutCoordinates& gamutCoordinates() const;
 
+  nlohmann::json serialize() const;
+
   // Setters
   void setState(bool state);
   void setColor(const Color& color);
@@ -42,6 +44,8 @@ private:
   // Attributes
   BridgeData* m_bridgeData;
   std::string m_id;
+  std::string m_name;
+  std::string m_productName;
   Color::GamutCoordinates m_gamutCoordinates;
 
   glm::vec2 m_xy;

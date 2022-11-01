@@ -36,6 +36,9 @@ m_state(true)
   json jsonData = json::parse(data);
   const auto& gamutCoordinates = jsonData.at("capabilities").at("control").at("colorgamut");
   /*/
+
+  m_name = jsonLight.at("name");
+  m_productName = jsonLight.at("productname");
   const auto& gamutCoordinates = jsonLight.at("capabilities").at("control").at("colorgamut");
   //*/
 
@@ -65,6 +68,18 @@ const Color::GamutCoordinates& Light::gamutCoordinates() const
 }
 
 
+nlohmann::json Light::serialize() const
+{
+  json serialized = {
+    {"id", m_id},
+    {"name", m_name},
+    {"productName", m_productName}
+  };
+
+  return serialized;
+}
+
+
 void Light::setState(bool state)
 {
   m_state = state;
@@ -84,6 +99,5 @@ void Light::setColor(const Color& color)
   m_xy = m_lastColor.toXY(m_gamutCoordinates);
   m_brightness = glm::length(m_lastColor.toNormalized()) * 255;
 
-  cout << (int)m_brightness << endl;
   m_bridgeData->_notify(shared_from_this(), NotifyReason::COLOR);
 }

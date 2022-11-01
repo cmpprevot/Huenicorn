@@ -2,6 +2,7 @@
 
 #include <thread>
 #include <optional>
+#include <filesystem>
 
 #include <restbed>
 
@@ -20,7 +21,8 @@ public:
 
 private:
   // Handlera
-  void _getHandler(const SharedSession& session);
+  void _getProperty(const SharedSession& session) const;
+  void _getWebFile(const SharedSession& session) const;
 
   // Attributes
   SharedFreenSync m_freenSync;
@@ -28,4 +30,7 @@ private:
   std::shared_ptr<restbed::Settings> m_settings;
   std::optional<std::thread> m_serviceThread;
   restbed::Service m_service;
+
+  const std::filesystem::path m_webroot;
+  std::unordered_map<std::string, std::string> m_contentTypes;
 };

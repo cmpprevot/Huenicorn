@@ -63,7 +63,6 @@ const Lights& BridgeData::lights()
 
 void BridgeData::_notify(SharedLight light, Light::NotifyReason reason)
 {
-  //https://<bridge ip address>/api/1028d66426293e821ecfd9ef1a0731df/lights/1/state
   json request{
     {"on", light->m_state},
     {"bri", light->m_brightness},
