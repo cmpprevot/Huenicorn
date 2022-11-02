@@ -62,10 +62,6 @@ void FreenSync::_processScreenFrame()
   int type = m_imageData.bitsPerPixel > 24 ? CV_8UC4 : CV_8UC3;
   cv::Mat img = cv::Mat(m_imageData.height, m_imageData.width, type, m_imageData.pixels.data());
 
-  /*
-  cv::imshow("img", img);
-  cv::waitKey(0);
-  */
 
   ImageProcessor::rescale(img, 100);
 

@@ -1,5 +1,7 @@
 #include <FreenSync/ImageProcessor.hpp>
 
+#include <algorithm>
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
@@ -52,6 +54,15 @@ void ImageProcessor::getScreenCapture(ImageData& imageData)
 
   XDestroyImage(img);
   XCloseDisplay(display);
+}
+
+
+cv::Mat ImageProcessor::getSubImage(const cv::Mat& sourceImage, int x, int y, int width, int height)
+{
+  cv::Range cols(std::max(0, x), std::min(x + width, sourceImage.cols));
+  cv::Range rows(std::max(0, y), std::min(y + height, sourceImage.rows));
+
+  return sourceImage(rows, cols);
 }
 
 

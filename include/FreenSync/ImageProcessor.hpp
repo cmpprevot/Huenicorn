@@ -29,7 +29,9 @@ public:
 
   static void getScreenCapture(ImageData& imageData);
 
-  void processImage(cv::Mat& img);
+  static cv::Mat getSubImage(const cv::Mat& sourceImage, int x, int y, int width, int height);
+
+  //void processImage(cv::Mat& img);
 
   Colors getDominantColors(cv::Mat& img, unsigned k = 1);
 

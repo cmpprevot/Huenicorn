@@ -3,6 +3,8 @@
 #include <FreenSync/FreenSync.hpp>
 #include <FreenSync/RestServer.hpp>
 
+#include <FreenSync/ImageProcessor.hpp>
+#include <glm/common.hpp>
 
 
 using namespace std;
@@ -32,7 +34,6 @@ void testPrimaryColors()
 
 void startFreenSync()
 {
-
   SharedFreenSync fs = make_shared<FreenSync>();
 
   fs->start(20.f);
