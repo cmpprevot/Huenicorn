@@ -6,14 +6,7 @@
 #include <vector>
 
 #include <FreenSync/Color.hpp>
-
-struct ImageData
-{
-  std::vector<uint8_t> pixels;
-  int width;
-  int height;
-  int bitsPerPixel;
-};
+#include <FreenSync/ImageData.hpp>
 
 
 using Colors = std::vector<Color>;
@@ -26,8 +19,6 @@ public:
   ~ImageProcessor();
 
   static void rescale(cv::Mat& img, int targetWidth);
-
-  static void getScreenCapture(ImageData& imageData);
 
   static cv::Mat getSubImage(const cv::Mat& sourceImage, int x, int y, int width, int height);
 

@@ -35,28 +35,6 @@ void ImageProcessor::rescale(cv::Mat& img, int targetWidth)
 }
 
 
-void ImageProcessor::getScreenCapture(ImageData& imageData)
-{
-  Display* display = XOpenDisplay(nullptr);
-  Window root = DefaultRootWindow(display);
-
-  XWindowAttributes attributes = {0};
-  XGetWindowAttributes(display, root, &attributes);
-
-  imageData.width = attributes.width;
-  imageData.height = attributes.height;
-
-  XImage* img = XGetImage(display, root, 0, 0 , imageData.width, imageData.height, AllPlanes, ZPixmap);
-  imageData.bitsPerPixel = img->bits_per_pixel;
-  imageData.pixels.resize(imageData.width * imageData.height * 4);
-
-  memcpy(imageData.pixels.data(), img->data, imageData.pixels.size());
-
-  XDestroyImage(img);
-  XCloseDisplay(display);
-}
-
-
 cv::Mat ImageProcessor::getSubImage(const cv::Mat& sourceImage, int x, int y, int width, int height)
 {
   cv::Range cols(std::max(0, x), std::min(x + width, sourceImage.cols));

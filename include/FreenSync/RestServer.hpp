@@ -21,8 +21,10 @@ public:
 
 private:
   // Handlera
-  void _getProperty(const SharedSession& session) const;
+  void _getLights(const SharedSession& session) const;
+  void _getScreen(const SharedSession& session) const;
   void _getWebFile(const SharedSession& session) const;
+  void _setLightUVs(const SharedSession& session) const;
 
   // Attributes
   SharedFreenSync m_freenSync;

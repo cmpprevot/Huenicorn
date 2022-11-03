@@ -3,6 +3,8 @@
 #include <iostream>
 #include <chrono>
 
+#include <FreenSync/ScreenUtils.hpp>
+
 using namespace std;
 
 
@@ -37,6 +39,12 @@ const Lights& FreenSync::lights()
 }
 
 
+glm::vec2 FreenSync::screenResolution() const
+{
+  return ScreenUtils::getScreenResolution();
+}
+
+
 void FreenSync::_loop()
 {
 
@@ -58,7 +66,7 @@ void FreenSync::_loop()
 
 void FreenSync::_processScreenFrame()
 {
-  ImageProcessor::getScreenCapture(m_imageData);
+  ScreenUtils::getScreenCapture(m_imageData);
   int type = m_imageData.bitsPerPixel > 24 ? CV_8UC4 : CV_8UC3;
   cv::Mat img = cv::Mat(m_imageData.height, m_imageData.width, type, m_imageData.pixels.data());
 
@@ -70,7 +78,8 @@ void FreenSync::_processScreenFrame()
   auto& lights = m_bridge.lights();
 
   if(lights.size() > 0){
-    auto& light = lights.back();
-    light->setColor(colors.front());
+    for(const auto& [lightId, light] : lights){
+      light->setColor(colors.front());
+    }
   }
 }

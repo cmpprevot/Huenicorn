@@ -43,8 +43,22 @@ m_webroot("webroot")
 
   {
     auto resource = make_shared<restbed::Resource>();
-    resource->set_path("/{property: [a-zA-Z0-9]+}");
-    resource->set_method_handler("GET", [this](SharedSession session){_getProperty(session);});
+    resource->set_path("/lights");
+    resource->set_method_handler("GET", [this](SharedSession session){_getLights(session);});
+    m_service.publish(resource);
+  }
+
+  {
+    auto resource = make_shared<restbed::Resource>();
+    resource->set_path("/screen");
+    resource->set_method_handler("GET", [this](SharedSession session){_getScreen(session);});
+    m_service.publish(resource);
+  }
+
+  {
+    auto resource = make_shared<restbed::Resource>();
+    resource->set_path("/setLightUVs/{lightId: .+}");
+    resource->set_method_handler("PUT", [this](SharedSession session){_setLightUVs(session);});
     m_service.publish(resource);
   }
 }
@@ -76,7 +90,7 @@ bool RestServer::stop()
 }
 
 
-void RestServer::_getProperty(const SharedSession& session) const
+void RestServer::_getLights(const SharedSession& session) const
 {
   const auto request = session->get_request();
   int contentLength = request->get_header("Content-Length", 0);
@@ -84,25 +98,31 @@ void RestServer::_getProperty(const SharedSession& session) const
   session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
     const auto& request = session->get_request();
 
-
-    string property = request->get_path_parameter("property");
-
-    string response;
-
-    if(property == "lights"){
-      json jsonLights;
-
-      for(const auto& light : m_freenSync->lights()){
-        //jsonLights.push_back(light->)
-        jsonLights.push_back(light->serialize());
-      }
-
-      response = jsonLights.dump();
-    }
-    else{
-      response = R"({"error" : "unavailable resource"})";
+    json jsonLights;
+    for(const auto& [lightId, light] : m_freenSync->lights()){
+      jsonLights.push_back(light->serialize());
     }
 
+    string response = jsonLights.dump();
+    
+    session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+  });
+}
+
+
+void RestServer::_getScreen(const SharedSession& session) const
+{
+  const auto request = session->get_request();
+  int contentLength = request->get_header("Content-Length", 0);
+
+  session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+    glm::vec2 screenResolution = m_freenSync->screenResolution();
+    json jsonScreen{
+      {"x", screenResolution.x},
+      {"y", screenResolution.y}
+    };
+
+    string response = jsonScreen.dump();
     
     session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
   });
@@ -142,4 +162,33 @@ void RestServer::_getWebFile(const SharedSession& session) const
 
   // ToDo MIME headers
   session->close(restbed::OK, response, headers);
+}
+
+
+void RestServer::_setLightUVs(const SharedSession& session) const
+{
+  const auto request = session->get_request();
+  int contentLength = request->get_header("Content-Length", 0);
+
+  session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+
+    string data(reinterpret_cast<const char*>(body.data()), body.size());
+
+    const auto& request = session->get_request();
+    string lightId = request->get_path_parameter("lightId");
+
+    json jsonUVs = json::parse(data);
+
+    float uvAx = jsonUVs.at("uvA").at("x");
+    float uvAy = jsonUVs.at("uvA").at("y");
+    float uvBx = jsonUVs.at("uvB").at("x");
+    float uvBy = jsonUVs.at("uvB").at("y");
+
+    m_freenSync->lights().at(lightId)->setUVs({uvAx, uvAy}, {uvBx, uvBy});
+
+    // Todo : Return corrected values
+    string response = data;
+    
+    session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+  });
 }

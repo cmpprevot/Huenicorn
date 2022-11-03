@@ -5,7 +5,7 @@
 
 #include <FreenSync/Light.hpp>
 
-using Lights = std::vector<SharedLight>;
+using Lights = std::unordered_map<std::string, SharedLight>;
 
 class BridgeData
 {

@@ -52,7 +52,7 @@ const Lights& BridgeData::lights()
     if(bridge.contains("lights")){
       m_lights.emplace();
       for(const auto& [key, lightData] : bridge.at("lights").items()){
-        m_lights.value().push_back(make_shared<Light>(this, key, lightData));
+          m_lights.value().insert({key, make_shared<Light>(this, key, lightData)});
       }
     }
   }

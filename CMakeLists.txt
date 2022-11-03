@@ -23,13 +23,16 @@ add_executable(FreenSync
   src/ImageProcessor.cpp
   src/Light.cpp
   src/RestServer.cpp
+  src/ScreenUtils.cpp
   include/FreenSync/BridgeData.hpp
   include/FreenSync/Color.hpp
   include/FreenSync/Communicator.hpp
   include/FreenSync/FreenSync.hpp
   include/FreenSync/ImageProcessor.hpp
+  include/FreenSync/ImageData.hpp
   include/FreenSync/Light.hpp
   include/FreenSync/RestServer.hpp
+  include/FreenSync/ScreenUtils.hpp
 )
 
 set_target_properties(FreenSync PROPERTIES CXX_STANDARD 20)

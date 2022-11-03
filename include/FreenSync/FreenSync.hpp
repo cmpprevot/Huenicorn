@@ -5,6 +5,7 @@
 
 #include <FreenSync/ImageProcessor.hpp>
 #include <FreenSync/BridgeData.hpp>
+#include <FreenSync/ImageData.hpp>
 
 class FreenSync;
 using SharedFreenSync = std::shared_ptr<FreenSync>;
@@ -19,6 +20,8 @@ public:
 
   // Getters
   const Lights& lights();
+  glm::vec2 screenResolution() const;
+
 
 private:
 

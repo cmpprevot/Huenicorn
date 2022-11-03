@@ -38,6 +38,7 @@ public:
   // Setters
   void setState(bool state);
   void setColor(const Color& color);
+  void setUVs(const glm::vec2& uvA, const glm::vec2& uvb);
 
 
 private:
@@ -51,6 +52,9 @@ private:
   glm::vec2 m_xy;
   uint8_t m_brightness;
   bool m_state;
+
+  glm::vec2 m_uvA{0, 0};
+  glm::vec2 m_uvB{1, 1};
 
   Color m_lastColor;
 };

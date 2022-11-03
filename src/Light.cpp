@@ -73,7 +73,8 @@ nlohmann::json Light::serialize() const
   json serialized = {
     {"id", m_id},
     {"name", m_name},
-    {"productName", m_productName}
+    {"productName", m_productName},
+    {"position", {{"uvA", {m_uvA.x, m_uvA.y}}, {"uvB", {m_uvB.x, m_uvB.y}}}},
   };
 
   return serialized;
@@ -100,4 +101,11 @@ void Light::setColor(const Color& color)
   m_brightness = glm::length(m_lastColor.toNormalized()) * 255;
 
   m_bridgeData->_notify(shared_from_this(), NotifyReason::COLOR);
+}
+
+
+void Light::setUVs(const glm::vec2& uvA, const glm::vec2& uvB)
+{
+  m_uvA = uvA;
+  m_uvB = uvB;
 }
