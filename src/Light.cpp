@@ -74,7 +74,15 @@ nlohmann::json Light::serialize() const
     {"id", m_id},
     {"name", m_name},
     {"productName", m_productName},
-    {"position", {{"uvA", {m_uvA.x, m_uvA.y}}, {"uvB", {m_uvB.x, m_uvB.y}}}},
+    {"uv", {
+        {
+          "uvA", {{"x", m_uvA.x}, {"y", m_uvA.y}}
+        },
+        {
+          "uvB", {{"x", m_uvB.x}, {"y", m_uvB.y}}
+        }
+      }
+    },
   };
 
   return serialized;
