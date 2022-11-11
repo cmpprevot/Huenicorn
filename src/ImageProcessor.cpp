@@ -35,10 +35,13 @@ void ImageProcessor::rescale(cv::Mat& img, int targetWidth)
 }
 
 
-cv::Mat ImageProcessor::getSubImage(const cv::Mat& sourceImage, int x, int y, int width, int height)
+//cv::Mat ImageProcessor::getSubImage(const cv::Mat& sourceImage, int x, int y, int width, int height)
+cv::Mat ImageProcessor::getSubImage(const cv::Mat& sourceImage, int x0, int y0, int x1, int y1)
 {
-  cv::Range cols(std::max(0, x), std::min(x + width, sourceImage.cols));
-  cv::Range rows(std::max(0, y), std::min(y + height, sourceImage.rows));
+  //cv::Range cols(std::max(0, x), std::min(x + width, sourceImage.cols));
+  //cv::Range rows(std::max(0, y), std::min(y + height, sourceImage.rows));
+  cv::Range cols(std::max(0, x0), std::min(x1, sourceImage.cols));
+  cv::Range rows(std::max(0, y0), std::min(y1, sourceImage.rows));
 
   return sourceImage(rows, cols);
 }
@@ -56,7 +59,8 @@ Colors ImageProcessor::getDominantColors(cv::Mat& img, unsigned k)
   vector<int> labels;
   cv::Mat centers;
   int flags = cv::KmeansFlags::KMEANS_PP_CENTERS;
-  double compactness = cv::kmeans(data, k, labels, criteria, 3, flags, centers);
+  //int flags = cv::KmeansFlags::KMEANS_RANDOM_CENTERS;
+  double compactness = cv::kmeans(data, k, labels, criteria, 10, flags, centers);
 
   centers.convertTo(centers, CV_8U);
 

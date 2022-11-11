@@ -68,6 +68,12 @@ const Color::GamutCoordinates& Light::gamutCoordinates() const
 }
 
 
+const Light::UVs& Light::uvs() const
+{
+  return m_uvs;
+}
+
+
 nlohmann::json Light::serialize() const
 {
   json serialized = {
@@ -76,10 +82,10 @@ nlohmann::json Light::serialize() const
     {"productName", m_productName},
     {"uv", {
         {
-          "uvA", {{"x", m_uvA.x}, {"y", m_uvA.y}}
+          "uvA", {{"x", m_uvs.first.x}, {"y", m_uvs.first.y}}
         },
         {
-          "uvB", {{"x", m_uvB.x}, {"y", m_uvB.y}}
+          "uvB", {{"x", m_uvs.second.x}, {"y", m_uvs.second.y}}
         }
       }
     },
@@ -114,6 +120,6 @@ void Light::setColor(const Color& color)
 
 void Light::setUVs(const glm::vec2& uvA, const glm::vec2& uvB)
 {
-  m_uvA = uvA;
-  m_uvB = uvB;
+  m_uvs.first = uvA;
+  m_uvs.second = uvB;
 }

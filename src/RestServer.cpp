@@ -184,7 +184,10 @@ void RestServer::_setLightUVs(const SharedSession& session) const
     float uvBx = jsonUVs.at("uvB").at("x");
     float uvBy = jsonUVs.at("uvB").at("y");
 
-    m_freenSync->lights().at(lightId)->setUVs({uvAx, uvAy}, {uvBx, uvBy});
+    {
+      std::lock_guard lock(m_freenSync->uvMutex());
+      m_freenSync->lights().at(lightId)->setUVs({uvAx, uvAy}, {uvBx, uvBy});
+    }
 
     // Todo : Return corrected values
     string response = data;

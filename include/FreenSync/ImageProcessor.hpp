@@ -20,7 +20,8 @@ public:
 
   static void rescale(cv::Mat& img, int targetWidth);
 
-  static cv::Mat getSubImage(const cv::Mat& sourceImage, int x, int y, int width, int height);
+  //static cv::Mat getSubImage(const cv::Mat& sourceImage, int x, int y, int width, int height);
+  static cv::Mat getSubImage(const cv::Mat& sourceImage, int x0, int y0, int x1, int y1);
 
   //void processImage(cv::Mat& img);
 

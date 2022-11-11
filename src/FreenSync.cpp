@@ -45,6 +45,12 @@ glm::vec2 FreenSync::screenResolution() const
 }
 
 
+std::mutex& FreenSync::uvMutex()
+{
+  return m_uvMutex;
+}
+
+
 void FreenSync::_loop()
 {
 
@@ -66,20 +72,50 @@ void FreenSync::_loop()
 
 void FreenSync::_processScreenFrame()
 {
+  auto& lights = m_bridge.lights();
+
   ScreenUtils::getScreenCapture(m_imageData);
   int type = m_imageData.bitsPerPixel > 24 ? CV_8UC4 : CV_8UC3;
   cv::Mat img = cv::Mat(m_imageData.height, m_imageData.width, type, m_imageData.pixels.data());
 
-
   ImageProcessor::rescale(img, 100);
 
-  Colors colors = m_imageProcessor.getDominantColors(img, 1);
+  int imgWidth = img.cols;
+  int imgHeight = img.rows;
 
-  auto& lights = m_bridge.lights();
 
-  if(lights.size() > 0){
-    for(const auto& [lightId, light] : lights){
-      light->setColor(colors.front());
+  for(const auto& [lightId, light] : lights){
+    int x0 = 0;
+    int y0 = 0;
+    int x1 = 0;
+    int y1 = 0;
+
+    {
+      std::lock_guard lock(m_uvMutex);
+      const Light::UVs& uvs = light->uvs();
+
+      /*
+      x0 = uvs.first.x * imgWidth;
+      y0 = uvs.first.y * imgHeight;
+      x1 = uvs.second.x * imgWidth;
+      y1 = uvs.second.y * imgHeight;
+      */
+      x0 = 0 * imgWidth;
+      y0 = 0 * imgHeight;
+      x1 = 0.5f * imgWidth;
+      y1 = 0.5f * imgHeight;
+
+    }
+
+    cv::Mat subImage;
+    ImageProcessor::getSubImage(img, x0, y0, x1, y1).copyTo(subImage);
+
+    Colors colors = m_imageProcessor.getDominantColors(subImage, 1);
+
+    if(lights.size() > 0){
+      for(const auto& [lightId, light] : lights){
+        light->setColor(colors.front());
+      }
     }
   }
 }

@@ -21,6 +21,7 @@ public:
   // Getters
   const Lights& lights();
   glm::vec2 screenResolution() const;
+  std::mutex& uvMutex();
 
 
 private:
@@ -38,4 +39,7 @@ private:
   // Image Processing
   ImageProcessor m_imageProcessor;
   ImageData m_imageData;
+
+  std::mutex m_uvMutex;
+
 };

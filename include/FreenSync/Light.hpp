@@ -21,6 +21,8 @@ class Light : public std::enable_shared_from_this<Light>
 friend BridgeData;
 
 public:
+  using UVs = std::pair<glm::vec2, glm::vec2>;
+
   enum class NotifyReason{
     STATE,
     COLOR
@@ -32,6 +34,7 @@ public:
   const std::string& id() const;
   bool state() const;
   const Color::GamutCoordinates& gamutCoordinates() const;
+  const UVs& uvs() const;
 
   nlohmann::json serialize() const;
 
@@ -53,8 +56,8 @@ private:
   uint8_t m_brightness;
   bool m_state;
 
-  glm::vec2 m_uvA{0, 0};
-  glm::vec2 m_uvB{1, 1};
+
+  UVs m_uvs{glm::vec2(0), glm::vec2(1)};
 
   Color m_lastColor;
 };
