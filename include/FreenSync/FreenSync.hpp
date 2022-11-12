@@ -9,6 +9,7 @@
 
 class FreenSync;
 using SharedFreenSync = std::shared_ptr<FreenSync>;
+using SyncedLights = std::unordered_map<std::string, SharedSyncedLight>;
 
 class FreenSync
 {
@@ -19,10 +20,14 @@ public:
 
 
   // Getters
-  const Lights& lights();
+  const LightSummaries& availableLights();
+  const SyncedLights& syncedLights();
+
+
   glm::vec2 screenResolution() const;
   std::mutex& uvMutex();
 
+  bool addSyncedLight(const std::string& lightId);
 
 private:
 
@@ -35,6 +40,8 @@ private:
 
   // Infrastructure
   BridgeData m_bridge;
+
+  SyncedLights m_syncedLights;
 
   // Image Processing
   ImageProcessor m_imageProcessor;

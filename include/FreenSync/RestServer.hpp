@@ -20,11 +20,13 @@ public:
   bool stop();
 
 private:
-  // Handlera
-  void _getLights(const SharedSession& session) const;
+  // Handlers
+  void _getAvailableLights(const SharedSession& session) const;
+  void _getSyncedLights(const SharedSession& session) const;
   void _getScreen(const SharedSession& session) const;
   void _getWebFile(const SharedSession& session) const;
   void _setLightUVs(const SharedSession& session) const;
+  void _syncLight(const SharedSession& session) const;
 
   // Attributes
   SharedFreenSync m_freenSync;

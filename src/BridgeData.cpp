@@ -45,23 +45,34 @@ const json& BridgeData::bridgeData() const
 }
 
 
-const Lights& BridgeData::lights()
+const LightSummaries& BridgeData::lightSummaries()
 {
-  if(!m_lights.has_value()){
+  if(!m_lightSummaries.has_value()){
     const auto& bridge = bridgeData();
     if(bridge.contains("lights")){
-      m_lights.emplace();
+      m_lightSummaries.emplace();
       for(const auto& [key, lightData] : bridge.at("lights").items()){
-          m_lights.value().insert({key, make_shared<Light>(this, key, lightData)});
+          string name = lightData.at("name");
+          string productName = lightData.at("productname");
+          const auto& jsonGamutCoordinates = lightData.at("capabilities").at("control").at("colorgamut");
+
+          Color::GamutCoordinates gamutCoordinates;
+          for(int i = 0; const auto& jsonGamutCoordinate : jsonGamutCoordinates){
+            gamutCoordinates.at(i).x = jsonGamutCoordinate.at(0);
+            gamutCoordinates.at(i).y = jsonGamutCoordinate.at(1);
+            i++;
+          }
+
+          m_lightSummaries.value().insert({key, {key, name, productName, gamutCoordinates}});
       }
     }
   }
 
-  return m_lights.value();
+  return m_lightSummaries.value();
 }
 
 
-void BridgeData::_notify(SharedLight light, Light::NotifyReason reason)
+void BridgeData::_notify(SharedSyncedLight light, SyncedLight::NotifyReason reason)
 {
   json request{
     {"on", light->m_state},
@@ -72,5 +83,4 @@ void BridgeData::_notify(SharedLight light, Light::NotifyReason reason)
   filesystem::path url = m_bridgeAddress / "api" / m_apiKey.value() / "lights" / light->id() / "state";
 
   auto response = Communicator::sendRequest(url, "PUT", request.dump());
-  //cout << response.dump() << endl;
 }

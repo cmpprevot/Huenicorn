@@ -21,6 +21,20 @@ void FreenSync::start(float refreshRate)
 }
 
 
+bool FreenSync::addSyncedLight(const std::string& lightId)
+{
+  if(m_syncedLights.find(lightId) != m_syncedLights.end()){
+    return false;
+  }
+
+  const auto& lightSummary = m_bridge.lightSummaries().at(lightId);
+
+  m_syncedLights.insert({lightId, make_shared<SyncedLight>(&m_bridge, lightId, m_bridge.lightSummaries().at(lightId))});
+
+  return true;
+}
+
+
 void FreenSync::stop()
 {
   if(!m_loopThread.has_value()){
@@ -33,9 +47,15 @@ void FreenSync::stop()
 }
 
 
-const Lights& FreenSync::lights()
+const LightSummaries& FreenSync::availableLights()
 {
-  return m_bridge.lights();
+  return m_bridge.lightSummaries();
+}
+
+
+const SyncedLights& FreenSync::syncedLights()
+{
+  return m_syncedLights;
 }
 
 
@@ -53,14 +73,6 @@ std::mutex& FreenSync::uvMutex()
 
 void FreenSync::_loop()
 {
-
-  auto& lights = m_bridge.lights();
-
-  if(lights.size() == 0){
-    cout << "No light found for test. Exiting" << endl;
-    return;
-  }
-
   m_keepLooping = true;
   while(m_keepLooping){
     _processScreenFrame();
@@ -72,8 +84,6 @@ void FreenSync::_loop()
 
 void FreenSync::_processScreenFrame()
 {
-  auto& lights = m_bridge.lights();
-
   ScreenUtils::getScreenCapture(m_imageData);
   int type = m_imageData.bitsPerPixel > 24 ? CV_8UC4 : CV_8UC3;
   cv::Mat img = cv::Mat(m_imageData.height, m_imageData.width, type, m_imageData.pixels.data());
@@ -83,8 +93,7 @@ void FreenSync::_processScreenFrame()
   int imgWidth = img.cols;
   int imgHeight = img.rows;
 
-
-  for(const auto& [lightId, light] : lights){
+  for(const auto& [lightId, light] : m_syncedLights){
     int x0 = 0;
     int y0 = 0;
     int x1 = 0;
@@ -92,19 +101,12 @@ void FreenSync::_processScreenFrame()
 
     {
       std::lock_guard lock(m_uvMutex);
-      const Light::UVs& uvs = light->uvs();
+      const SyncedLight::UVs& uvs = light->uvs();
 
-      /*
       x0 = uvs.first.x * imgWidth;
       y0 = uvs.first.y * imgHeight;
       x1 = uvs.second.x * imgWidth;
       y1 = uvs.second.y * imgHeight;
-      */
-      x0 = 0 * imgWidth;
-      y0 = 0 * imgHeight;
-      x1 = 0.5f * imgWidth;
-      y1 = 0.5f * imgHeight;
-
     }
 
     cv::Mat subImage;
@@ -112,10 +114,8 @@ void FreenSync::_processScreenFrame()
 
     Colors colors = m_imageProcessor.getDominantColors(subImage, 1);
 
-    if(lights.size() > 0){
-      for(const auto& [lightId, light] : lights){
-        light->setColor(colors.front());
-      }
+    for(const auto& [lightId, light] : m_syncedLights){
+      light->setColor(colors.front());
     }
   }
 }

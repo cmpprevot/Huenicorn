@@ -2,17 +2,24 @@ class WebUI
 {
   constructor()
   {
-    this.lightSelectoNode = document.getElementById("lightSelector");
-    this.lightSelectoNode.onchange = (data) => {this._manageLight(data.target.value);};
-    this.emptyOption = document.getElementById("emptyLightOption");
+    this.availableLightSelectoNode = document.getElementById("availableLightSelector");
+    //this.availableLightSelectoNode.onchange = (data) => {this._manageLight(data.target.value);};
+    this.emptyAvailableOption = document.getElementById("emptyAvailableLightOption");
+
+    this.syncedLightSelectoNode = document.getElementById("syncedLightSelector");
+    this.syncedLightSelectoNode.onchange = (data) => {this._manageLight(data.target.value);};
 
     this.lights = {};
     this.screenPreview = new ScreenPreview(this);
+
+    this.syncButton = document.getElementById("syncButton");
+    this.syncButton.addEventListener("click", () => {this._syncLight()});
   }
 
   initUI()
   {
-    RequestUtils.get("http://127.0.0.1:8080/lights", (data) => this._lightsCallback(data));
+    RequestUtils.get("http://127.0.0.1:8080/availableLights", (data) => this._availableLightsCallback(data));
+    RequestUtils.get("http://127.0.0.1:8080/syncedLights", (data) => this._syncedLightsCallback(data));
     RequestUtils.get("http://127.0.0.1:8080/screen", (data) => this._screenPreviewCallback(data));
   }
 
@@ -23,12 +30,22 @@ class WebUI
 
   }
 
-  _lightsCallback(jsonLights)
+
+  _syncLight()
+  {
+    let lightId = this.availableLightSelectoNode.value;
+    log(lightId);
+
+    RequestUtils.post("http://127.0.0.1:8080/syncLight", JSON.stringify({lightId : lightId}), (data) => {log(`syncing ${data}`);});
+  }
+
+
+  _availableLightsCallback(jsonLights)
   {
     let lights = JSON.parse(jsonLights);
     if(lights.length > 0){
-      this.lightSelectoNode.disabled = false;
-      this.emptyOption.innerHTML = "Select a light to manage...";
+      this.availableLightSelectoNode.disabled = false;
+      this.emptyAvailableOption.innerHTML = "Select a light to sync...";
     }
 
     for(let lightData of lights){
@@ -38,10 +55,30 @@ class WebUI
       let newLightOption = document.createElement("option");
       newLightOption.value = newLight.id;
       newLightOption.innerHTML = `${newLight.name} - ${newLight.productName}`;
-      this.lightSelectoNode.appendChild(newLightOption);
+      this.availableLightSelectoNode.appendChild(newLightOption);
+    }
+  }
+
+
+  _syncedLightsCallback(jsonLights)
+  {
+    let lights = JSON.parse(jsonLights);
+    if(lights.length > 0){
+      this.syncedLightSelectoNode.disabled = false;
+      this.emptySyncedOption.innerHTML = "Select a light to manage...";
     }
 
-    this.screenPreview.initLightRegion(this.lights["3"]); // ToDO : Remove
+    for(let lightData of lights){
+      let newLight = new Light(lightData)
+      this.lights[newLight.id] = newLight;
+
+      let newLightOption = document.createElement("option");
+      newLightOption.value = newLight.id;
+      newLightOption.innerHTML = `${newLight.name} - ${newLight.productName}`;
+      this.syncedLightSelectoNode.appendChild(newLightOption);
+    }
+
+    //this.screenPreview.initLightRegion(this.lights["3"]); // ToDO : Remove
   }
 
 

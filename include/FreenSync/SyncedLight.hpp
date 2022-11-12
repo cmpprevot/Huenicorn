@@ -7,16 +7,17 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
+#include <FreenSync/LightSummary.hpp>
 #include <FreenSync/Color.hpp>
 
 
 class BridgeData;
 using SharedBridgeData = std::shared_ptr<BridgeData>;
 
-class Light;
-using SharedLight = std::shared_ptr<Light>;
+class SyncedLight;
+using SharedSyncedLight = std::shared_ptr<SyncedLight>;
 
-class Light : public std::enable_shared_from_this<Light>
+class SyncedLight : public std::enable_shared_from_this<SyncedLight>
 {
 friend BridgeData;
 
@@ -28,7 +29,7 @@ public:
     COLOR
   };
 
-  Light(BridgeData* bridgeData, const std::string& id, const nlohmann::json& data);
+  SyncedLight(BridgeData* bridgeData, const std::string& id, const LightSummary& lightSummary);
 
   // Getters
   const std::string& id() const;
@@ -47,10 +48,7 @@ public:
 private:
   // Attributes
   BridgeData* m_bridgeData;
-  std::string m_id;
-  std::string m_name;
-  std::string m_productName;
-  Color::GamutCoordinates m_gamutCoordinates;
+  LightSummary m_lightSummary;
 
   glm::vec2 m_xy;
   uint8_t m_brightness;

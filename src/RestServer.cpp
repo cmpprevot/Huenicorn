@@ -43,8 +43,15 @@ m_webroot("webroot")
 
   {
     auto resource = make_shared<restbed::Resource>();
-    resource->set_path("/lights");
-    resource->set_method_handler("GET", [this](SharedSession session){_getLights(session);});
+    resource->set_path("/availableLights");
+    resource->set_method_handler("GET", [this](SharedSession session){_getAvailableLights(session);});
+    m_service.publish(resource);
+  }
+
+  {
+    auto resource = make_shared<restbed::Resource>();
+    resource->set_path("/syncedLights");
+    resource->set_method_handler("GET", [this](SharedSession session){_getSyncedLights(session);});
     m_service.publish(resource);
   }
 
@@ -59,6 +66,13 @@ m_webroot("webroot")
     auto resource = make_shared<restbed::Resource>();
     resource->set_path("/setLightUVs/{lightId: .+}");
     resource->set_method_handler("PUT", [this](SharedSession session){_setLightUVs(session);});
+    m_service.publish(resource);
+  }
+
+  {
+    auto resource = make_shared<restbed::Resource>();
+    resource->set_path("/syncLight");
+    resource->set_method_handler("POST", [this](SharedSession session){_syncLight(session);});
     m_service.publish(resource);
   }
 }
@@ -90,7 +104,7 @@ bool RestServer::stop()
 }
 
 
-void RestServer::_getLights(const SharedSession& session) const
+void RestServer::_getAvailableLights(const SharedSession& session) const
 {
   const auto request = session->get_request();
   int contentLength = request->get_header("Content-Length", 0);
@@ -98,8 +112,33 @@ void RestServer::_getLights(const SharedSession& session) const
   session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
     const auto& request = session->get_request();
 
-    json jsonLights;
-    for(const auto& [lightId, light] : m_freenSync->lights()){
+    json jsonLights = json::array();
+    for(const auto& [lightId, light] : m_freenSync->availableLights()){
+      jsonLights.push_back(
+      {
+        {"id", light.id},
+        {"name", light.name},
+        {"productName", light.productName}
+      });
+    }
+
+    string response = jsonLights.dump();
+    
+    session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+  });
+}
+
+
+void RestServer::_getSyncedLights(const SharedSession& session) const
+{
+  const auto request = session->get_request();
+  int contentLength = request->get_header("Content-Length", 0);
+
+  session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+    const auto& request = session->get_request();
+
+    json jsonLights = json::array();
+    for(const auto& [lightId, light] : m_freenSync->syncedLights()){
       jsonLights.push_back(light->serialize());
     }
 
@@ -186,12 +225,37 @@ void RestServer::_setLightUVs(const SharedSession& session) const
 
     {
       std::lock_guard lock(m_freenSync->uvMutex());
-      m_freenSync->lights().at(lightId)->setUVs({uvAx, uvAy}, {uvBx, uvBy});
+      m_freenSync->syncedLights().at(lightId)->setUVs({uvAx, uvAy}, {uvBx, uvBy});
     }
 
     // Todo : Return corrected values
     string response = data;
     
+    session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+  });
+}
+
+
+void RestServer::_syncLight(const SharedSession& session) const
+{
+  const auto request = session->get_request();
+  int contentLength = request->get_header("Content-Length", 0);
+
+  session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+
+    string data(reinterpret_cast<const char*>(body.data()), body.size());
+    json jsonData = json::parse(data);
+    bool status = m_freenSync->addSyncedLight(jsonData.at("lightId"));
+
+    json jsonResponse = json::object();
+    jsonResponse["status"] = status;
+    jsonResponse["syncedLights"] = json::array();
+
+    for(const auto& [lightId, syncedLight] : m_freenSync->syncedLights()){
+      jsonResponse["syncedLights"].push_back(syncedLight->serialize());
+    }
+
+    string response = jsonResponse.dump();
     session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
   });
 }
