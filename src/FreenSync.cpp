@@ -20,6 +20,8 @@ void FreenSync::start(float refreshRate)
   m_keepLooping = true;
   m_refreshRate = refreshRate;
   m_loopThread.emplace([this](){_loop();});
+
+  _loadProfile();
 }
 
 
@@ -60,6 +62,28 @@ void FreenSync::saveProfile() const
   ofstream profileFile("profile.json", ofstream::out);
   profileFile << profile.dump(2) << endl;
   profileFile.close();
+}
+
+
+void FreenSync::_loadProfile()
+{
+  filesystem::path profilePath = "profile.json";
+
+  if(!filesystem::exists(profilePath) || !filesystem::is_regular_file(profilePath)){
+    cout << "No profile found yet." << endl;
+    return;
+  }
+
+  ifstream configFile(profilePath);
+  json jsonConfig = json::parse(configFile);
+  const auto& lightSummaries = m_bridge.lightSummaries();
+
+  for(const auto& light : jsonConfig.at("lights")){
+    const string& lightId = light.at("lightId");
+    if(lightSummaries.find(lightId) != lightSummaries.end()){
+      m_syncedLights.insert({lightId, make_shared<SyncedLight>(&m_bridge, lightId, lightSummaries.at(lightId))});
+    }
+  }
 }
 
 

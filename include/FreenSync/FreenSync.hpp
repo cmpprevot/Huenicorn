@@ -29,6 +29,7 @@ public:
 
   bool addSyncedLight(const std::string& lightId);
   void saveProfile() const;
+  void _loadProfile();
 
 private:
 
