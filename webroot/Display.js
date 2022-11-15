@@ -232,7 +232,7 @@ class ScreenPreview
 {
   constructor(webApp){
     this.webApp = webApp;
-    this.width = 512;
+    this.width = 1024;
     this.canvas = document.getElementById("screenPreview");
     this.canvas.style.backgroundColor = "#000000";
     this.canvas.style.width = this.width + "px";
@@ -342,7 +342,7 @@ class ScreenPreview
   initLightRegion(light)
   {
     this.currentLight = light;
-    this.portionWidget = new PortionWidget(this.currentLight.uv, this.canvas);
+    this.portionWidget = new PortionWidget(this.currentLight.uvs, this.canvas);
   }
 
 

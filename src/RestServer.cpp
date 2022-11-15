@@ -57,6 +57,13 @@ m_webroot("webroot")
 
   {
     auto resource = make_shared<restbed::Resource>();
+    resource->set_path("/allLights");
+    resource->set_method_handler("GET", [this](SharedSession session){_getAllLights(session);});
+    m_service.publish(resource);
+  }
+
+  {
+    auto resource = make_shared<restbed::Resource>();
     resource->set_path("/screen");
     resource->set_method_handler("GET", [this](SharedSession session){_getScreen(session);});
     m_service.publish(resource);
@@ -73,6 +80,13 @@ m_webroot("webroot")
     auto resource = make_shared<restbed::Resource>();
     resource->set_path("/syncLight");
     resource->set_method_handler("POST", [this](SharedSession session){_syncLight(session);});
+    m_service.publish(resource);
+  }
+
+  {
+    auto resource = make_shared<restbed::Resource>();
+    resource->set_path("/saveProfile");
+    resource->set_method_handler("POST", [this](SharedSession session){_saveProfile(session);});
     m_service.publish(resource);
   }
 }
@@ -116,7 +130,7 @@ void RestServer::_getAvailableLights(const SharedSession& session) const
     for(const auto& [lightId, light] : m_freenSync->availableLights()){
       jsonLights.push_back(
       {
-        {"id", light.id},
+        {"lightId", light.id},
         {"name", light.name},
         {"productName", light.productName}
       });
@@ -144,6 +158,39 @@ void RestServer::_getSyncedLights(const SharedSession& session) const
 
     string response = jsonLights.dump();
     
+    session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+  });
+}
+
+
+void RestServer::_getAllLights(const SharedSession& session) const
+{
+  const auto request = session->get_request();
+  int contentLength = request->get_header("Content-Length", 0);
+
+  session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+    const auto& request = session->get_request();
+
+    json jsonAvailableLights = json::array();
+    for(const auto& [lightId, light] : m_freenSync->availableLights()){
+      jsonAvailableLights.push_back({
+        {"lightId", lightId},
+        {"name", light.name},
+        {"productName", light.productName},
+      });
+    }
+
+    json jsonSyncedLights = json::array();
+    for(const auto& [lightId, light] : m_freenSync->syncedLights()){
+      jsonSyncedLights.push_back(light->serialize());
+    }
+
+    json jsonAllLights = json::object();
+    jsonAllLights["available"] = jsonAvailableLights;
+    jsonAllLights["synced"] = jsonSyncedLights;
+
+    string response = jsonAllLights.dump();
+
     session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
   });
 }
@@ -245,15 +292,49 @@ void RestServer::_syncLight(const SharedSession& session) const
 
     string data(reinterpret_cast<const char*>(body.data()), body.size());
     json jsonData = json::parse(data);
-    bool status = m_freenSync->addSyncedLight(jsonData.at("lightId"));
+
+    string lightId = jsonData.at("lightId");
+    const auto& availableLights = m_freenSync->availableLights();
+    if(availableLights.find(lightId) == availableLights.end()){
+      string response = json{
+        {"status", false},
+        {"error", "key not found"}
+      }.dump();
+      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      return;
+    }
 
     json jsonResponse = json::object();
-    jsonResponse["status"] = status;
+    bool succeeded = m_freenSync->addSyncedLight(lightId);
+    if(succeeded){
+      jsonResponse["newSyncedLightId"] = lightId;
+    }
+
+    jsonResponse["status"] = succeeded;
     jsonResponse["syncedLights"] = json::array();
 
     for(const auto& [lightId, syncedLight] : m_freenSync->syncedLights()){
       jsonResponse["syncedLights"].push_back(syncedLight->serialize());
     }
+
+    string response = jsonResponse.dump();
+    session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+  });
+}
+
+
+void RestServer::_saveProfile(const SharedSession& session) const
+{
+  const auto request = session->get_request();
+  int contentLength = request->get_header("Content-Length", 0);
+
+  session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+
+    m_freenSync->saveProfile();
+
+    json jsonResponse = {
+      "status", true
+    };
 
     string response = jsonResponse.dump();
     session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});

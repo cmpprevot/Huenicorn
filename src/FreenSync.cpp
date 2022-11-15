@@ -1,10 +1,12 @@
 #include <FreenSync/FreenSync.hpp>
 
 #include <iostream>
+#include <fstream>
 #include <chrono>
 
 #include <FreenSync/ScreenUtils.hpp>
 
+using namespace nlohmann;
 using namespace std;
 
 
@@ -32,6 +34,32 @@ bool FreenSync::addSyncedLight(const std::string& lightId)
   m_syncedLights.insert({lightId, make_shared<SyncedLight>(&m_bridge, lightId, m_bridge.lightSummaries().at(lightId))});
 
   return true;
+}
+
+
+void FreenSync::saveProfile() const
+{
+  nlohmann::json profile = json::object();
+  profile["lights"] = json::array();
+  for(const auto& [id, light] : m_syncedLights){
+    const auto& uvs = light->uvs();
+    profile["lights"].push_back({
+      {"lightId", id},
+      {"uvs", {
+          {
+            "uvA", {{"x", uvs.first.x}, {"y", uvs.first.y}}
+          },
+          {
+            "uvB", {{"x", uvs.second.x}, {"y", uvs.second.y}}
+          }
+        }
+      }
+    });
+  }
+
+  ofstream profileFile("profile.json", ofstream::out);
+  profileFile << profile.dump(2) << endl;
+  profileFile.close();
 }
 
 

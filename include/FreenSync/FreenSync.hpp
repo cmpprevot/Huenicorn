@@ -28,6 +28,7 @@ public:
   std::mutex& uvMutex();
 
   bool addSyncedLight(const std::string& lightId);
+  void saveProfile() const;
 
 private:
 

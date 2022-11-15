@@ -2,9 +2,13 @@ class Light
 {
   constructor(data)
   {
-    this.id = data.id;
+    this.lightId = data.lightId;
     this.name = data.name;
     this.productName = data.productName;
-    this.uv = data.uv;
+
+    this.uvs = null;
+    if(data.uvs){
+      this.uvs = data.uvs;
+    }
   }
 }

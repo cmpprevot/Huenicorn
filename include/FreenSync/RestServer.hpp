@@ -23,10 +23,12 @@ private:
   // Handlers
   void _getAvailableLights(const SharedSession& session) const;
   void _getSyncedLights(const SharedSession& session) const;
+  void _getAllLights(const SharedSession& session) const;
   void _getScreen(const SharedSession& session) const;
   void _getWebFile(const SharedSession& session) const;
   void _setLightUVs(const SharedSession& session) const;
   void _syncLight(const SharedSession& session) const;
+  void _saveProfile(const SharedSession& session) const;
 
   // Attributes
   SharedFreenSync m_freenSync;

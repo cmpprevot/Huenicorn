@@ -47,10 +47,10 @@ const SyncedLight::UVs& SyncedLight::uvs() const
 nlohmann::json SyncedLight::serialize() const
 {
   json serialized = {
-    {"id", m_lightSummary.id},
+    {"lightId", m_lightSummary.id},
     {"name", m_lightSummary.name},
     {"productName", m_lightSummary.productName},
-    {"uv", {
+    {"uvs", {
         {
           "uvA", {{"x", m_uvs.first.x}, {"y", m_uvs.first.y}}
         },
