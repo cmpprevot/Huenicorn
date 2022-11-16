@@ -25,7 +25,7 @@ void FreenSync::start()
     cout << "Service is already running" << endl;
     return;
   }
-  
+
   m_keepLooping = true;
   m_refreshRate = m_config.at("refreshRate");
   m_loopThread.emplace([this](){_loop();});
@@ -160,16 +160,15 @@ void FreenSync::_processScreenFrame()
   int type = m_imageData.bitsPerPixel > 24 ? CV_8UC4 : CV_8UC3;
   cv::Mat img = cv::Mat(m_imageData.height, m_imageData.width, type, m_imageData.pixels.data());
 
-  ImageProcessor::rescale(img, 100);
+  ImageProcessing::rescale(img, 100);
+
+  cv::cvtColor(img, img, cv::COLOR_RGBA2RGB);
 
   int imgWidth = img.cols;
   int imgHeight = img.rows;
 
   for(const auto& [_, light] : m_syncedLights){
-    int x0 = 0;
-    int y0 = 0;
-    int x1 = 0;
-    int y1 = 0;
+    int x0, y0, x1, y1;
 
     {
       std::lock_guard lock(m_uvMutex);
@@ -182,9 +181,10 @@ void FreenSync::_processScreenFrame()
     }
 
     cv::Mat subImage;
-    ImageProcessor::getSubImage(img, x0, y0, x1, y1).copyTo(subImage);
+    ImageProcessing::getSubImage(img, x0, y0, x1, y1).copyTo(subImage);
 
-    Colors colors = ImageProcessor::getDominantColors(subImage, 1);
+
+    Colors colors = ImageProcessing::getDominantColors(subImage, 1);
 
     for(const auto& [_, light] : m_syncedLights){
       light->setColor(colors.front());

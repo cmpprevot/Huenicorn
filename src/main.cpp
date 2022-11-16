@@ -3,34 +3,9 @@
 #include <FreenSync/FreenSync.hpp>
 #include <FreenSync/RestServer.hpp>
 
-#include <FreenSync/ImageProcessor.hpp>
-#include <glm/common.hpp>
-
 
 using namespace std;
 
-/*
-void testPrimaryColors()
-{
-  BridgeData bd;
-  auto& lights = bd.lights();
-
-  if(lights.size() > 0){
-    auto& light = lights.back();
-
-    int max = 255;
-    // Loop on primary colors to check color conversion accuracy
-    for(int i = 0; i < 32; i++){
-      light->setColor(Color(
-        (i & 1) * max,
-        (i & 2) * max,
-        (i & 4) * max)
-      );
-      this_thread::sleep_for(1s);
-    }
-  }
-}
-*/
 
 void startFreenSync()
 {

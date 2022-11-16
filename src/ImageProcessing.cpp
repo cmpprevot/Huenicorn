@@ -1,4 +1,4 @@
-#include <FreenSync/ImageProcessor.hpp>
+#include <FreenSync/ImageProcessing.hpp>
 
 #include <algorithm>
 
@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace ImageProcessor{
+namespace ImageProcessing{
   void rescale(cv::Mat& img, int targetWidth)
   {
     int sourceHeight = img.rows;

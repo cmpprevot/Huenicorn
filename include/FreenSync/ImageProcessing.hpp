@@ -1,15 +1,15 @@
 #pragma once
 
-#include <opencv2/opencv.hpp>
-
 #include <vector>
+
+#include <opencv2/opencv.hpp>
 
 #include <FreenSync/Color.hpp>
 
 using Colors = std::vector<Color>;
 
 
-namespace ImageProcessor
+namespace ImageProcessing
 {
   void rescale(cv::Mat& img, int targetWidth);
 

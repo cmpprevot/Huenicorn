@@ -3,7 +3,7 @@
 #include <optional>
 #include <thread>
 
-#include <FreenSync/ImageProcessor.hpp>
+#include <FreenSync/ImageProcessing.hpp>
 #include <FreenSync/BridgeData.hpp>
 #include <FreenSync/ImageData.hpp>
 
