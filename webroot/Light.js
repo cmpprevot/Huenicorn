@@ -1,14 +1,14 @@
 class Light
 {
-  constructor(data)
+  constructor(lightData)
   {
-    this.lightId = data.lightId;
-    this.name = data.name;
-    this.productName = data.productName;
+    this.id = lightData.id;
+    this.name = lightData.name;
+    this.productName = lightData.productName;
 
     this.uvs = null;
-    if(data.uvs){
-      this.uvs = data.uvs;
+    if(lightData.uvs){
+      this.uvs = lightData.uvs;
     }
   }
 }

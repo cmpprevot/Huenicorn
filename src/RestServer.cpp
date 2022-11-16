@@ -127,10 +127,10 @@ void RestServer::_getAvailableLights(const SharedSession& session) const
     const auto& request = session->get_request();
 
     json jsonLights = json::array();
-    for(const auto& [lightId, light] : m_freenSync->availableLights()){
+    for(const auto& [_, light] : m_freenSync->availableLights()){
       jsonLights.push_back(
       {
-        {"lightId", light.id},
+        {"id", light.id},
         {"name", light.name},
         {"productName", light.productName}
       });
@@ -152,7 +152,7 @@ void RestServer::_getSyncedLights(const SharedSession& session) const
     const auto& request = session->get_request();
 
     json jsonLights = json::array();
-    for(const auto& [lightId, light] : m_freenSync->syncedLights()){
+    for(const auto& [_, light] : m_freenSync->syncedLights()){
       jsonLights.push_back(light->serialize());
     }
 
@@ -172,16 +172,16 @@ void RestServer::_getAllLights(const SharedSession& session) const
     const auto& request = session->get_request();
 
     json jsonAvailableLights = json::array();
-    for(const auto& [lightId, light] : m_freenSync->availableLights()){
+    for(const auto& [_, light] : m_freenSync->availableLights()){
       jsonAvailableLights.push_back({
-        {"lightId", lightId},
+        {"id", light.id},
         {"name", light.name},
         {"productName", light.productName},
       });
     }
 
     json jsonSyncedLights = json::array();
-    for(const auto& [lightId, light] : m_freenSync->syncedLights()){
+    for(const auto& [_, light] : m_freenSync->syncedLights()){
       jsonSyncedLights.push_back(light->serialize());
     }
 
@@ -291,9 +291,9 @@ void RestServer::_syncLight(const SharedSession& session) const
   session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
 
     string data(reinterpret_cast<const char*>(body.data()), body.size());
-    json jsonData = json::parse(data);
+    json jsonLightData = json::parse(data);
 
-    string lightId = jsonData.at("lightId");
+    string lightId = jsonLightData.at("id");
     const auto& availableLights = m_freenSync->availableLights();
     if(availableLights.find(lightId) == availableLights.end()){
       string response = json{
@@ -313,7 +313,7 @@ void RestServer::_syncLight(const SharedSession& session) const
     jsonResponse["status"] = succeeded;
     jsonResponse["syncedLights"] = json::array();
 
-    for(const auto& [lightId, syncedLight] : m_freenSync->syncedLights()){
+    for(const auto& [_, syncedLight] : m_freenSync->syncedLights()){
       jsonResponse["syncedLights"].push_back(syncedLight->serialize());
     }
 

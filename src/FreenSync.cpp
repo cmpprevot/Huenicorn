@@ -55,7 +55,7 @@ void FreenSync::saveProfile() const
   for(const auto& [id, light] : m_syncedLights){
     const auto& uvs = light->uvs();
     profile["lights"].push_back({
-      {"lightId", id},
+      {"id", id},
       {"uvs", {
           {
             "uvA", {{"x", uvs.first.x}, {"y", uvs.first.y}}
@@ -87,10 +87,19 @@ void FreenSync::_loadProfile()
   json jsonProfile = json::parse(profileFile);
   const auto& lightSummaries = m_bridge->lightSummaries();
 
-  for(const auto& light : jsonProfile.at("lights")){
-    const string& lightId = light.at("lightId");
+  for(const auto& jsonLight : jsonProfile.at("lights")){
+    const string& lightId = jsonLight.at("id");
     if(lightSummaries.find(lightId) != lightSummaries.end()){
-      m_syncedLights.insert({lightId, make_shared<SyncedLight>(m_bridge, lightId, lightSummaries.at(lightId))});
+      SharedSyncedLight newSyncedLight = make_shared<SyncedLight>(m_bridge, lightId, lightSummaries.at(lightId));
+      json jsonUVs = jsonLight.at("uvs");
+      float uvAx = jsonUVs.at("uvA").at("x");
+      float uvAy = jsonUVs.at("uvA").at("y");
+      float uvBx = jsonUVs.at("uvB").at("x");
+      float uvBy = jsonUVs.at("uvB").at("y");
+
+      newSyncedLight->setUVs({uvAx, uvAy}, {uvBx, uvBy});
+      m_syncedLights.insert({lightId, newSyncedLight});
+
     }
   }
 }
@@ -156,7 +165,7 @@ void FreenSync::_processScreenFrame()
   int imgWidth = img.cols;
   int imgHeight = img.rows;
 
-  for(const auto& [lightId, light] : m_syncedLights){
+  for(const auto& [_, light] : m_syncedLights){
     int x0 = 0;
     int y0 = 0;
     int x1 = 0;
@@ -177,7 +186,7 @@ void FreenSync::_processScreenFrame()
 
     Colors colors = ImageProcessor::getDominantColors(subImage, 1);
 
-    for(const auto& [lightId, light] : m_syncedLights){
+    for(const auto& [_, light] : m_syncedLights){
       light->setColor(colors.front());
     }
   }
@@ -186,7 +195,7 @@ void FreenSync::_processScreenFrame()
 
 void FreenSync::_shutdownLights()
 {
-  for(const auto& [lightId, syncedLight] : m_syncedLights){
+  for(const auto& [_, syncedLight] : m_syncedLights){
     syncedLight->setState(false);
   }
 }

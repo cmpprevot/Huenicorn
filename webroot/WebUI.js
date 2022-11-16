@@ -28,15 +28,16 @@ class WebUI
 
   notifyUVs(uvs)
   {
-    RequestUtils.put("http://127.0.0.1:8080/setLightUVs/" + this.screenPreview.currentLight.lightId, JSON.stringify(uvs), (data) => {log("Set uv");});
+    RequestUtils.put("http://127.0.0.1:8080/setLightUVs/" + this.screenPreview.currentLight.id, JSON.stringify(uvs), (data) => {log("Set uv");});
   }
 
 
   _syncLight()
   {
     let lightId = this.availableLightSelectorNode.value;
+    log(this.availableLightSelectorNode);
 
-    RequestUtils.post("http://127.0.0.1:8080/syncLight", JSON.stringify({lightId : lightId}), (jsonData) => {
+    RequestUtils.post("http://127.0.0.1:8080/syncLight", JSON.stringify({id : lightId}), (jsonData) => {
       let data = JSON.parse(jsonData);
       this._refreshSyncedLights(data["syncedLights"]);
       if("newSyncedLightId" in data){
@@ -59,23 +60,23 @@ class WebUI
     for(let syncedLight of syncedLights){
       this.syncedLightSelectorNode.disabled = false;
       for(let option of this.availableLightSelectorNode.options){
-        if(option.value == syncedLight.lightId){
+        if(option.value == syncedLight.id){
           option.disabled = true;
         }
       }
 
       let newLight = new Light(syncedLight)
-      this.availableLights[newLight.lightId] = newLight;
+      this.availableLights[newLight.id] = newLight;
       
-      let duplicate = [...this.syncedLightSelectorNode.options].map(o => o.value).includes(syncedLight.lightId);
+      let duplicate = [...this.syncedLightSelectorNode.options].map(o => o.value).includes(syncedLight.id);
 
       if(!duplicate){
         let newLightOption = document.createElement("option");
-        newLightOption.value = newLight.lightId;
+        newLightOption.value = newLight.id;
         newLightOption.innerHTML = `${newLight.name} - ${newLight.productName}`;
         this.syncedLightSelectorNode.appendChild(newLightOption);
 
-        this.syncedLightSelectorNode.value = newLight.lightId;
+        this.syncedLightSelectorNode.value = newLight.id;
       }
     }
   }
@@ -90,15 +91,14 @@ class WebUI
 
     for(let lightData of availableLights){
       let newLight = new Light(lightData)
-      this.availableLights[newLight.lightId] = newLight;
+      this.availableLights[newLight.id] = newLight;
 
       let newLightOption = document.createElement("option");
-      newLightOption.value = newLight.lightId;
+      newLightOption.value = newLight.id;
       newLightOption.innerHTML = `${newLight.name} - ${newLight.productName}`;
       this.availableLightSelectorNode.appendChild(newLightOption);
     }
   }
-
 
 
   _screenPreviewCallback(jsonScreen)
