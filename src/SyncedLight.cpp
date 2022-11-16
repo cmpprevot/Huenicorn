@@ -12,7 +12,7 @@ using namespace glm;
 using namespace nlohmann;
 using namespace std;
 
-SyncedLight::SyncedLight(BridgeData* bridgeData, const string& id, const LightSummary& lightSummary):
+SyncedLight::SyncedLight(SharedBridgeData bridgeData, const string& id, const LightSummary& lightSummary):
 m_bridgeData(bridgeData),
 m_state(true),
 m_lightSummary(lightSummary)
@@ -69,7 +69,7 @@ void SyncedLight::setState(bool state)
 {
   m_state = state;
 
-  m_bridgeData->_notify(shared_from_this(), NotifyReason::STATE);
+  m_bridgeData->_notify(shared_from_this());
 }
 
 
@@ -84,7 +84,7 @@ void SyncedLight::setColor(const Color& color)
   m_xy = m_lastColor.toXY(m_lightSummary.gamutCoordinates);
   m_brightness = glm::length(m_lastColor.toNormalized()) * 255;
 
-  m_bridgeData->_notify(shared_from_this(), NotifyReason::COLOR);
+  m_bridgeData->_notify(shared_from_this());
 }
 
 

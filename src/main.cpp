@@ -36,7 +36,7 @@ void startFreenSync()
 {
   SharedFreenSync fs = make_shared<FreenSync>();
 
-  fs->start(20.f);
+  fs->start();
 
   RestServer rs(fs, 8080);
   rs.start();

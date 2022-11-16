@@ -1,6 +1,7 @@
 #include <FreenSync/BridgeData.hpp>
 
 #include <iostream>
+#include <filesystem>
 
 #include <FreenSync/Communicator.hpp>
 
@@ -10,19 +11,17 @@ using namespace std;
 
 #include <fstream>
 
-BridgeData::BridgeData()
+BridgeData::BridgeData(const json& config)
 {
-  ifstream configFile("config.json");
-  json jsonConfig = json::parse(configFile);
+  m_bridgeAddress = filesystem::path(config.at("bridgeAddress"));
 
-  m_bridgeAddress = filesystem::path(jsonConfig.at("bridgeAddress"));
-
-  if(!jsonConfig.contains("apiKey")){
+  if(!config.contains("apiKey")){
     // Todo : Registration procedure
+    cout << "Error : no API key was provided in configuration file" << endl;
+    return;
   }
 
-  m_apiKey.emplace(jsonConfig.at("apiKey"));
-
+  m_apiKey.emplace(config.at("apiKey"));
 }
 
 
@@ -72,7 +71,7 @@ const LightSummaries& BridgeData::lightSummaries()
 }
 
 
-void BridgeData::_notify(SharedSyncedLight light, SyncedLight::NotifyReason reason)
+void BridgeData::_notify(SharedSyncedLight light)
 {
   json request{
     {"on", light->m_state},

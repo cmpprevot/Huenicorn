@@ -24,12 +24,7 @@ friend BridgeData;
 public:
   using UVs = std::pair<glm::vec2, glm::vec2>;
 
-  enum class NotifyReason{
-    STATE,
-    COLOR
-  };
-
-  SyncedLight(BridgeData* bridgeData, const std::string& id, const LightSummary& lightSummary);
+  SyncedLight(SharedBridgeData bridgeData, const std::string& id, const LightSummary& lightSummary);
 
   // Getters
   const std::string& id() const;
@@ -47,7 +42,7 @@ public:
 
 private:
   // Attributes
-  BridgeData* m_bridgeData;
+  SharedBridgeData m_bridgeData;
   LightSummary m_lightSummary;
 
   glm::vec2 m_xy;

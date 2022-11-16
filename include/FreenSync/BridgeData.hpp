@@ -13,7 +13,7 @@ class BridgeData
 friend SyncedLight;
 
 public:
-  BridgeData();
+  BridgeData(const nlohmann::json& config);
   ~BridgeData();
 
   const nlohmann::json& bridgeData() const;
@@ -22,7 +22,7 @@ public:
 
 
 private:
-  void _notify(SharedSyncedLight light, SyncedLight::NotifyReason reason);
+  void _notify(SharedSyncedLight light);
 
   std::filesystem::path m_bridgeAddress;
   std::optional<std::string> m_apiKey;

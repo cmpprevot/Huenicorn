@@ -10,7 +10,16 @@ using namespace nlohmann;
 using namespace std;
 
 
-void FreenSync::start(float refreshRate)
+FreenSync::FreenSync()
+{
+  ifstream configFile("config.json");
+  m_config = json::parse(configFile);
+
+  m_bridge = make_shared<BridgeData>(m_config);
+}
+
+
+void FreenSync::start()
 {
   if(m_loopThread.has_value()){
     cout << "Service is already running" << endl;
@@ -18,7 +27,7 @@ void FreenSync::start(float refreshRate)
   }
   
   m_keepLooping = true;
-  m_refreshRate = refreshRate;
+  m_refreshRate = m_config.at("refreshRate");
   m_loopThread.emplace([this](){_loop();});
 
   _loadProfile();
@@ -31,9 +40,9 @@ bool FreenSync::addSyncedLight(const std::string& lightId)
     return false;
   }
 
-  const auto& lightSummary = m_bridge.lightSummaries().at(lightId);
+  const auto& lightSummary = m_bridge->lightSummaries().at(lightId);
 
-  m_syncedLights.insert({lightId, make_shared<SyncedLight>(&m_bridge, lightId, m_bridge.lightSummaries().at(lightId))});
+  m_syncedLights.insert({lightId, make_shared<SyncedLight>(m_bridge, lightId, m_bridge->lightSummaries().at(lightId))});
 
   return true;
 }
@@ -74,14 +83,14 @@ void FreenSync::_loadProfile()
     return;
   }
 
-  ifstream configFile(profilePath);
-  json jsonConfig = json::parse(configFile);
-  const auto& lightSummaries = m_bridge.lightSummaries();
+  ifstream profileFile(profilePath);
+  json jsonProfile = json::parse(profileFile);
+  const auto& lightSummaries = m_bridge->lightSummaries();
 
-  for(const auto& light : jsonConfig.at("lights")){
+  for(const auto& light : jsonProfile.at("lights")){
     const string& lightId = light.at("lightId");
     if(lightSummaries.find(lightId) != lightSummaries.end()){
-      m_syncedLights.insert({lightId, make_shared<SyncedLight>(&m_bridge, lightId, lightSummaries.at(lightId))});
+      m_syncedLights.insert({lightId, make_shared<SyncedLight>(m_bridge, lightId, lightSummaries.at(lightId))});
     }
   }
 }
@@ -96,12 +105,14 @@ void FreenSync::stop()
 
   m_keepLooping = false;
   m_loopThread.value().join();
+
+  _shutdownLights();
 }
 
 
 const LightSummaries& FreenSync::availableLights()
 {
-  return m_bridge.lightSummaries();
+  return m_bridge->lightSummaries();
 }
 
 
@@ -164,10 +175,18 @@ void FreenSync::_processScreenFrame()
     cv::Mat subImage;
     ImageProcessor::getSubImage(img, x0, y0, x1, y1).copyTo(subImage);
 
-    Colors colors = m_imageProcessor.getDominantColors(subImage, 1);
+    Colors colors = ImageProcessor::getDominantColors(subImage, 1);
 
     for(const auto& [lightId, light] : m_syncedLights){
       light->setColor(colors.front());
     }
+  }
+}
+
+
+void FreenSync::_shutdownLights()
+{
+  for(const auto& [lightId, syncedLight] : m_syncedLights){
+    syncedLight->setState(false);
   }
 }

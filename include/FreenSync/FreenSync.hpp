@@ -11,10 +11,14 @@ class FreenSync;
 using SharedFreenSync = std::shared_ptr<FreenSync>;
 using SyncedLights = std::unordered_map<std::string, SharedSyncedLight>;
 
+using SharedBridgeData = std::shared_ptr<BridgeData>;
+
 class FreenSync
 {
 public:
-  void start(float refreshRate);
+  FreenSync();
+
+  void start();
 
   void stop();
 
@@ -29,24 +33,29 @@ public:
 
   bool addSyncedLight(const std::string& lightId);
   void saveProfile() const;
-  void _loadProfile();
 
 private:
 
+  // Private methods
+  void _loadProfile();
   void _loop();
   void _processScreenFrame();
+  void _shutdownLights();
+
+
+  // Attributes
+  nlohmann::json m_config;
 
   std::optional<std::thread> m_loopThread;
   bool m_keepLooping;
   float m_refreshRate;
 
-  // Infrastructure
-  BridgeData m_bridge;
+  //  Infrastructure
+  SharedBridgeData m_bridge;
 
   SyncedLights m_syncedLights;
 
-  // Image Processing
-  ImageProcessor m_imageProcessor;
+  //  Image Processing
   ImageData m_imageData;
 
   std::mutex m_uvMutex;
