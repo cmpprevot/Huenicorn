@@ -93,6 +93,13 @@ public:
     return xy;
   }
 
+
+  uint8_t brightness() const
+  {
+    return ((m_r * 0.3f + m_g * 0.59f + m_b * 0.11f));
+  }
+
+
 private:
   static inline float _sign(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c)
   {

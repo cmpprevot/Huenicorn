@@ -76,7 +76,8 @@ void BridgeData::_notify(SharedSyncedLight light)
   json request{
     {"on", light->m_state},
     {"bri", light->m_brightness},
-    {"xy", {light->m_xy.x, light->m_xy.y}}
+    {"xy", {light->m_xy.x, light->m_xy.y}},
+    {"transitiontime", 1}
   };
   
   filesystem::path url = m_bridgeAddress / "api" / m_apiKey.value() / "lights" / light->id() / "state";

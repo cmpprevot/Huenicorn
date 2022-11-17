@@ -82,7 +82,7 @@ void SyncedLight::setColor(const Color& color)
   m_lastColor = color;
 
   m_xy = m_lastColor.toXY(m_lightSummary.gamutCoordinates);
-  m_brightness = glm::length(m_lastColor.toNormalized()) * 255;
+  m_brightness = m_lastColor.brightness();
 
   m_bridgeData->_notify(shared_from_this());
 }
