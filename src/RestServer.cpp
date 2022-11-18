@@ -10,12 +10,11 @@
 using namespace nlohmann;
 using namespace std;
 
-RestServer::RestServer(SharedFreenSync freenSync, int port):
+RestServer::RestServer(FreenSync* freenSync):
 m_freenSync(freenSync),
 m_webroot("webroot")
 {
   m_settings = make_shared<restbed::Settings>();
-  m_settings->set_port(port);
   m_settings->set_default_headers({
     {"Connection", "close"},
     {"Content-Type", "text/plain"},
@@ -92,11 +91,13 @@ m_webroot("webroot")
 }
 
 
-bool RestServer::start()
+bool RestServer::start(int port)
 {
   if(m_serviceThread.has_value()){
     return false;
   }
+
+  m_settings->set_port(port);
 
   m_serviceThread.emplace([this](){m_service.start(m_settings);});
   cout << "Started web UI" << endl;

@@ -9,16 +9,13 @@ using namespace std;
 
 void startFreenSync()
 {
-  SharedFreenSync fs = make_shared<FreenSync>();
-
-  fs->start();
-
-  RestServer rs(fs, 8080);
-  rs.start();
+  FreenSync fs;
+  fs.start();
 
   cout << "Hit enter to stop" << endl;
   cin.get();
-  fs->stop();
+
+  fs.stop();
 }
 
 

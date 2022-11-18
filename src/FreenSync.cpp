@@ -10,12 +10,15 @@ using namespace nlohmann;
 using namespace std;
 
 
-FreenSync::FreenSync()
+FreenSync::FreenSync():
+m_restServer(this)
 {
   ifstream configFile("config.json");
   m_config = json::parse(configFile);
 
   m_bridge = make_shared<BridgeData>(m_config);
+
+  m_restServer.start(m_config.at("restServerPort"));
 }
 
 
@@ -115,6 +118,8 @@ void FreenSync::stop()
   m_keepLooping = false;
   m_loopThread.value().join();
 
+  m_restServer.stop();
+
   _shutdownLights();
 }
 
@@ -182,7 +187,6 @@ void FreenSync::_processScreenFrame()
 
     cv::Mat subImage;
     ImageProcessing::getSubImage(img, x0, y0, x1, y1).copyTo(subImage);
-
 
     Colors colors = ImageProcessing::getDominantColors(subImage, 1);
 

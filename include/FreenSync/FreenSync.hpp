@@ -6,11 +6,9 @@
 #include <FreenSync/ImageProcessing.hpp>
 #include <FreenSync/BridgeData.hpp>
 #include <FreenSync/ImageData.hpp>
+#include <FreenSync/RestServer.hpp>
 
-class FreenSync;
-using SharedFreenSync = std::shared_ptr<FreenSync>;
 using SyncedLights = std::unordered_map<std::string, SharedSyncedLight>;
-
 using SharedBridgeData = std::shared_ptr<BridgeData>;
 
 class FreenSync
@@ -34,6 +32,7 @@ public:
   bool addSyncedLight(const std::string& lightId);
   void saveProfile() const;
 
+
 private:
 
   // Private methods
@@ -52,7 +51,6 @@ private:
 
   //  Infrastructure
   SharedBridgeData m_bridge;
-
   SyncedLights m_syncedLights;
 
   //  Image Processing
@@ -60,4 +58,7 @@ private:
 
   std::mutex m_uvMutex;
 
+
+  //  Rest server
+  RestServer m_restServer;
 };

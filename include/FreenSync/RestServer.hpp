@@ -7,16 +7,18 @@
 #include <restbed>
 
 class FreenSync;
-using SharedFreenSync = std::shared_ptr<FreenSync>;
+
+class RestServer;
+using SharedRestServer = std::shared_ptr<RestServer>;
 
 class RestServer
 {
   using SharedSession = std::shared_ptr<restbed::Session>;
 
 public:
-  RestServer(SharedFreenSync freenSync, int port);
+  RestServer(FreenSync* freenSync);
 
-  bool start();
+  bool start(int port);
   bool stop();
 
 private:
@@ -31,7 +33,7 @@ private:
   void _saveProfile(const SharedSession& session) const;
 
   // Attributes
-  SharedFreenSync m_freenSync;
+  FreenSync* m_freenSync;
 
   std::shared_ptr<restbed::Settings> m_settings;
   std::optional<std::thread> m_serviceThread;
