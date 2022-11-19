@@ -306,7 +306,7 @@ void RestServer::_syncLight(const SharedSession& session) const
     }
 
     json jsonResponse = json::object();
-    bool succeeded = m_freenSync->addSyncedLight(lightId);
+    bool succeeded = m_freenSync->addSyncedLight(lightId) != nullptr;
     if(succeeded){
       jsonResponse["newSyncedLightId"] = lightId;
     }

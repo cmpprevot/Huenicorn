@@ -37,17 +37,11 @@ void FreenSync::start()
 }
 
 
-bool FreenSync::addSyncedLight(const std::string& lightId)
+SharedSyncedLight FreenSync::addSyncedLight(const std::string& lightId)
 {
-  if(m_syncedLights.find(lightId) != m_syncedLights.end()){
-    return false;
-  }
-
   const auto& lightSummary = m_bridge->lightSummaries().at(lightId);
-
-  m_syncedLights.insert({lightId, make_shared<SyncedLight>(m_bridge, lightId, m_bridge->lightSummaries().at(lightId))});
-
-  return true;
+  auto [it, ok] = m_syncedLights.insert({lightId, make_shared<SyncedLight>(m_bridge, lightId, lightSummary)});
+  return ok ? it->second : nullptr;
 }
 
 
@@ -93,7 +87,8 @@ void FreenSync::_loadProfile()
   for(const auto& jsonLight : jsonProfile.at("lights")){
     const string& lightId = jsonLight.at("id");
     if(lightSummaries.find(lightId) != lightSummaries.end()){
-      SharedSyncedLight newSyncedLight = make_shared<SyncedLight>(m_bridge, lightId, lightSummaries.at(lightId));
+      SharedSyncedLight newSyncedLight = addSyncedLight(lightId);
+
       json jsonUVs = jsonLight.at("uvs");
       float uvAx = jsonUVs.at("uvA").at("x");
       float uvAy = jsonUVs.at("uvA").at("y");

@@ -29,7 +29,7 @@ public:
   glm::vec2 screenResolution() const;
   std::mutex& uvMutex();
 
-  bool addSyncedLight(const std::string& lightId);
+  SharedSyncedLight addSyncedLight(const std::string& lightId);
   void saveProfile() const;
 
 
