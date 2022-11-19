@@ -183,11 +183,9 @@ void FreenSync::_processScreenFrame()
     cv::Mat subImage;
     ImageProcessing::getSubImage(img, x0, y0, x1, y1).copyTo(subImage);
 
-    Colors colors = ImageProcessing::getDominantColors(subImage, 1);
 
-    for(const auto& [_, light] : m_syncedLights){
-      light->setColor(colors.front());
-    }
+    Colors colors = ImageProcessing::getDominantColors(subImage, 1);
+    light->setColor(colors.front());
   }
 }
 
