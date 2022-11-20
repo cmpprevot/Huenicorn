@@ -88,8 +88,14 @@ void SyncedLight::setColor(const Color& color)
 }
 
 
-void SyncedLight::setUVs(const glm::vec2& uvA, const glm::vec2& uvB)
+const SyncedLight::UVs& SyncedLight::setUVs(UVs&& uvs)
 {
-  m_uvs.first = uvA;
-  m_uvs.second = uvB;
+  uvs.first.x = glm::clamp(uvs.first.x, 0.f, 1.f);
+  uvs.first.y = glm::clamp(uvs.first.y, 0.f, 1.f);
+  uvs.second.x = glm::clamp(uvs.second.x, 0.f, 1.f);
+  uvs.second.y = glm::clamp(uvs.second.y, 0.f, 1.f);
+
+  std::swap(m_uvs, uvs);
+
+  return m_uvs;
 }

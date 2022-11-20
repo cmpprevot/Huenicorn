@@ -24,10 +24,10 @@ namespace ImageProcessing{
   }
 
 
-  cv::Mat getSubImage(const cv::Mat& sourceImage, int x0, int y0, int x1, int y1)
+  cv::Mat getSubImage(const cv::Mat& sourceImage, const glm::ivec2& a, const glm::ivec2& b)
   {
-    cv::Range cols(std::max(0, x0), std::min(x1, sourceImage.cols));
-    cv::Range rows(std::max(0, y0), std::min(y1, sourceImage.rows));
+    cv::Range cols(std::max(0, a.x), std::min(b.x, sourceImage.cols));
+    cv::Range rows(std::max(0, a.y), std::min(b.y, sourceImage.rows));
 
     return sourceImage(rows, cols);
   }

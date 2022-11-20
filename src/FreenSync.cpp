@@ -95,7 +95,7 @@ void FreenSync::_loadProfile()
       float uvBx = jsonUVs.at("uvB").at("x");
       float uvBy = jsonUVs.at("uvB").at("y");
 
-      newSyncedLight->setUVs({uvAx, uvAy}, {uvBx, uvBy});
+      newSyncedLight->setUVs({{uvAx, uvAy}, {uvBx, uvBy}});
       m_syncedLights.insert({lightId, newSyncedLight});
 
     }
@@ -137,12 +137,6 @@ glm::vec2 FreenSync::screenResolution() const
 }
 
 
-std::mutex& FreenSync::uvMutex()
-{
-  return m_uvMutex;
-}
-
-
 void FreenSync::_loop()
 {
   m_keepLooping = true;
@@ -168,21 +162,12 @@ void FreenSync::_processScreenFrame()
   int imgHeight = img.rows;
 
   for(const auto& [_, light] : m_syncedLights){
-    int x0, y0, x1, y1;
-
-    {
-      std::lock_guard lock(m_uvMutex);
-      const SyncedLight::UVs& uvs = light->uvs();
-
-      x0 = uvs.first.x * imgWidth;
-      y0 = uvs.first.y * imgHeight;
-      x1 = uvs.second.x * imgWidth;
-      y1 = uvs.second.y * imgHeight;
-    }
+    const SyncedLight::UVs& uvs = light->uvs();
+    glm::ivec2 a{uvs.first.x * imgWidth, uvs.first.y * imgHeight};
+    glm::ivec2 b{uvs.second.x * imgWidth, uvs.second.y * imgHeight};
 
     cv::Mat subImage;
-    ImageProcessing::getSubImage(img, x0, y0, x1, y1).copyTo(subImage);
-
+    ImageProcessing::getSubImage(img, a, b).copyTo(subImage);
 
     Colors colors = ImageProcessing::getDominantColors(subImage, 1);
     light->setColor(colors.front());

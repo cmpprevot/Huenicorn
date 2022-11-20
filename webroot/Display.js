@@ -6,6 +6,15 @@ const BoundaryType =
 };
 
 
+class Utils
+{
+  static average(a, b)
+  {
+    return (a + b) / 2;
+  }
+}
+
+
 class Handle
 {
   constructor(owner, x, y, boundaryType)
@@ -56,10 +65,6 @@ class Handle
 
   _affectSiblings()
   {
-    function average(a, b){
-      return (a + b) / 2;
-    }
-
     if(this.xSibling){
       this.xSibling.x = this.x;
       
@@ -113,8 +118,8 @@ class Handle
         }
       }
 
-      let xDelta = this.x - average(xMin, xMax);
-      let yDelta = this.y - average(yMin, yMax);
+      let xDelta = this.x - Utils.average(xMin, xMax);
+      let yDelta = this.y - Utils.average(yMin, yMax);
 
       // Todo : check boundaries
       for(let sibling of this.equidistantSiblings){
@@ -195,7 +200,7 @@ class PortionWidget
     this.br.ySibling = this.bl;
 
 
-    this.middle = new Handle(this, (x2 - x1) / 2, (y2 - y1) / 2, [BoundaryType.Center, BoundaryType.Center]);
+    this.middle = new Handle(this, Utils.average(x1, x2), Utils.average(y1, y2), [BoundaryType.Center, BoundaryType.Center]);
     this.middle.equidistantSiblings.push(this.tl, this.tr, this.bl, this.br);
     this.tl.middleSibling = this.middle;
     this.tr.middleSibling = this.middle;
@@ -259,18 +264,6 @@ class ScreenPreview
     this.canvas.style.height = this.width * ratio + "px";
 
     this.context.scale(this.dpi, this.dpi);
-  }
-
-  _drawRectangle(x1, y1, x2, y2)
-  {
-    this.context.fillStyle = "#ffffff80";
-    this.context.strokeStyle = "#ffffffff";
-
-    let width = x2 - x1;
-    let height = y2 - y1;
-
-    this.context.strokeRect(x1, y1, width, height);
-    this.context.fillRect(x1, y1, width, height);
   }
 
 
@@ -339,10 +332,12 @@ class ScreenPreview
     this.webApp.notifyUVs(newUV);
   }
 
+
   initLightRegion(light)
   {
     this.currentLight = light;
     this.portionWidget = new PortionWidget(this.currentLight.uvs, this.canvas);
+    this.screenPreview.draw();
   }
 
 

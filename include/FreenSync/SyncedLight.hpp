@@ -37,7 +37,7 @@ public:
   // Setters
   void setState(bool state);
   void setColor(const Color& color);
-  void setUVs(const glm::vec2& uvA, const glm::vec2& uvb);
+  const UVs& setUVs(UVs&& uvs);
 
 
 private:

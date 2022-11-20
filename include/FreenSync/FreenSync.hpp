@@ -27,7 +27,6 @@ public:
 
 
   glm::vec2 screenResolution() const;
-  std::mutex& uvMutex();
 
   SharedSyncedLight addSyncedLight(const std::string& lightId);
   void saveProfile() const;
@@ -55,8 +54,6 @@ private:
 
   //  Image Processing
   ImageData m_imageData;
-
-  std::mutex m_uvMutex;
 
 
   //  Rest server

@@ -100,7 +100,7 @@ bool RestServer::start(int port)
   m_settings->set_port(port);
 
   m_serviceThread.emplace([this](){m_service.start(m_settings);});
-  cout << "Started web UI" << endl;
+  cout << "Web UI ready and available at http://127.0.0.1:" << port << endl;
 
   return true;
 }
@@ -271,13 +271,16 @@ void RestServer::_setLightUVs(const SharedSession& session) const
     float uvBx = jsonUVs.at("uvB").at("x");
     float uvBy = jsonUVs.at("uvB").at("y");
 
-    {
-      std::lock_guard lock(m_freenSync->uvMutex());
-      m_freenSync->syncedLights().at(lightId)->setUVs({uvAx, uvAy}, {uvBx, uvBy});
-    }
+    const auto& clampedUVs = m_freenSync->syncedLights().at(lightId)->setUVs({{uvAx, uvAy}, {uvBx, uvBy}});
 
-    // Todo : Return corrected values
-    string response = data;
+    json jsonResponse = {
+      {
+        {"uvA", {{"x", clampedUVs.first.x}, {"y", clampedUVs.first.y}}},
+        {"uvB", {{"x", clampedUVs.second.x}, {"y", clampedUVs.second.y}}}
+      }
+    };
+
+    string response = jsonResponse.dump();
     
     session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
   });

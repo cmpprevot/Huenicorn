@@ -13,7 +13,7 @@ namespace ImageProcessing
 {
   void rescale(cv::Mat& img, int targetWidth);
 
-  cv::Mat getSubImage(const cv::Mat& sourceImage, int x0, int y0, int x1, int y1);
+  cv::Mat getSubImage(const cv::Mat& sourceImage, const glm::ivec2& a, const glm::ivec2& b);
 
   Colors getDominantColors(cv::Mat& img, unsigned k = 1);
 };
