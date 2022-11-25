@@ -35,6 +35,10 @@ namespace ImageProcessing{
 
   Colors getDominantColors(cv::Mat& img, unsigned k)
   {
+    if(img.cols < 1 || img.rows < 1){
+      return {Color(0, 0, 0)};
+    }
+
     Colors dominantColors;
     dominantColors.reserve(k);
     cv::Mat data = img.reshape(1, img.total());

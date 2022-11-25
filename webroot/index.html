@@ -2,10 +2,11 @@
 <!DOCTYPE html>
 <html>
   <head>
-  <title>FreenSync control interface</title>
+    <title>FreenSync control interface</title>
+    <link rel="stylesheet" href="style.css">
   </head>
 
-  <body style="background-color: #202020;">
+  <body>
     <h1>FreenSync control interface</h1>
 
     <p>
@@ -27,9 +28,27 @@
       <button id="saveProfileButton">Save profile</button>
     </p>
 
-    <section id="managementArea">
-      <canvas id="screenPreview"></canvas>
-    </section>
+    <svg width="960px" height="540px" id="svgArea">
+      <!-- SVG area -->
+      <rect x="0%" y="0%" width="100%" height="100%"/>
+
+      <!-- Screen area -->
+      <svg x="10%" y="10%" width="80%" height="80%">
+        <rect x="0%" y="0%" width="100%" height="100%" id="screenArea"/>
+
+        <!-- UV area + handlers -->
+        <svg y="0%" y="0%" width="100%" height="100%">
+          <rect x="0%" y="10%" width="50%" height="50%" id="uvArea"/>
+          <circle r="2.5%" cx="0%" cy="0%" class="handler" id="tl"/>
+          <circle r="2.5%" cx="100%" cy="0%" class="handler" id="tr"/>
+          <circle r="2.5%" cx="0%" cy="100%" class="handler" id="bl"/>
+          <circle r="2.5%" cx="100%" cy="100%" class="handler" id="br"/>
+        </svg>
+      </svg>
+    </svg>
+
+
+
 
     <script src="Light.js"></script>
     <script src="Utils.js"></script>

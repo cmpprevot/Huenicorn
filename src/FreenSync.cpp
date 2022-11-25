@@ -55,10 +55,10 @@ void FreenSync::saveProfile() const
       {"id", id},
       {"uvs", {
           {
-            "uvA", {{"x", uvs.first.x}, {"y", uvs.first.y}}
+            "uvA", {{"x", uvs.min.x}, {"y", uvs.min.y}}
           },
           {
-            "uvB", {{"x", uvs.second.x}, {"y", uvs.second.y}}
+            "uvB", {{"x", uvs.max.x}, {"y", uvs.max.y}}
           }
         }
       }
@@ -95,7 +95,8 @@ void FreenSync::_loadProfile()
       float uvBx = jsonUVs.at("uvB").at("x");
       float uvBy = jsonUVs.at("uvB").at("y");
 
-      newSyncedLight->setUVs({{uvAx, uvAy}, {uvBx, uvBy}});
+      newSyncedLight->setUV({uvAx, uvAy}, SyncedLight::UVType::TopLeft);
+      newSyncedLight->setUV({uvBx, uvBy}, SyncedLight::UVType::BottomRight);
       m_syncedLights.insert({lightId, newSyncedLight});
 
     }
@@ -163,8 +164,8 @@ void FreenSync::_processScreenFrame()
 
   for(const auto& [_, light] : m_syncedLights){
     const SyncedLight::UVs& uvs = light->uvs();
-    glm::ivec2 a{uvs.first.x * imgWidth, uvs.first.y * imgHeight};
-    glm::ivec2 b{uvs.second.x * imgWidth, uvs.second.y * imgHeight};
+    glm::ivec2 a{uvs.min.x * imgWidth, uvs.min.y * imgHeight};
+    glm::ivec2 b{uvs.max.x * imgWidth, uvs.max.y * imgHeight};
 
     cv::Mat subImage;
     ImageProcessing::getSubImage(img, a, b).copyTo(subImage);

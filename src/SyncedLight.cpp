@@ -52,10 +52,10 @@ nlohmann::json SyncedLight::serialize() const
     {"productName", m_lightSummary.productName},
     {"uvs", {
         {
-          "uvA", {{"x", m_uvs.first.x}, {"y", m_uvs.first.y}}
+          "uvA", {{"x", m_uvs.min.x}, {"y", m_uvs.min.y}}
         },
         {
-          "uvB", {{"x", m_uvs.second.x}, {"y", m_uvs.second.y}}
+          "uvB", {{"x", m_uvs.max.x}, {"y", m_uvs.max.y}}
         }
       }
     },
@@ -88,14 +88,55 @@ void SyncedLight::setColor(const Color& color)
 }
 
 
-const SyncedLight::UVs& SyncedLight::setUVs(UVs&& uvs)
+const SyncedLight::UVs& SyncedLight::setUV(UV&& uv, SyncedLight::UVType uvType)
 {
-  uvs.first.x = glm::clamp(uvs.first.x, 0.f, 1.f);
-  uvs.first.y = glm::clamp(uvs.first.y, 0.f, 1.f);
-  uvs.second.x = glm::clamp(uvs.second.x, 0.f, 1.f);
-  uvs.second.y = glm::clamp(uvs.second.y, 0.f, 1.f);
+  UVs newUVs = m_uvs;
+  uv.x = glm::clamp(uv.x, 0.f, 1.f);
+  uv.y = glm::clamp(uv.y, 0.f, 1.f);
 
-  std::swap(m_uvs, uvs);
+  switch (uvType)
+  {
+    case UVType::TopLeft:
+    {
+      newUVs.min.x = uv.x;
+      newUVs.min.y = uv.y;
+      newUVs.max.x = glm::max(uv.x, newUVs.max.x);
+      newUVs.max.y = glm::max(uv.y, newUVs.max.y);
+      break;
+    }
+
+    case UVType::TopRight:
+    {
+      newUVs.max.x = uv.x;
+      newUVs.min.y = uv.y;
+      newUVs.min.x = glm::min(uv.x, newUVs.min.x);
+      newUVs.max.y = glm::max(uv.y, newUVs.max.y);
+      break;
+    }
+
+    case UVType::BottomLeft:
+    {
+      newUVs.min.x = uv.x;
+      newUVs.max.y = uv.y;
+      newUVs.max.x = glm::max(uv.x, newUVs.max.x);
+      newUVs.min.y = glm::min(uv.y, newUVs.min.y);
+      break;
+    }
+
+    case UVType::BottomRight:
+    {
+      newUVs.max.x = uv.x;
+      newUVs.max.y = uv.y;
+      newUVs.min.x = glm::min(uv.x, newUVs.min.x);
+      newUVs.min.y = glm::min(uv.y, newUVs.min.y);
+      break;
+    }
+
+    default:
+      break;
+  }
+
+  std::swap(m_uvs, newUVs);
 
   return m_uvs;
 }

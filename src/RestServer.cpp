@@ -70,8 +70,8 @@ m_webroot("webroot")
 
   {
     auto resource = make_shared<restbed::Resource>();
-    resource->set_path("/setLightUVs/{lightId: .+}");
-    resource->set_method_handler("PUT", [this](SharedSession session){_setLightUVs(session);});
+    resource->set_path("/setLightUV/{lightId: .+}");
+    resource->set_method_handler("PUT", [this](SharedSession session){_setLightUV(session);});
     m_service.publish(resource);
   }
 
@@ -252,7 +252,7 @@ void RestServer::_getWebFile(const SharedSession& session) const
 }
 
 
-void RestServer::_setLightUVs(const SharedSession& session) const
+void RestServer::_setLightUV(const SharedSession& session) const
 {
   const auto request = session->get_request();
   int contentLength = request->get_header("Content-Length", 0);
@@ -264,20 +264,17 @@ void RestServer::_setLightUVs(const SharedSession& session) const
     const auto& request = session->get_request();
     string lightId = request->get_path_parameter("lightId");
 
-    json jsonUVs = json::parse(data);
+    json jsonUV = json::parse(data);
 
-    float uvAx = jsonUVs.at("uvA").at("x");
-    float uvAy = jsonUVs.at("uvA").at("y");
-    float uvBx = jsonUVs.at("uvB").at("x");
-    float uvBy = jsonUVs.at("uvB").at("y");
+    float x = jsonUV.at("x");
+    float y = jsonUV.at("y");
+    SyncedLight::UVType uvType = static_cast<SyncedLight::UVType>(jsonUV.at("type").get<int>());
 
-    const auto& clampedUVs = m_freenSync->syncedLights().at(lightId)->setUVs({{uvAx, uvAy}, {uvBx, uvBy}});
+    const auto& clampedUVs = m_freenSync->syncedLights().at(lightId)->setUV({x, y}, uvType);
 
     json jsonResponse = {
-      {
-        {"uvA", {{"x", clampedUVs.first.x}, {"y", clampedUVs.first.y}}},
-        {"uvB", {{"x", clampedUVs.second.x}, {"y", clampedUVs.second.y}}}
-      }
+      {"uvA", {{"x", clampedUVs.min.x}, {"y", clampedUVs.min.y}}},
+      {"uvB", {{"x", clampedUVs.max.x}, {"y", clampedUVs.max.y}}}
     };
 
     string response = jsonResponse.dump();
@@ -333,7 +330,6 @@ void RestServer::_saveProfile(const SharedSession& session) const
   int contentLength = request->get_header("Content-Length", 0);
 
   session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-
     m_freenSync->saveProfile();
 
     json jsonResponse = {

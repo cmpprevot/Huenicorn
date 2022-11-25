@@ -1,349 +1,172 @@
-const BoundaryType =
-{
-  Min: 0,
-  Max: 1,
-  Center: 2
-};
-
-
 class Utils
 {
-  static average(a, b)
+  static clamp(value, min, max)
   {
-    return (a + b) / 2;
+    return Math.max(min, Math.min(value, max));
   }
 }
 
 
 class Handle
 {
-  constructor(owner, x, y, boundaryType)
+  static Type =
   {
-    owner.handles.push(this);
-    this.x = x;
-    this.y = y;
-    this.boundaryType = boundaryType;
+    TopLeft : 0,
+    TopRight : 1,
+    BottomLeft : 2,
+    BottomRight : 3
+  };
 
-    this.radius = 10;
-    this._hovered = false;
-    this.xSibling = null;
-    this.ySibling = null;
-    this.equidistantSiblings = [];
-    this.middleSibling = null;
-  }
 
-  setPosition(x, y)
+  static MapHandleTypeId =
   {
-    this.x = x;
-    this.y = y;
+    "tl" : Handle.Type.TopLeft,
+    "tr" : Handle.Type.TopRight,
+    "bl" : Handle.Type.BottomLeft,
+    "br" : Handle.Type.BottomRight
+  };
 
-    this._affectSiblings();
-  }
 
-
-  hovered(x, y)
+  constructor(handleId, controller)
   {
-    let distX = Math.abs(x - this.x);
-    let distY = Math.abs(y - this.y);
-
-    this._hovered = (distX * distX + distY * distY) < this.radius * this.radius;
-    return this._hovered;
+    this.handleNode = document.getElementById(handleId);
+    this.controller = controller;
+    this.handleNode.addEventListener("mousedown", () => {this.drag();});
+    this.type = Handle.MapHandleTypeId[handleId];
   }
 
 
-  draw(context)
+  drag()
   {
-    context.fillStyle = this._hovered ? "#0088ff" : "#446688";
-    context.strokeStyle = "#0088ffff";
-
-    context.beginPath();
-    context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-    context.fill();
-    context.stroke();
+    this.controller.draggedHandle = this;
   }
 
 
-  _affectSiblings()
+  drop()
   {
-    if(this.xSibling){
-      this.xSibling.x = this.x;
-      
-      if(this.boundaryType[1] == BoundaryType.Min){
-        if(this.y > this.xSibling.y){
-          this.xSibling.setPosition(this.xSibling.x, this.y);
-        }
-      }
-      else if(this.boundaryType[1] == BoundaryType.Max){
-        if(this.y < this.xSibling.y){
-          this.xSibling.setPosition(this.xSibling.x, this.y);
-        }
-      }
-    }
-
-    if(this.ySibling){
-      this.ySibling.y = this.y;
-
-      if(this.boundaryType[0] == BoundaryType.Min){
-        if(this.x > this.ySibling.x){
-          this.ySibling.setPosition(this.x, this.ySibling.y);
-        }
-      }
-      else if(this.boundaryType[0] == BoundaryType.Max){
-        if(this.x < this.ySibling.x){
-          this.ySibling.setPosition(this.x, this.ySibling.y);
-        }
-      }
-    }
-
-    if( this.boundaryType[0] == BoundaryType.Center &&
-        this.boundaryType[0] == BoundaryType.Center){
-
-      let xMin = null;
-      let yMin = null;
-      let xMax = null;
-      let yMax = null;
-
-      for(let sibling of this.equidistantSiblings){
-        if(xMin == null && sibling.boundaryType[0] == BoundaryType.Min){
-          xMin = sibling.x;
-        }
-        if(xMax == null && sibling.boundaryType[0] == BoundaryType.Max){
-          xMax = sibling.x;
-        }
-        if(yMin == null && sibling.boundaryType[1] == BoundaryType.Min){
-          yMin = sibling.y;
-        }
-        if(yMax == null && sibling.boundaryType[1] == BoundaryType.Max){
-          yMax = sibling.y;
-        }
-      }
-
-      let xDelta = this.x - Utils.average(xMin, xMax);
-      let yDelta = this.y - Utils.average(yMin, yMax);
-
-      // Todo : check boundaries
-      for(let sibling of this.equidistantSiblings){
-        continue;
-      }
-
-      // Apply
-      for(let sibling of this.equidistantSiblings){
-        sibling.x += xDelta;
-        sibling.y += yDelta;
-      }
-    }
-
-    if(this.middleSibling){
-      this.middleSibling.x = average(this.x, this.ySibling.x);
-      this.middleSibling.y = average(this.y, this.xSibling.y);
-    }
-  }
-}
-
-
-class Rectangle
-{
-  constructor(vertexA, vertexB)
-  {
-    this.vertexA = vertexA;
-    this.vertexB = vertexB;
+    log("Dropped");
   }
 
 
-  draw(context)
+  setPosition(position, notify = false)
   {
-    context.fillStyle = "#ffffff80";
-    context.strokeStyle = "#ffffffff";
+    let screenDimensions = this.controller.screenDimensions();
+    let maxX = screenDimensions.x;
+    let maxY = screenDimensions.y;
+    let minX = 0;
+    let minY = 0;
 
-    let width = this.vertexB.x - this.vertexA.x;
-    let height = this.vertexB.y - this.vertexA.y;
+    let x = Utils.clamp(position.x, minX, maxX);
+    let y = Utils.clamp(position.y, minY, maxY);
 
-    context.strokeRect(this.vertexA.x, this.vertexA.y, width, height);
-    context.fillRect(this.vertexA.x, this.vertexA.y, width, height);
-  }
-}
+    this.handleNode.setAttribute("cx", x);
+    this.handleNode.setAttribute("cy", y);
 
+    let xRange = (maxX - minX);
+    let xNorm = x / xRange;
+    let yRange = (maxY - minY);
+    let yNorm = y / yRange;
 
-class PortionWidget
-{
-  constructor(uvs, canvas)
-  {
-    this.handles = [];
-    this.boundaries = {
-      xMin : 0,
-      yMin : 0,
-      xMax : canvas.width,
-      yMax : canvas.height
+    let uvData = {
+      x : xNorm,
+      y : yNorm,
+      type : this.type
     };
 
-    let x1 = uvs.uvA.x * canvas.width;
-    let y1 = uvs.uvA.y * canvas.height;
-
-    let x2 = uvs.uvB.x * canvas.width;
-    let y2 = uvs.uvB.y * canvas.height;
-
-    this.tl = new Handle(this, x1, y1, [BoundaryType.Min, BoundaryType.Min]);
-    this.bl = new Handle(this, x1, y2, [BoundaryType.Min, BoundaryType.Max]);
-    this.tr = new Handle(this, x2, y1, [BoundaryType.Max, BoundaryType.Min]);
-    this.br = new Handle(this, x2, y2, [BoundaryType.Max, BoundaryType.Max]);
-
-    this.tl.xSibling = this.bl;
-    this.bl.xSibling = this.tl;
-
-    this.tr.xSibling = this.br;
-    this.br.xSibling = this.tr;
-
-    this.tl.ySibling = this.tr;
-    this.tr.ySibling = this.tl;
-
-    this.bl.ySibling = this.br;
-    this.br.ySibling = this.bl;
-
-
-    this.middle = new Handle(this, Utils.average(x1, x2), Utils.average(y1, y2), [BoundaryType.Center, BoundaryType.Center]);
-    this.middle.equidistantSiblings.push(this.tl, this.tr, this.bl, this.br);
-    this.tl.middleSibling = this.middle;
-    this.tr.middleSibling = this.middle;
-    this.bl.middleSibling = this.middle;
-    this.br.middleSibling = this.middle;
-
-    this.rectangle = new Rectangle(this.tl, this.br);
-  }
-
-
-  getHoveredHandle(x, y)
-  {
-    for(let handle of this.handles){
-      if(handle.hovered(x, y)){
-        return handle;
-      }
-    }
-
-    return null;
-  }
-
-
-  draw(context)
-  {
-    this.rectangle.draw(context);
-
-    for(let handle of this.handles){
-      handle.draw(context);
+    if(notify){
+      this.controller._updateUVs(uvData);
     }
   }
 }
 
-class ScreenPreview
+
+class Controller
 {
-  constructor(webApp){
+  constructor(svgAreaId, webApp)
+  {
+    this.svgAreaNode = document.getElementById(svgAreaId);
+    this.screenAreaNode = document.getElementById("screenArea");
+    this.uvAreaNode = document.getElementById("uvArea");
+    this.inverseMatrix = this.screenAreaNode.getScreenCTM().inverse();
+
     this.webApp = webApp;
-    this.width = 1024;
-    this.canvas = document.getElementById("screenPreview");
-    this.canvas.style.backgroundColor = "#000000";
-    this.canvas.style.width = this.width + "px";
-    this.dpi = window.devicePixelRatio;
-    this.context = this.canvas.getContext("2d");
 
-    this.mouseDown = false;
+    let handleIds = ["tl", "tr", "bl", "br"];
+    this.handles = {}
 
-    this.canvas.onmousemove = (data) => {this._updateCursorPosition(data)};
-    this.canvas.onmousedown = (data) => {this._checkMouse(data)};
-    this.canvas.onmouseup = (data) => {this._checkMouse(data)};
-    this.canvas.onmouseout = (data) => {this._leaveMouse(data)};
-  }
-
-
-  setDimensions(screenX, screenY)
-  {
-    let ratio = screenY / screenX;
-
-    this.canvas.width = this.width;
-    this.canvas.height = this.width * ratio;
-
-    this.canvas.style.width = this.width + "px";
-    this.canvas.style.height = this.width * ratio + "px";
-
-    this.context.scale(this.dpi, this.dpi);
-  }
-
-
-  _updateCursorPosition(data){
-    var rect = this.canvas.getBoundingClientRect();
-    let x = data.clientX - rect.left;
-    let y = data.clientY - rect.top;
-
-    if(!this.portionWidget){
-      return;
-    }
-
-    this.hoveredHandle = this.hoveredHandle || this.portionWidget.getHoveredHandle(x, y);
-
-    if(this.hoveredHandle){
-      if(this.mouseDown){
-        var rect = this.canvas.getBoundingClientRect();
-        let x = data.layerX - rect.x;
-        let y = data.layerY - rect.y;
-        this.hoveredHandle.setPosition(x, y);
-
-        this._updateUVs();
-      }
-    }
-
-    this.draw();
-  }
-
-
-  _checkMouse(data)
-  {
-    if(data.buttons == 1){
-      this.mouseDown = true;
-    }
-    else if(data.buttons == 0){
-      this.mouseDown = false;
-      this.hoveredHandle = undefined;
-    }
-  }
-
-  _leaveMouse(data)
-  {
-    this.mouseDown = false;
-  }
-
-
-  _updateUVs()
-  {
-    let uvAx = this.portionWidget.tl.x / this.canvas.width;
-    let uvAy = this.portionWidget.tl.y / this.canvas.height;
-
-    let uvBx = this.portionWidget.br.x / this.canvas.width;
-    let uvBy = this.portionWidget.br.y / this.canvas.height;
-
-    let newUV = {
-      uvA : {
-        x : uvAx,
-        y : uvAy
-      },
-      uvB : {
-        x : uvBx,
-        y : uvBy
-      }
+    for(let handleId of handleIds){
+      this.handles[handleId] = new Handle(handleId, this);
     };
 
-    this.webApp.notifyUVs(newUV);
+    document.addEventListener("mouseup", () => {this.drop();})
+    this.svgAreaNode.addEventListener("mousemove", (event) => {this._updateMousePosition(event);});
+    this.svgAreaNode.addEventListener("mouseup", () => {this.drop();});
+
+    this.draggedHandle = null;
+    this.currentLight = null;
+  }
+
+
+  screenDimensions()
+  {
+    let bbox = this.screenAreaNode.getBoundingClientRect();
+    return {x : bbox.width, y : bbox.height};
   }
 
 
   initLightRegion(light)
   {
     this.currentLight = light;
-    this.portionWidget = new PortionWidget(this.currentLight.uvs, this.canvas);
-    this.screenPreview.draw();
+    this._updateShape(light.uvs);
   }
 
 
-  draw()
+  drop()
   {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    this.portionWidget.draw(this.context);
+    if(this.draggedHandle){
+      this.draggedHandle.drop();
+      this.draggedHandle = null;
+    }
+  }
+
+
+  uvCallback(uvs)
+  {
+    this._updateShape(uvs);
+  }
+
+
+  _updateShape(uvs)
+  {
+    let screenDimensions = this.screenDimensions();
+
+    let ax = uvs.uvA.x * screenDimensions.x;
+    let ay = uvs.uvA.y * screenDimensions.y;
+    let bx = uvs.uvB.x * screenDimensions.x;
+    let by = uvs.uvB.y * screenDimensions.y;
+
+    this.handles["tl"].setPosition({x : ax, y : ay});
+    this.handles["tr"].setPosition({x : bx, y : ay});
+    this.handles["bl"].setPosition({x : ax, y : by});
+    this.handles["br"].setPosition({x : bx, y : by});
+
+    this.uvAreaNode.setAttribute("x", ax);
+    this.uvAreaNode.setAttribute("y", ay);
+    this.uvAreaNode.setAttribute("width", bx - ax);
+    this.uvAreaNode.setAttribute("height", by - ay);
+  }
+
+  _updateMousePosition(event)
+  {
+    if(this.draggedHandle){
+      let point = new DOMPoint(event.clientX, event.clientY);
+      this.draggedHandle.setPosition(point.matrixTransform(this.inverseMatrix), true);
+    }
+  }
+
+
+  _updateUVs(uvData)
+  {
+    this.webApp.notifyUV(uvData);
   }
 }

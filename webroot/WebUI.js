@@ -10,7 +10,8 @@ class WebUI
     this.syncedLightSelectorNode.onchange = (data) => {this._manageLight(data.target.value);};
 
     this.availableLights = {};
-    this.screenPreview = new ScreenPreview(this);
+
+    this.controller = new Controller("svgArea", this);
 
     this.syncButton = document.getElementById("syncButton");
     this.syncButton.addEventListener("click", () => {this._syncLight();});
@@ -21,23 +22,22 @@ class WebUI
 
   initUI()
   {
-    RequestUtils.get("http://127.0.0.1:8080/allLights", (data) => this._refreshLightLists(data));
-    RequestUtils.get("http://127.0.0.1:8080/screen", (data) => this._screenPreviewCallback(data));
+    RequestUtils.get("/allLights", (data) => this._refreshLightLists(data));
+    RequestUtils.get("/screen", (data) => this._screenPreviewCallback(data));
   }
 
 
-  notifyUVs(uvs)
+  notifyUV(uvData)
   {
-    RequestUtils.put("http://127.0.0.1:8080/setLightUVs/" + this.screenPreview.currentLight.id, JSON.stringify(uvs), (data) => {log("Set uv");});
+    RequestUtils.put("/setLightUV/" + this.controller.currentLight.id, JSON.stringify(uvData), (jsonCheckedUVs) => {this.controller.uvCallback(JSON.parse(jsonCheckedUVs));});
   }
 
 
   _syncLight()
   {
     let lightId = this.availableLightSelectorNode.value;
-    log(this.availableLightSelectorNode);
 
-    RequestUtils.post("http://127.0.0.1:8080/syncLight", JSON.stringify({id : lightId}), (jsonData) => {
+    RequestUtils.post("/syncLight", JSON.stringify({id : lightId}), (jsonData) => {
       let data = JSON.parse(jsonData);
       this._refreshSyncedLights(data["syncedLights"]);
       if("newSyncedLightId" in data){
@@ -107,19 +107,19 @@ class WebUI
     let x = screen.x;
     let y = screen.y;
 
-    this.screenPreview.setDimensions(x, y);
+    //this.screenPreview.setDimensions(x, y);
   }
 
 
   _manageLight(lightId)
   {
     let light = this.availableLights[lightId];
-    this.screenPreview.initLightRegion(light);
+    this.controller.initLightRegion(light);
   }
 
 
   _saveProfile()
   {
-    RequestUtils.post("http://127.0.0.1:8080/saveProfile", JSON.stringify(null), (data) => {log("Saved profile");});
+    RequestUtils.post("/saveProfile", JSON.stringify(null), (data) => {log("Saved profile");});
   }
 }

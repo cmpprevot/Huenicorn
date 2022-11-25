@@ -22,7 +22,20 @@ class SyncedLight : public std::enable_shared_from_this<SyncedLight>
 friend BridgeData;
 
 public:
-  using UVs = std::pair<glm::vec2, glm::vec2>;
+  using UV = glm::vec2;
+  struct UVs{
+    UV min;
+    UV max;
+  };
+
+
+  enum UVType
+  {
+    TopLeft = 0,
+    TopRight = 1,
+    BottomLeft = 2,
+    BottomRight = 3
+  };
 
   SyncedLight(SharedBridgeData bridgeData, const std::string& id, const LightSummary& lightSummary);
 
@@ -37,7 +50,7 @@ public:
   // Setters
   void setState(bool state);
   void setColor(const Color& color);
-  const UVs& setUVs(UVs&& uvs);
+  const UVs& setUV(UV&& uv, UVType uvType);
 
 
 private:
