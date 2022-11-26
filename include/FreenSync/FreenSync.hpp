@@ -14,20 +14,22 @@ using SharedBridgeData = std::shared_ptr<BridgeData>;
 class FreenSync
 {
 public:
+  // Constructor
   FreenSync();
-
-  void start();
-
-  void stop();
 
 
   // Getters
-  const LightSummaries& availableLights();
-  const SyncedLights& syncedLights();
-
-
+  const LightSummaries& availableLights() const;
+  const SyncedLights& syncedLights() const;
+  SharedSyncedLight syncedLight(const std::string& lightId) const;
+  bool syncedLightExists(const std::string& lightId) const;
   glm::vec2 screenResolution() const;
 
+
+
+  // Methods
+  void start();
+  void stop();
   SharedSyncedLight addSyncedLight(const std::string& lightId);
   void saveProfile() const;
 

@@ -25,6 +25,7 @@ private:
   // Handlers
   void _getAvailableLights(const SharedSession& session) const;
   void _getSyncedLights(const SharedSession& session) const;
+  void _getSyncedLight(const SharedSession& session) const;
   void _getAllLights(const SharedSession& session) const;
   void _getScreen(const SharedSession& session) const;
   void _getWebFile(const SharedSession& session) const;

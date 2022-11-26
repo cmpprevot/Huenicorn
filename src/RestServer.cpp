@@ -56,6 +56,13 @@ m_webroot("webroot")
 
   {
     auto resource = make_shared<restbed::Resource>();
+    resource->set_path("/syncedLight/{lightId: .+}");
+    resource->set_method_handler("GET", [this](SharedSession session){_getSyncedLight(session);});
+    m_service.publish(resource);
+  }
+
+  {
+    auto resource = make_shared<restbed::Resource>();
     resource->set_path("/allLights");
     resource->set_method_handler("GET", [this](SharedSession session){_getAllLights(session);});
     m_service.publish(resource);
@@ -125,8 +132,6 @@ void RestServer::_getAvailableLights(const SharedSession& session) const
   int contentLength = request->get_header("Content-Length", 0);
 
   session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-    const auto& request = session->get_request();
-
     json jsonLights = json::array();
     for(const auto& [_, light] : m_freenSync->availableLights()){
       jsonLights.push_back(
@@ -150,8 +155,6 @@ void RestServer::_getSyncedLights(const SharedSession& session) const
   int contentLength = request->get_header("Content-Length", 0);
 
   session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-    const auto& request = session->get_request();
-
     json jsonLights = json::array();
     for(const auto& [_, light] : m_freenSync->syncedLights()){
       jsonLights.push_back(light->serialize());
@@ -164,14 +167,29 @@ void RestServer::_getSyncedLights(const SharedSession& session) const
 }
 
 
+void RestServer::_getSyncedLight(const SharedSession& session) const
+{
+  const auto request = session->get_request();
+  int contentLength = request->get_header("Content-Length", 0);
+  string lightId = request->get_path_parameter("lightId");
+
+  session->fetch(contentLength, [this, lightId](const SharedSession& session, const restbed::Bytes& body){
+    SharedSyncedLight syncedLight = this->m_freenSync->syncedLight(lightId);
+
+    json jsonLight = syncedLight ? syncedLight->serialize() : json::object();
+    string response = jsonLight.dump();
+
+    session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+  });
+}
+
+
 void RestServer::_getAllLights(const SharedSession& session) const
 {
   const auto request = session->get_request();
   int contentLength = request->get_header("Content-Length", 0);
 
   session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-    const auto& request = session->get_request();
-
     json jsonAvailableLights = json::array();
     for(const auto& [_, light] : m_freenSync->availableLights()){
       jsonAvailableLights.push_back({
@@ -258,9 +276,7 @@ void RestServer::_setLightUV(const SharedSession& session) const
   int contentLength = request->get_header("Content-Length", 0);
 
   session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-
     string data(reinterpret_cast<const char*>(body.data()), body.size());
-
     const auto& request = session->get_request();
     string lightId = request->get_path_parameter("lightId");
 

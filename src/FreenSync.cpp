@@ -22,6 +22,31 @@ m_restServer(this)
 }
 
 
+const LightSummaries& FreenSync::availableLights() const
+{
+  return m_bridge->lightSummaries();
+}
+
+
+const SyncedLights& FreenSync::syncedLights() const
+{
+  return m_syncedLights;
+}
+
+
+SharedSyncedLight FreenSync::syncedLight(const std::string& lightId) const
+{
+  const auto& syncedLight = m_syncedLights.find(lightId);
+  return (syncedLight != m_syncedLights.end()) ? syncedLight->second : nullptr;
+}
+
+
+glm::vec2 FreenSync::screenResolution() const
+{
+  return ScreenUtils::getScreenResolution();
+}
+
+
 void FreenSync::start()
 {
   if(m_loopThread.has_value()){
@@ -34,6 +59,22 @@ void FreenSync::start()
   m_loopThread.emplace([this](){_loop();});
 
   _loadProfile();
+}
+
+
+void FreenSync::stop()
+{
+  if(!m_loopThread.has_value()){
+    cout << "Service is not running" << endl;
+    return;
+  }
+
+  m_keepLooping = false;
+  m_loopThread.value().join();
+
+  m_restServer.stop();
+
+  _shutdownLights();
 }
 
 
@@ -101,40 +142,6 @@ void FreenSync::_loadProfile()
 
     }
   }
-}
-
-
-void FreenSync::stop()
-{
-  if(!m_loopThread.has_value()){
-    cout << "Service is not running" << endl;
-    return;
-  }
-
-  m_keepLooping = false;
-  m_loopThread.value().join();
-
-  m_restServer.stop();
-
-  _shutdownLights();
-}
-
-
-const LightSummaries& FreenSync::availableLights()
-{
-  return m_bridge->lightSummaries();
-}
-
-
-const SyncedLights& FreenSync::syncedLights()
-{
-  return m_syncedLights;
-}
-
-
-glm::vec2 FreenSync::screenResolution() const
-{
-  return ScreenUtils::getScreenResolution();
 }
 
 

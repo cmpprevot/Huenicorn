@@ -103,18 +103,20 @@ class WebUI
 
   _screenPreviewCallback(jsonScreen)
   {
+    // ToDo : get ratio / resampled res to display / clip the handlers
+    /*
     let screen = JSON.parse(jsonScreen);
     let x = screen.x;
     let y = screen.y;
 
     //this.screenPreview.setDimensions(x, y);
+    */
   }
 
 
   _manageLight(lightId)
   {
-    let light = this.availableLights[lightId];
-    this.controller.initLightRegion(light);
+    RequestUtils.get(`/syncedLight/${lightId}`, (data) => {this.controller.initLightRegion(JSON.parse(data));});
   }
 
 
