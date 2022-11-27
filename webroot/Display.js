@@ -87,7 +87,6 @@ class Controller
     this.svgAreaNode = document.getElementById(svgAreaId);
     this.screenAreaNode = document.getElementById("screenArea");
     this.uvAreaNode = document.getElementById("uvArea");
-    this.inverseMatrix = this.screenAreaNode.getScreenCTM().inverse();
 
     this.webApp = webApp;
 
@@ -118,6 +117,17 @@ class Controller
   {
     this.currentLight = light;
     this._updateShape(light.uvs);
+    this.showWidgets();
+  }
+
+
+  showWidgets()
+  {
+    this.uvAreaNode.style.display = "block";
+    for(let [key, handle] of Object.entries(this.handles)){
+      log(handle)
+      handle.handleNode.style.display = "block";
+    }
   }
 
 
@@ -159,8 +169,14 @@ class Controller
   _updateMousePosition(event)
   {
     if(this.draggedHandle){
-      let point = new DOMPoint(event.clientX, event.clientY);
-      this.draggedHandle.setPosition(point.matrixTransform(this.inverseMatrix), true);
+      var ctm = this.screenAreaNode.getScreenCTM();
+
+      let point = {
+        x: (event.clientX - ctm.e) / ctm.a,
+        y: (event.clientY - ctm.f) / ctm.d
+      }
+
+      this.draggedHandle.setPosition(point, true);
     }
   }
 
