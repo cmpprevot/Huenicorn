@@ -125,7 +125,6 @@ class Controller
   {
     this.uvAreaNode.style.display = "block";
     for(let [key, handle] of Object.entries(this.handles)){
-      log(handle)
       handle.handleNode.style.display = "block";
     }
   }

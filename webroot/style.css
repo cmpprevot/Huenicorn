@@ -1,18 +1,91 @@
+:root
+{
+  --foregroundColor: #ffffff;
+  --backgroundColor: #000000;
+  --border: 1px solid rgba(255, 255, 255, 0.1);
+  --shadow: 0px 0px 25px rgba(255, 255, 255, 0.25);
+  --border: 1px solid rgba(255, 255, 255, 0.5);
+  --borderRadius: 10px;
+}
+
+
 body
 {
   width: 1024px;
   margin-left: auto;
   margin-right: auto;
   text-align: center;
-  background-color: #002040;
-  color: #0080f0;
+  background-color: var(--backgroundColor);
+  color: var(--foregroundColor);
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
+
+
+h2
+{
+  font-size: 20px;
+}
+
+
+button
+{
+  width: 400px;
+  height: 30px;
+  background-color: var(--backgroundColor);
+  color: var(--foregroundColor);
+  border: var(--border);
+  box-shadow: var(--shadow);
+  border-radius: var(--borderRadius);
+}
+
+
+#lightLists
+{
+  width: 800px;
+  display: inline-block;
+}
+
+
+.listContainer
+{
+  display: inline-block;
+
+}
+
+.lightList
+{
+  height: 120px;
+  width: 300px;
+  margin: 10px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  overflow-y: scroll;
+  border: var(--border);
+  border-radius: var(--borderRadius);
+}
+
+
+.lightList>p
+{
+  margin: 0px;
+  padding: 10px;
+  font-size: 10pt;
+  border-bottom: var(--border);
+}
+
+
+.lightList>p:hover
+{
+  cursor: grab;
+}
+
 
 .handler
 {
   fill:rgba(255, 255, 255, 0.5);
   stroke:rgba(255, 255, 255, 1.0);
 }
+
 
 .handler:hover
 {
@@ -23,13 +96,18 @@ body
 
 #svgArea
 {
-  fill:rgba(255, 255, 255, 0.1);
+  fill:rgba(255, 255, 255, 0.01);
+  border: var(--border);
+  box-shadow: var(--shadow);
+  border-radius: var(--borderRadius);
 }
+
 
 #screenArea
 {
-  fill: rgba(255, 255, 255, 0.5);
+  fill: rgba(255, 255, 255, 0.25);
 }
+
 
 #uvArea
 {

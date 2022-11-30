@@ -2,19 +2,21 @@ class WebUI
 {
   constructor()
   {
-    this.availableLightSelectorNode = document.getElementById("availableLightSelector");
-    this.emptyAvailableOption = document.getElementById("emptyAvailableLightOption");
-    this.emptySyncedOption = document.getElementById("emptySyncedLightOption");
+    this.syncedLightsNode = document.getElementById("syncedLightsList");
+    this.syncedLightsNode.addEventListener("drop", (event) => {
+      this._syncLight(JSON.parse(event.dataTransfer.getData("lightData")).id);
+    });
 
-    this.syncedLightSelectorNode = document.getElementById("syncedLightSelector");
-    this.syncedLightSelectorNode.onchange = (data) => {this._manageLight(data.target.value);};
+    this.availableLightsNode = document.getElementById("availableLightsList");
+    this.availableLightsNode.addEventListener("drop", (event) => {
+      this._unsyncLight(JSON.parse(event.dataTransfer.getData("lightData")).id);
+    });
 
-    this.availableLights = {};
+    document.addEventListener("dragover", (event) => {event.preventDefault();});
+
+    this.syncedLights = {};
 
     this.controller = new Controller("svgArea", this);
-
-    this.syncButton = document.getElementById("syncButton");
-    this.syncButton.addEventListener("click", () => {this._syncLight();});
 
     this.saveProfileButton = document.getElementById("saveProfileButton");
     this.saveProfileButton.addEventListener("click", () => {this._saveProfile()})
@@ -22,7 +24,7 @@ class WebUI
 
   initUI()
   {
-    RequestUtils.get("/allLights", (data) => this._refreshLightLists(data));
+    RequestUtils.get("/allLights", (data) => this._refreshLightLists(JSON.parse(data)));
     RequestUtils.get("/screen", (data) => this._screenPreviewCallback(data));
   }
 
@@ -33,13 +35,12 @@ class WebUI
   }
 
 
-  _syncLight()
+  _syncLight(lightId)
   {
-    let lightId = this.availableLightSelectorNode.value;
-
     RequestUtils.post("/syncLight", JSON.stringify({id : lightId}), (jsonData) => {
       let data = JSON.parse(jsonData);
-      this._refreshSyncedLights(data["syncedLights"]);
+      //this._refreshSyncedLights(data.lights.synced);
+      this._refreshLightLists(data.lights)
       if("newSyncedLightId" in data){
         this._manageLight(data["newSyncedLightId"]);
       }
@@ -47,56 +48,64 @@ class WebUI
   }
 
 
-  _refreshLightLists(jsonData)
+  _unsyncLight(lightId)
   {
-    let data = JSON.parse(jsonData);
-    this._refreshAvailableLights(data["available"]);
-    this._refreshSyncedLights(data["synced"]);
+    RequestUtils.post("/unsyncLight", JSON.stringify({id : lightId}), (jsonData) => {
+      let data = JSON.parse(jsonData);
+      this._refreshLightLists(data.lights)
+    });
   }
+
+
+  _refreshLightLists(lights)
+  {
+    this.syncedLights = {};
+    this._refreshSyncedLights(lights["synced"]);
+    this._refreshAvailableLights(lights.available);
+  }
+
 
   _refreshSyncedLights(syncedLights)
   {
-    // Disable in available list
-    for(let syncedLight of syncedLights){
-      this.syncedLightSelectorNode.disabled = false;
-      for(let option of this.availableLightSelectorNode.options){
-        if(option.value == syncedLight.id){
-          option.disabled = true;
-        }
-      }
+    this.syncedLightsNode.innerHTML = "";
+    for(let lightData of syncedLights){
+      let newLightEntryNode = document.createElement("p");
+      newLightEntryNode.draggable = true;
 
-      let newLight = new Light(syncedLight)
-      this.availableLights[newLight.id] = newLight;
-      
-      let duplicate = [...this.syncedLightSelectorNode.options].map(o => o.value).includes(syncedLight.id);
+      let newLight = new Light(lightData)
+      newLightEntryNode.addEventListener("dragstart", (event) => {
+        event.dataTransfer.setData("lightData", JSON.stringify(newLight));
+      });
 
-      if(!duplicate){
-        let newLightOption = document.createElement("option");
-        newLightOption.value = newLight.id;
-        newLightOption.innerHTML = `${newLight.name} - ${newLight.productName}`;
-        this.syncedLightSelectorNode.appendChild(newLightOption);
+      newLightEntryNode.innerHTML = `${newLight.name} - ${newLight.productName}`;
 
-        this.syncedLightSelectorNode.value = newLight.id;
-      }
+      this.syncedLightsNode.appendChild(newLightEntryNode);
+      this.syncedLights[newLight.id] = newLight;
     }
   }
 
 
   _refreshAvailableLights(availableLights)
   {
-    if(availableLights.length > 0){
-      this.availableLightSelectorNode.disabled = false;
-      this.emptyAvailableOption.innerHTML = "Select a light to sync...";
-    }
+    this.availableLightsNode.innerHTML = "";
 
     for(let lightData of availableLights){
-      let newLight = new Light(lightData)
-      this.availableLights[newLight.id] = newLight;
+      if(lightData.id in this.syncedLights){
+        continue;
+      }
 
-      let newLightOption = document.createElement("option");
-      newLightOption.value = newLight.id;
-      newLightOption.innerHTML = `${newLight.name} - ${newLight.productName}`;
-      this.availableLightSelectorNode.appendChild(newLightOption);
+
+      let newLightEntryNode = document.createElement("p");
+      newLightEntryNode.draggable = true;
+
+      let newLight = new Light(lightData)
+      newLightEntryNode.addEventListener("dragstart", (event) => {
+        event.dataTransfer.setData("lightData", JSON.stringify(newLight));
+      });
+
+      newLightEntryNode.innerHTML = `${newLight.name} - ${newLight.productName}`;
+
+      this.availableLightsNode.appendChild(newLightEntryNode);
     }
   }
 

@@ -22,15 +22,18 @@ public:
   const LightSummaries& availableLights() const;
   const SyncedLights& syncedLights() const;
   SharedSyncedLight syncedLight(const std::string& lightId) const;
+  const nlohmann::json& jsonAvailableLights() const;
+  const nlohmann::json& jsonSyncedLights() const;
+  const nlohmann::json& jsonAllLights() const;
   bool syncedLightExists(const std::string& lightId) const;
   glm::vec2 screenResolution() const;
-
 
 
   // Methods
   void start();
   void stop();
   SharedSyncedLight addSyncedLight(const std::string& lightId);
+  bool removeSyncedLight(const std::string& lightId);
   void saveProfile() const;
 
 
@@ -41,6 +44,7 @@ private:
   void _loop();
   void _processScreenFrame();
   void _shutdownLights();
+  void _resetJsonLightsCache();
 
 
   // Attributes
@@ -53,6 +57,11 @@ private:
   //  Infrastructure
   SharedBridgeData m_bridge;
   SyncedLights m_syncedLights;
+
+  // Cache
+  mutable std::optional<nlohmann::json> m_cachedJsonAvailableLights;
+  mutable std::optional<nlohmann::json> m_cachedJsonSyncedLights;
+  mutable std::optional<nlohmann::json> m_cachedJsonAllLights;
 
   //  Image Processing
   ImageData m_imageData;

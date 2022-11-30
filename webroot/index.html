@@ -7,8 +7,9 @@
   </head>
 
   <body>
-    <h1>FreenSync control interface</h1>
+    <h1>FreenSync Light Manager</h1>
 
+    <!--
     <p>
       Available lights
       <select id="availableLightSelector" disabled>
@@ -23,13 +24,12 @@
         <option id="emptySyncedLightOption" hidden disabled selected value> No synced light </option>
       </select>
     </p>
-
-    <p>
-      <button id="saveProfileButton">Save profile</button>
-    </p>
+    -->
 
     <svg width="960px" height="540px" id="svgArea">
       <!-- SVG area -->
+      <text x="50%" y="30px" fill="var(--foregroundColor)" style="text-anchor: middle;">Screen partitionning</text>
+      <text x="50%" y="50%" fill="var(--foregroundColor)" style="text-anchor: middle;">Please, select a light to assign</text>
       <rect x="0%" y="0%" width="100%" height="100%"/>
 
       <!-- Screen area -->
@@ -47,7 +47,21 @@
       </svg>
     </svg>
 
+    <section id="lightLists">
+      <div class="listContainer">
+        <h2>Available lights</h2>
+        <div id="availableLightsList" class="lightList"></div>
+      </div>
 
+      <div class="listContainer">
+        <h2>Synced lights</h2>
+        <div id="syncedLightsList" class="lightList"></div>
+      </div>
+    </section>
+
+    <p>
+      <button id="saveProfileButton">Save profile</button>
+    </p>
 
 
     <script src="Light.js"></script>

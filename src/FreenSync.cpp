@@ -34,6 +34,53 @@ const SyncedLights& FreenSync::syncedLights() const
 }
 
 
+const nlohmann::json& FreenSync::jsonAvailableLights() const
+{
+  if(!m_cachedJsonAvailableLights.has_value()){
+    m_cachedJsonAvailableLights.emplace(json::array());
+    for(const auto& [key, light] : m_bridge->lightSummaries()){
+      m_cachedJsonAvailableLights->push_back(light.serialize());
+    }
+  }
+
+  return m_cachedJsonAvailableLights.value();
+}
+
+
+const nlohmann::json& FreenSync::jsonSyncedLights() const
+{
+  if(!m_cachedJsonSyncedLights.has_value()){
+    m_cachedJsonSyncedLights.emplace(json::array());
+    for(const auto& [key, light] : m_syncedLights){
+      m_cachedJsonSyncedLights->push_back(light->serialize());
+    }
+  }
+  return m_cachedJsonSyncedLights.value();
+}
+
+
+const nlohmann::json& FreenSync::jsonAllLights() const
+{
+  if(!m_cachedJsonAllLights.has_value()){
+
+    json test = {
+      {"a", 42}
+    };
+
+    m_cachedJsonAllLights.emplace(
+      json::object(
+        {
+          {"synced", jsonSyncedLights()},
+          {"available", jsonAvailableLights()}
+        }
+      )
+    );
+  }
+
+  return m_cachedJsonAllLights.value();
+}
+
+
 SharedSyncedLight FreenSync::syncedLight(const std::string& lightId) const
 {
   const auto& syncedLight = m_syncedLights.find(lightId);
@@ -82,7 +129,17 @@ SharedSyncedLight FreenSync::addSyncedLight(const std::string& lightId)
 {
   const auto& lightSummary = m_bridge->lightSummaries().at(lightId);
   auto [it, ok] = m_syncedLights.insert({lightId, make_shared<SyncedLight>(m_bridge, lightId, lightSummary)});
+
+  _resetJsonLightsCache();
   return ok ? it->second : nullptr;
+}
+
+
+bool FreenSync::removeSyncedLight(const std::string& lightId)
+{
+  auto n = m_syncedLights.erase(lightId);
+  _resetJsonLightsCache();
+  return n > 0;
 }
 
 
@@ -188,4 +245,12 @@ void FreenSync::_shutdownLights()
   for(const auto& [_, syncedLight] : m_syncedLights){
     syncedLight->setState(false);
   }
+}
+
+
+void FreenSync::_resetJsonLightsCache()
+{
+  m_cachedJsonAllLights.reset();
+  m_cachedJsonAvailableLights.reset();
+  m_cachedJsonSyncedLights.reset();
 }

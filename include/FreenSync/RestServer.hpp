@@ -31,6 +31,7 @@ private:
   void _getWebFile(const SharedSession& session) const;
   void _setLightUV(const SharedSession& session) const;
   void _syncLight(const SharedSession& session) const;
+  void _unsyncLight(const SharedSession& session) const;
   void _saveProfile(const SharedSession& session) const;
 
   // Attributes
