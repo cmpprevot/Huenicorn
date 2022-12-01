@@ -121,11 +121,12 @@ class Controller
   }
 
 
-  showWidgets()
+  showWidgets(show = true)
   {
-    this.uvAreaNode.style.display = "block";
+    let display = show ? "block" : "none";
+    this.uvAreaNode.style.display = display;
     for(let [key, handle] of Object.entries(this.handles)){
-      handle.handleNode.style.display = "block";
+      handle.handleNode.style.display = display;
     }
   }
 
@@ -164,6 +165,7 @@ class Controller
     this.uvAreaNode.setAttribute("width", bx - ax);
     this.uvAreaNode.setAttribute("height", by - ay);
   }
+
 
   _updateMousePosition(event)
   {

@@ -21,7 +21,7 @@ class WebUI
     this.controller = new Controller("svgArea", this);
 
     this.saveProfileButton = document.getElementById("saveProfileButton");
-    this.saveProfileButton.addEventListener("click", () => {this._saveProfile()})
+    this.saveProfileButton.addEventListener("click", () => {this._saveProfile()});
   }
 
   initUI()
@@ -47,7 +47,7 @@ class WebUI
   {
     RequestUtils.post("/syncLight", JSON.stringify({id : lightId}), (jsonData) => {
       let data = JSON.parse(jsonData);
-      this._refreshLightLists(data.lights)
+      this._refreshLightLists(data.lights);
       if("newSyncedLightId" in data){
         this._manageLight(data["newSyncedLightId"]);
       }
@@ -59,7 +59,9 @@ class WebUI
   {
     RequestUtils.post("/unsyncLight", JSON.stringify({id : lightId}), (jsonData) => {
       let data = JSON.parse(jsonData);
-      this._refreshLightLists(data.lights)
+      this._refreshLightLists(data.lights);
+      this._setLegendText("Select a synced light to manage");
+      this.controller.showWidgets(false);
     });
   }
 
@@ -70,16 +72,15 @@ class WebUI
     this._refreshSyncedLights(lights.synced);
     this._refreshAvailableLights(lights.available);
 
-    log(Object.keys(this.syncedLights).length)
-
     if(lights.available.length == 0){
       this._setLegendText("There are currently no available lights. Please register them through official application.");
     }
     else if(Object.keys(this.syncedLights).length == 0){
       this._setLegendText("Drag and and drop light from 'available' to 'synced' box to manage it.");
+      this.controller.showWidgets(false);
     }
     else{
-      this._setLegendText("");
+      this._setLegendText("Select a synced light to manage");
     }
   }
 
@@ -90,6 +91,7 @@ class WebUI
     for(let lightData of syncedLights){
       let newLightEntryNode = document.createElement("p");
       newLightEntryNode.draggable = true;
+      newLightEntryNode.selected = false;
 
       let newLight = new Light(lightData)
       newLightEntryNode.addEventListener("dragstart", (event) => {
@@ -97,7 +99,7 @@ class WebUI
       });
 
       newLightEntryNode.addEventListener("click", (event) => {
-        this._manageLight(lightData.id);
+        this._toggleClicked(newLightEntryNode, lightData.id);
       });
 
       newLightEntryNode.innerHTML = `${newLight.name} - ${newLight.productName}`;
@@ -108,6 +110,35 @@ class WebUI
   }
 
 
+  _toggleClicked(lightNode, lightId)
+  {
+    lightNode.selected = !lightNode.selected;
+
+    if(lightNode.selected){
+      lightNode.classList.add("selected");
+      this._setLegendText("");
+
+      for(let childNode of this.syncedLightsNode.childNodes){
+        if(childNode != lightNode){
+          childNode.classList.remove("selected");
+          childNode.selected = false;
+        }
+      }
+    }
+    else{
+      lightNode.classList.remove("selected");
+    }
+
+
+    if(lightNode.selected){
+      this._manageLight(lightId);
+    }
+    else{
+      this._setLegendText("Select a synced light to manage");
+      this.controller.showWidgets(false);
+    }
+  }
+
   _refreshAvailableLights(availableLights)
   {
     this.availableLightsNode.innerHTML = "";
@@ -116,7 +147,6 @@ class WebUI
       if(lightData.id in this.syncedLights){
         continue;
       }
-
 
       let newLightEntryNode = document.createElement("p");
       newLightEntryNode.draggable = true;
@@ -148,7 +178,9 @@ class WebUI
 
   _manageLight(lightId)
   {
-    RequestUtils.get(`/syncedLight/${lightId}`, (data) => {this.controller.initLightRegion(JSON.parse(data));});
+    RequestUtils.get(`/syncedLight/${lightId}`, (data) => {
+      this.controller.initLightRegion(JSON.parse(data));
+    });
   }
 
 
