@@ -7,6 +7,8 @@ class WebUI
       this._syncLight(JSON.parse(event.dataTransfer.getData("lightData")).id);
     });
 
+    this.legendText = document.getElementById("legendText");
+
     this.availableLightsNode = document.getElementById("availableLightsList");
     this.availableLightsNode.addEventListener("drop", (event) => {
       this._unsyncLight(JSON.parse(event.dataTransfer.getData("lightData")).id);
@@ -35,11 +37,16 @@ class WebUI
   }
 
 
+  _setLegendText(legendText)
+  {
+    this.legendText.innerHTML = legendText;
+  }
+
+
   _syncLight(lightId)
   {
     RequestUtils.post("/syncLight", JSON.stringify({id : lightId}), (jsonData) => {
       let data = JSON.parse(jsonData);
-      //this._refreshSyncedLights(data.lights.synced);
       this._refreshLightLists(data.lights)
       if("newSyncedLightId" in data){
         this._manageLight(data["newSyncedLightId"]);
@@ -60,8 +67,20 @@ class WebUI
   _refreshLightLists(lights)
   {
     this.syncedLights = {};
-    this._refreshSyncedLights(lights["synced"]);
+    this._refreshSyncedLights(lights.synced);
     this._refreshAvailableLights(lights.available);
+
+    log(Object.keys(this.syncedLights).length)
+
+    if(lights.available.length == 0){
+      this._setLegendText("There are currently no available lights. Please register them through official application.");
+    }
+    else if(Object.keys(this.syncedLights).length == 0){
+      this._setLegendText("Drag and and drop light from 'available' to 'synced' box to manage it.");
+    }
+    else{
+      this._setLegendText("");
+    }
   }
 
 
@@ -75,6 +94,10 @@ class WebUI
       let newLight = new Light(lightData)
       newLightEntryNode.addEventListener("dragstart", (event) => {
         event.dataTransfer.setData("lightData", JSON.stringify(newLight));
+      });
+
+      newLightEntryNode.addEventListener("click", (event) => {
+        this._manageLight(lightData.id);
       });
 
       newLightEntryNode.innerHTML = `${newLight.name} - ${newLight.productName}`;
