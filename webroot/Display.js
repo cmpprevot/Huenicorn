@@ -4,6 +4,13 @@ class Utils
   {
     return Math.max(min, Math.min(value, max));
   }
+
+
+  static truncate(value, decimals)
+  {
+    let exp = Math.pow(10, decimals);
+    return Math.round(value * exp) / exp;
+  }
 }
 
 
@@ -87,6 +94,8 @@ class Controller
     this.svgAreaNode = document.getElementById(svgAreaId);
     this.screenAreaNode = document.getElementById("screenArea");
     this.uvAreaNode = document.getElementById("uvArea");
+    this.svgLightNameNode = document.getElementById("svgLightName");
+    this.svgLightUVSizeNode = document.getElementById("svgLightUVSize");
 
     this.webApp = webApp;
 
@@ -117,17 +126,24 @@ class Controller
   {
     this.currentLight = light;
     this._updateShape(light.uvs);
-    this.showWidgets();
+    this.showWidgets(true);
+    this.svgLightNameNode.innerHTML = light.name;
   }
 
 
-  showWidgets(show = true)
+  showWidgets(show)
   {
     let display = show ? "block" : "none";
     this.uvAreaNode.style.display = display;
     for(let [key, handle] of Object.entries(this.handles)){
       handle.handleNode.style.display = display;
     }
+  }
+
+
+  showPreview(show)
+  {
+
   }
 
 
@@ -164,6 +180,13 @@ class Controller
     this.uvAreaNode.setAttribute("y", ay);
     this.uvAreaNode.setAttribute("width", bx - ax);
     this.uvAreaNode.setAttribute("height", by - ay);
+    
+
+    let propWidth = Utils.truncate((uvs.uvB.x - uvs.uvA.x) * 100, 2);
+    let propHeight = Utils.truncate((uvs.uvB.y - uvs.uvA.y) * 100, 2);
+
+
+    this.svgLightUVSizeNode.innerHTML = `${propWidth}% x ${propHeight}%`;
   }
 
 

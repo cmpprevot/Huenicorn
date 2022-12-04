@@ -24,6 +24,7 @@ class WebUI
     this.saveProfileButton.addEventListener("click", () => {this._saveProfile()});
   }
 
+
   initUI()
   {
     RequestUtils.get("/allLights", (data) => this._refreshLightLists(JSON.parse(data)));
@@ -48,9 +49,10 @@ class WebUI
     RequestUtils.post("/syncLight", JSON.stringify({id : lightId}), (jsonData) => {
       let data = JSON.parse(jsonData);
       this._refreshLightLists(data.lights);
+      /*
       if("newSyncedLightId" in data){
         this._manageLight(data["newSyncedLightId"]);
-      }
+      }*/
     });
   }
 
@@ -110,9 +112,9 @@ class WebUI
   }
 
 
-  _toggleClicked(lightNode, lightId)
+  _setItemSelected(lightNode, lightId, selected)
   {
-    lightNode.selected = !lightNode.selected;
+    lightNode.selected = selected;
 
     if(lightNode.selected){
       lightNode.classList.add("selected");
@@ -129,15 +131,23 @@ class WebUI
       lightNode.classList.remove("selected");
     }
 
-
     if(lightNode.selected){
       this._manageLight(lightId);
+      this.controller.showPreview(false);
     }
     else{
       this._setLegendText("Select a synced light to manage");
       this.controller.showWidgets(false);
+      this.controller.showPreview(true);
     }
   }
+
+
+  _toggleClicked(lightNode, lightId)
+  {
+    this._setItemSelected(lightNode, lightId, !lightNode.selected);
+  }
+
 
   _refreshAvailableLights(availableLights)
   {
