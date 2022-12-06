@@ -24,6 +24,7 @@ add_executable(FreenSync
   src/SyncedLight.cpp
   src/RestServer.cpp
   src/ScreenUtils.cpp
+  src/TickSynchronizer.cpp
   include/FreenSync/BridgeData.hpp
   include/FreenSync/Color.hpp
   include/FreenSync/Communicator.hpp
@@ -34,6 +35,7 @@ add_executable(FreenSync
   include/FreenSync/LightSummary.hpp
   include/FreenSync/RestServer.hpp
   include/FreenSync/ScreenUtils.hpp
+  include/FreenSync/TickSynchronizer.hpp
 )
 
 set_target_properties(FreenSync PROPERTIES CXX_STANDARD 20)

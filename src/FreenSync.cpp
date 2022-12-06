@@ -5,6 +5,7 @@
 #include <chrono>
 
 #include <FreenSync/ScreenUtils.hpp>
+#include <FreenSync/TickSynchronizer.hpp>
 
 using namespace nlohmann;
 using namespace std;
@@ -102,7 +103,7 @@ void FreenSync::start()
   }
 
   m_keepLooping = true;
-  m_refreshRate = m_config.at("refreshRate");
+  m_refreshRate = m_config.at("refreshRate").get<float>();
   m_loopThread.emplace([this](){_loop();});
 
   _loadProfile();
@@ -196,7 +197,6 @@ void FreenSync::_loadProfile()
       newSyncedLight->setUV({uvAx, uvAy}, SyncedLight::UVType::TopLeft);
       newSyncedLight->setUV({uvBx, uvBy}, SyncedLight::UVType::BottomRight);
       m_syncedLights.insert({lightId, newSyncedLight});
-
     }
   }
 }
@@ -204,11 +204,18 @@ void FreenSync::_loadProfile()
 
 void FreenSync::_loop()
 {
+  TickSynchronizer ts(1.0f / m_refreshRate);
+
+  ts.start();
+
   m_keepLooping = true;
   while(m_keepLooping){
     _processScreenFrame();
 
-    std::this_thread::sleep_for(1s / m_refreshRate);
+    if(!ts.sync()){
+      cout << "Scheduled interval has been exceeded of " << ts.lastExcess().extra << " (" << ts.lastExcess().rate * 100 << "%)." << endl;
+      cout << "Please reduce refreshRate if this warning persists." << endl;
+    }
   }
 }
 
