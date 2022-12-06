@@ -7,8 +7,6 @@ class WebUI
       this._syncLight(JSON.parse(event.dataTransfer.getData("lightData")).id);
     });
 
-    this.legendText = document.getElementById("legendText");
-
     this.availableLightsNode = document.getElementById("availableLightsList");
     this.availableLightsNode.addEventListener("drop", (event) => {
       this._unsyncLight(JSON.parse(event.dataTransfer.getData("lightData")).id);
@@ -18,7 +16,7 @@ class WebUI
 
     this.syncedLights = {};
 
-    this.controller = new Controller("svgArea", this);
+    this.screenWidget = new ScreenWidget("svgArea", this);
 
     this.saveProfileButton = document.getElementById("saveProfileButton");
     this.saveProfileButton.addEventListener("click", () => {this._saveProfile()});
@@ -34,13 +32,7 @@ class WebUI
 
   notifyUV(uvData)
   {
-    RequestUtils.put("/setLightUV/" + this.controller.currentLight.id, JSON.stringify(uvData), (jsonCheckedUVs) => {this.controller.uvCallback(JSON.parse(jsonCheckedUVs));});
-  }
-
-
-  _setLegendText(legendText)
-  {
-    this.legendText.innerHTML = legendText;
+    RequestUtils.put("/setLightUV/" + this.screenWidget.currentLight.id, JSON.stringify(uvData), (jsonCheckedUVs) => {this.screenWidget.uvCallback(JSON.parse(jsonCheckedUVs));});
   }
 
 
@@ -62,8 +54,8 @@ class WebUI
     RequestUtils.post("/unsyncLight", JSON.stringify({id : lightId}), (jsonData) => {
       let data = JSON.parse(jsonData);
       this._refreshLightLists(data.lights);
-      this._setLegendText("Select a synced light to manage");
-      this.controller.showWidgets(false);
+      this.screenWidget.setLegend("pleaseSelect");
+      this.screenWidget.showWidgets(false);
     });
   }
 
@@ -75,14 +67,14 @@ class WebUI
     this._refreshAvailableLights(lights.available);
 
     if(lights.available.length == 0){
-      this._setLegendText("There are currently no available lights. Please register them through official application.");
+      this.screenArea.setLegend("noLight");
     }
     else if(Object.keys(this.syncedLights).length == 0){
-      this._setLegendText("Drag and and drop light from 'available' to 'synced' box to manage it.");
-      this.controller.showWidgets(false);
+      this.screenWidget.setLegend("pleaseDrag");
+      this.screenWidget.showWidgets(false);
     }
     else{
-      this._setLegendText("Select a synced light to manage");
+      this.screenWidget.setLegend("pleaseSelect");
     }
   }
 
@@ -133,12 +125,12 @@ class WebUI
 
     if(lightNode.selected){
       this._manageLight(lightId);
-      this.controller.showPreview(false);
+      this.screenWidget.showPreview(false);
     }
     else{
-      this._setLegendText("Select a synced light to manage");
-      this.controller.showWidgets(false);
-      this.controller.showPreview(true);
+      this.screenWidget.setLegend("pleaseSelect");
+      this.screenWidget.showWidgets(false);
+      this.screenWidget.showPreview(true);
     }
   }
 
@@ -189,7 +181,7 @@ class WebUI
   _manageLight(lightId)
   {
     RequestUtils.get(`/syncedLight/${lightId}`, (data) => {
-      this.controller.initLightRegion(JSON.parse(data));
+      this.screenWidget.initLightRegion(JSON.parse(data));
     });
   }
 

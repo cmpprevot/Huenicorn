@@ -34,10 +34,10 @@ class Handle
   };
 
 
-  constructor(handleId, controller)
+  constructor(handleId, screenWidget)
   {
     this.handleNode = document.getElementById(handleId);
-    this.controller = controller;
+    this.screenWidget = screenWidget;
     this.handleNode.addEventListener("mousedown", () => {this.drag();});
     this.type = Handle.MapHandleTypeId[handleId];
   }
@@ -45,7 +45,7 @@ class Handle
 
   drag()
   {
-    this.controller.draggedHandle = this;
+    this.screenWidget.draggedHandle = this;
   }
 
 
@@ -57,7 +57,7 @@ class Handle
 
   setPosition(position, notify = false)
   {
-    let screenDimensions = this.controller.screenDimensions();
+    let screenDimensions = this.screenWidget.screenDimensions();
     let maxX = screenDimensions.x;
     let maxY = screenDimensions.y;
     let minX = 0;
@@ -81,13 +81,13 @@ class Handle
     };
 
     if(notify){
-      this.controller._updateUVs(uvData);
+      this.screenWidget._updateUVs(uvData);
     }
   }
 }
 
 
-class Controller
+class ScreenWidget
 {
   constructor(svgAreaId, webApp)
   {
@@ -96,6 +96,13 @@ class Controller
     this.uvAreaNode = document.getElementById("uvArea");
     this.svgLightNameNode = document.getElementById("svgLightName");
     this.svgLightUVSizeNode = document.getElementById("svgLightUVSize");
+
+    this.legendText = document.getElementById("legendText");
+    this.legendTexts = {
+      "noLight" : "There are currently no available lights. Please register them through official application.",
+      "pleaseDrag" : "Drag and and drop light from 'available' to 'synced' box to manage it.",
+      "pleaseSelect" : "Select a synced light to manage"
+    };
 
     this.webApp = webApp;
 
@@ -131,6 +138,10 @@ class Controller
   }
 
 
+  setLegend(legendFlag){
+    this._setLegendText(this.legendTexts[legendFlag]);
+  }
+
   showWidgets(show)
   {
     let display = show ? "block" : "none";
@@ -159,6 +170,12 @@ class Controller
   uvCallback(uvs)
   {
     this._updateShape(uvs);
+  }
+
+
+  _setLegendText(legendText)
+  {
+    this.legendText.innerHTML = legendText;
   }
 
 
