@@ -54,7 +54,6 @@ class WebUI
     RequestUtils.post("/unsyncLight", JSON.stringify({id : lightId}), (jsonData) => {
       let data = JSON.parse(jsonData);
       this._refreshLightLists(data.lights);
-      this.screenWidget.setLegend("pleaseSelect");
       this.screenWidget.showWidgets(false);
     });
   }
@@ -67,14 +66,14 @@ class WebUI
     this._refreshAvailableLights(lights.available);
 
     if(lights.available.length == 0){
-      this.screenArea.setLegend("noLight");
+      this.screenArea.setLegend(ScreenWidget.legends.noLight);
     }
     else if(Object.keys(this.syncedLights).length == 0){
-      this.screenWidget.setLegend("pleaseDrag");
+      this.screenWidget.setLegend(ScreenWidget.Legends.pleaseDrag);
       this.screenWidget.showWidgets(false);
     }
     else{
-      this.screenWidget.setLegend("pleaseSelect");
+      this.screenWidget.setLegend(ScreenWidget.Legends.pleaseSelect);
     }
   }
 
@@ -110,7 +109,7 @@ class WebUI
 
     if(lightNode.selected){
       lightNode.classList.add("selected");
-      this._setLegendText("");
+      this.screenWidget.setLegend(ScreenWidget.Legends.none);
 
       for(let childNode of this.syncedLightsNode.childNodes){
         if(childNode != lightNode){
@@ -128,7 +127,7 @@ class WebUI
       this.screenWidget.showPreview(false);
     }
     else{
-      this.screenWidget.setLegend("pleaseSelect");
+      this.screenWidget.setLegend(ScreenWidget.Legends.pleaseSelect);
       this.screenWidget.showWidgets(false);
       this.screenWidget.showPreview(true);
     }

@@ -89,6 +89,13 @@ class Handle
 
 class ScreenWidget
 {
+  static Legends = {
+    none : "",
+    noLight : "There are currently no available lights. Please register them through official application.",
+    pleaseDrag : "Drag and and drop light from 'available' to 'synced' box to manage it.",
+    pleaseSelect : "Select a synced light to manage"
+  };
+
   constructor(svgAreaId, webApp)
   {
     this.svgAreaNode = document.getElementById(svgAreaId);
@@ -98,11 +105,6 @@ class ScreenWidget
     this.svgLightUVSizeNode = document.getElementById("svgLightUVSize");
 
     this.legendText = document.getElementById("legendText");
-    this.legendTexts = {
-      "noLight" : "There are currently no available lights. Please register them through official application.",
-      "pleaseDrag" : "Drag and and drop light from 'available' to 'synced' box to manage it.",
-      "pleaseSelect" : "Select a synced light to manage"
-    };
 
     this.webApp = webApp;
 
@@ -139,7 +141,7 @@ class ScreenWidget
 
 
   setLegend(legendFlag){
-    this._setLegendText(this.legendTexts[legendFlag]);
+    this.legendText.innerHTML = legendFlag;
   }
 
   showWidgets(show)
@@ -170,12 +172,6 @@ class ScreenWidget
   uvCallback(uvs)
   {
     this._updateShape(uvs);
-  }
-
-
-  _setLegendText(legendText)
-  {
-    this.legendText.innerHTML = legendText;
   }
 
 
