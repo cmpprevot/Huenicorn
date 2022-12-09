@@ -41,10 +41,10 @@ class WebUI
     RequestUtils.post("/syncLight", JSON.stringify({id : lightId}), (jsonData) => {
       let data = JSON.parse(jsonData);
       this._refreshLightLists(data.lights);
-      /*
+      
       if("newSyncedLightId" in data){
         this._manageLight(data["newSyncedLightId"]);
-      }*/
+      }
     });
   }
 
@@ -86,13 +86,13 @@ class WebUI
       newLightEntryNode.draggable = true;
       newLightEntryNode.selected = false;
 
-      let newLight = new Light(lightData)
+      let newLight = new Light(lightData, newLightEntryNode)
       newLightEntryNode.addEventListener("dragstart", (event) => {
         event.dataTransfer.setData("lightData", JSON.stringify(newLight));
       });
 
       newLightEntryNode.addEventListener("click", (event) => {
-        this._toggleClicked(newLightEntryNode, lightData.id);
+        this._manageLight(lightData.id);
       });
 
       newLightEntryNode.innerHTML = `${newLight.name} - ${newLight.productName}`;
@@ -103,40 +103,22 @@ class WebUI
   }
 
 
-  _setItemSelected(lightNode, lightId, selected)
+  _setItemSelected(lightNode, selected)
   {
     lightNode.selected = selected;
 
     if(lightNode.selected){
       lightNode.classList.add("selected");
-      this.screenWidget.setLegend(ScreenWidget.Legends.none);
-
-      for(let childNode of this.syncedLightsNode.childNodes){
-        if(childNode != lightNode){
-          childNode.classList.remove("selected");
-          childNode.selected = false;
-        }
-      }
     }
     else{
       lightNode.classList.remove("selected");
     }
-
-    if(lightNode.selected){
-      this._manageLight(lightId);
-      this.screenWidget.showPreview(false);
-    }
-    else{
-      this.screenWidget.setLegend(ScreenWidget.Legends.pleaseSelect);
-      this.screenWidget.showWidgets(false);
-      this.screenWidget.showPreview(true);
-    }
   }
 
 
-  _toggleClicked(lightNode, lightId)
+  _toggleClicked(lightNode)
   {
-    this._setItemSelected(lightNode, lightId, !lightNode.selected);
+    this._setItemSelected(lightNode, !lightNode.selected);
   }
 
 
@@ -179,8 +161,28 @@ class WebUI
 
   _manageLight(lightId)
   {
-    RequestUtils.get(`/syncedLight/${lightId}`, (data) => {
-      this.screenWidget.initLightRegion(JSON.parse(data));
+    for(let loopLightId of Object.keys(this.syncedLights)){
+      let lightNode = this.syncedLights[loopLightId].node;
+      if(loopLightId != lightId){
+        this._setItemSelected(lightNode, false);
+      }
+      else{
+        this._toggleClicked(lightNode);
+      }
+    }
+
+    if(!this.syncedLights[lightId].node.selected){
+      this.screenWidget.setLegend(ScreenWidget.Legends.pleaseSelect);
+      this.screenWidget.showWidgets(false);
+      return;
+    }
+
+    this.screenWidget.setLegend(ScreenWidget.Legends.none);
+
+    RequestUtils.get(`/syncedLight/${lightId}`, (jsonSyncedLight) => {
+      let syncedLightData = JSON.parse(jsonSyncedLight);
+      this.syncedLights[lightId].uvs = syncedLightData.uvs;
+      this.screenWidget.initLightRegion(this.syncedLights[lightId]);
     });
   }
 
