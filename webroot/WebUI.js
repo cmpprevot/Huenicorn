@@ -206,3 +206,13 @@ class WebUI
     RequestUtils.post("/saveProfile", JSON.stringify(null), (data) => {log("Saved profile");});
   }
 }
+
+
+if(new URLSearchParams(window.location.search).has("unleashTheUnicorn")){
+  var swagIncrement = 180;
+  document.documentElement.style.setProperty("--shadowRadius", "40px");
+  setInterval(() => {
+    document.documentElement.style.setProperty("--shadowColor", `${swagIncrement}, 100%, 50%`);
+    swagIncrement = (this.swagIncrement + 1) % 360;
+  }, 50);
+}
