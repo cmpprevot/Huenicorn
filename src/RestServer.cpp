@@ -257,7 +257,7 @@ void RestServer::_setLightUV(const SharedSession& session) const
     float y = jsonUV.at("y");
     SyncedLight::UVType uvType = static_cast<SyncedLight::UVType>(jsonUV.at("type").get<int>());
 
-    const auto& clampedUVs = m_freenSync->syncedLights().at(lightId)->setUV({x, y}, uvType);
+    const auto& clampedUVs = m_freenSync->setLightUV(lightId, {x, y}, uvType);
 
     json jsonResponse = {
       {"uvA", {{"x", clampedUVs.min.x}, {"y", clampedUVs.min.y}}},

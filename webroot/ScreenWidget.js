@@ -87,6 +87,31 @@ class Handle
 }
 
 
+class Rectangle
+{
+  constructor(rectangleNode)
+  {
+    this.svgNode = rectangleNode;
+  }
+
+
+  setGeometry(x, y, width, height)
+  {
+    this.svgNode.setAttribute("x", x);
+    this.svgNode.setAttribute("y", y);
+    this.svgNode.setAttribute("width", width);
+    this.svgNode.setAttribute("height", height);
+  }
+
+
+  show(show = true)
+  {
+    let display = show ? "block" : "none";
+    this.svgNode.style.display = display;
+  }
+}
+
+
 class ScreenWidget
 {
   static Legends = {
@@ -96,14 +121,15 @@ class ScreenWidget
     pleaseSelect : "Select a synced light to manage"
   };
 
-  constructor(svgAreaId, webApp)
+
+  constructor(webApp)
   {
-    this.svgAreaNode = document.getElementById(svgAreaId);
+    this.svgAreaNode = document.getElementById("svgArea");
     this.screenAreaNode = document.getElementById("screenArea");
-    this.uvAreaNode = document.getElementById("uvArea");
+    this.uvRectangle = new Rectangle(document.getElementById("uvArea"));
     this.svgLightNameNode = document.getElementById("svgLightName");
     this.svgLightUVSizeNode = document.getElementById("svgLightUVSize");
-
+    this.previewArea = document.getElementById("previewRectangles");
     this.legendText = document.getElementById("legendText");
 
     this.webApp = webApp;
@@ -147,16 +173,59 @@ class ScreenWidget
   showWidgets(show)
   {
     let display = show ? "block" : "none";
-    this.uvAreaNode.style.display = display;
+    this.uvRectangle.show(show);
     for(let [key, handle] of Object.entries(this.handles)){
       handle.handleNode.style.display = display;
     }
   }
 
 
-  showPreview(show)
+  showPreview(exceptedLightId = null)
   {
+    this.previewArea.innerHTML = "";
 
+    let syncedLights = this.webApp.syncedLights;
+    let screenDimensions = this.screenDimensions();
+
+    if(!syncedLights){
+      return;
+    }
+
+    for(let syncedLightId of Object.keys(syncedLights)){
+      if(syncedLightId == exceptedLightId){
+        continue;
+      }
+
+      let syncedLight = syncedLights[syncedLightId];
+
+      var rectNode = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      var textNode = document.createElementNS("http://www.w3.org/2000/svg", "text");
+
+      textNode.innerHTML = syncedLight.name;
+      textNode.setAttribute("fill", "rgba(255, 255, 255, 0.2)");
+      textNode.setAttribute("text-anchor", "middle");
+
+      let uvs = syncedLight.uvs;
+      let ax = uvs.uvA.x * screenDimensions.x;
+      let ay = uvs.uvA.y * screenDimensions.y;
+      let bx = uvs.uvB.x * screenDimensions.x;
+      let by = uvs.uvB.y * screenDimensions.y;
+      let width = bx - ax;
+      let height = by - ay;
+
+      textNode.setAttribute("x", width / 2 + ax);
+      textNode.setAttribute("y", height / 2 + ay);
+
+      rectNode.style.stroke = "rgba(255, 255, 255, 0.2)";
+      rectNode.style.strokeWidth = "1px";
+
+      let previewRectangle = new Rectangle(rectNode);
+
+      previewRectangle.setGeometry(ax, ay, width, height);
+
+      this.previewArea.appendChild(rectNode);
+      this.previewArea.appendChild(textNode);
+    }
   }
 
 
@@ -189,15 +258,10 @@ class ScreenWidget
     this.handles["bl"].setPosition({x : ax, y : by});
     this.handles["br"].setPosition({x : bx, y : by});
 
-    this.uvAreaNode.setAttribute("x", ax);
-    this.uvAreaNode.setAttribute("y", ay);
-    this.uvAreaNode.setAttribute("width", bx - ax);
-    this.uvAreaNode.setAttribute("height", by - ay);
-    
+    this.uvRectangle.setGeometry(ax, ay, bx - ax, by - ay);
 
     let propWidth = Utils.truncate((uvs.uvB.x - uvs.uvA.x) * 100, 2);
     let propHeight = Utils.truncate((uvs.uvB.y - uvs.uvA.y) * 100, 2);
-
 
     this.svgLightUVSizeNode.innerHTML = `${propWidth}% x ${propHeight}%`;
   }

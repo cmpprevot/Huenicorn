@@ -95,6 +95,12 @@ glm::vec2 FreenSync::screenResolution() const
 }
 
 
+const SyncedLight::UVs& FreenSync::setLightUV(const std::string& syncedLightId, SyncedLight::UV&& uv, SyncedLight::UVType uvType)
+{
+  _resetJsonLightsCache();
+  return  syncedLights().at(syncedLightId)->setUV(std::move(uv), uvType);
+}
+
 void FreenSync::start()
 {
   if(m_loopThread.has_value()){

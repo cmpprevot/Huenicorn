@@ -29,6 +29,9 @@ public:
   glm::vec2 screenResolution() const;
 
 
+  // Setters
+const SyncedLight::UVs& setLightUV(const std::string& syncedLightId, SyncedLight::UV&& uv, SyncedLight::UVType uvType);
+
   // Methods
   void start();
   void stop();

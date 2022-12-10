@@ -16,7 +16,7 @@ class WebUI
 
     this.syncedLights = {};
 
-    this.screenWidget = new ScreenWidget("svgArea", this);
+    this.screenWidget = new ScreenWidget(this);
 
     this.saveProfileButton = document.getElementById("saveProfileButton");
     this.saveProfileButton.addEventListener("click", () => {this._saveProfile()});
@@ -32,7 +32,11 @@ class WebUI
 
   notifyUV(uvData)
   {
-    RequestUtils.put("/setLightUV/" + this.screenWidget.currentLight.id, JSON.stringify(uvData), (jsonCheckedUVs) => {this.screenWidget.uvCallback(JSON.parse(jsonCheckedUVs));});
+    RequestUtils.put("/setLightUV/" + this.screenWidget.currentLight.id, JSON.stringify(uvData), (jsonCheckedUVs) => {
+      let checkedUVs = JSON.parse(jsonCheckedUVs);
+      this.syncedLights[this.screenWidget.currentLight.id].uvs = checkedUVs;
+      this.screenWidget.uvCallback(checkedUVs);
+    });
   }
 
 
@@ -55,6 +59,7 @@ class WebUI
       let data = JSON.parse(jsonData);
       this._refreshLightLists(data.lights);
       this.screenWidget.showWidgets(false);
+      this.screenWidget.showPreview();
     });
   }
 
@@ -75,6 +80,8 @@ class WebUI
     else{
       this.screenWidget.setLegend(ScreenWidget.Legends.pleaseSelect);
     }
+    
+    this.screenWidget.showPreview();
   }
 
 
@@ -95,7 +102,8 @@ class WebUI
         this._manageLight(lightData.id);
       });
 
-      newLightEntryNode.innerHTML = `${newLight.name} - ${newLight.productName}`;
+      //newLightEntryNode.innerHTML = `${newLight.name} - ${newLight.productName}`;
+      newLightEntryNode.innerHTML = newLight.name;
 
       this.syncedLightsNode.appendChild(newLightEntryNode);
       this.syncedLights[newLight.id] = newLight;
@@ -139,7 +147,8 @@ class WebUI
         event.dataTransfer.setData("lightData", JSON.stringify(newLight));
       });
 
-      newLightEntryNode.innerHTML = `${newLight.name} - ${newLight.productName}`;
+      //newLightEntryNode.innerHTML = `${newLight.name} - ${newLight.productName}`;
+      newLightEntryNode.innerHTML = newLight.name;
 
       this.availableLightsNode.appendChild(newLightEntryNode);
     }
@@ -174,7 +183,12 @@ class WebUI
     if(!this.syncedLights[lightId].node.selected){
       this.screenWidget.setLegend(ScreenWidget.Legends.pleaseSelect);
       this.screenWidget.showWidgets(false);
+      this.screenWidget.showPreview();
+
       return;
+    }
+    else{
+      this.screenWidget.showPreview(lightId);
     }
 
     this.screenWidget.setLegend(ScreenWidget.Legends.none);
