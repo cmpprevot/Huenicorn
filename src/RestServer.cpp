@@ -84,6 +84,13 @@ m_webroot("webroot")
 
   {
     auto resource = make_shared<restbed::Resource>();
+    resource->set_path("/setLightGammaFactor/{lightId: .+}");
+    resource->set_method_handler("PUT", [this](SharedSession session){_setLightGammaFactor(session);});
+    m_service.publish(resource);
+  }
+
+  {
+    auto resource = make_shared<restbed::Resource>();
     resource->set_path("/syncLight");
     resource->set_method_handler("POST", [this](SharedSession session){_syncLight(session);});
     m_service.publish(resource);
@@ -266,6 +273,41 @@ void RestServer::_setLightUV(const SharedSession& session) const
 
     string response = jsonResponse.dump();
     
+    session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+  });
+}
+
+
+void RestServer::_setLightGammaFactor(const SharedSession& session) const
+{
+  const auto request = session->get_request();
+  int contentLength = request->get_header("Content-Length", 0);
+
+  session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+    string data(reinterpret_cast<const char*>(body.data()), body.size());
+    json jsonGammaFactorData = json::parse(data);
+    const auto& request = session->get_request();
+    string lightId = request->get_path_parameter("lightId");
+
+    float gammaFactor = jsonGammaFactorData.at("gammaFactor");
+    const auto& availableLights = m_freenSync->availableLights();
+    if(availableLights.find(lightId) == availableLights.end()){
+      string response = json{
+        {"status", false},
+        {"error", "key not found"}
+      }.dump();
+      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      return;
+    }
+
+    m_freenSync->setLightGammaFactor(lightId, gammaFactor);
+
+    json jsonResponse = json{
+      {"status", true},
+      {"gammaFactor", gammaFactor}
+    };
+
+    string response = jsonResponse.dump();
     session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
   });
 }

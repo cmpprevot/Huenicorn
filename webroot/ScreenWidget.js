@@ -9,7 +9,7 @@ class Utils
   static truncate(value, decimals)
   {
     let exp = Math.pow(10, decimals);
-    return Math.round(value * exp) / exp;
+    return Math.round((value) * exp) / exp;
   }
 }
 
@@ -34,10 +34,11 @@ class Handle
   };
 
 
-  constructor(handleId, screenWidget)
+  constructor(handleId, screenWidget, parentNode)
   {
     this.handleNode = document.getElementById(handleId);
     this.screenWidget = screenWidget;
+    this.parentNode = parentNode;
     this.handleNode.addEventListener("mousedown", () => {this.drag();});
     this.type = Handle.MapHandleTypeId[handleId];
   }
@@ -87,6 +88,58 @@ class Handle
 }
 
 
+class GammaHandle
+{
+  constructor(screenWidget, parentNode)
+  {
+    this.screenWidget = screenWidget;
+    this.parentNode = parentNode;
+    this.handleNode = document.getElementById("gammaCursor");
+    this.handleNode.addEventListener("mousedown", () => {this.drag();});
+  }
+
+
+  drag()
+  {
+    this.screenWidget.draggedHandle = this;
+  }
+
+
+  affectFactor(factor)
+  {
+    factor += 1;
+    factor /= 2
+    factor *= this.screenWidget.gammaAreaDimensions().x;
+
+    this.setPosition({x : factor}, false);
+  }
+
+
+  setPosition(position, notify = false)
+  {
+    let areaDimensions = this.screenWidget.gammaAreaDimensions();
+    let gammaFactor =  Utils.clamp(position.x / areaDimensions.x, 0, 1);
+
+    gammaFactor = Utils.truncate(gammaFactor, 1)
+
+    this.handleNode.setAttribute("cx", `${gammaFactor * 100}%`);
+
+    gammaFactor *= 2;
+    gammaFactor -= 1;
+    gammaFactor = Utils.truncate(gammaFactor, 1)
+
+    this.screenWidget.webApp.updateGammaFactor(gammaFactor);
+  }
+
+
+  drop()
+  {
+    log("Dropped");
+  }
+}
+
+
+
 class Rectangle
 {
   constructor(rectangleNode)
@@ -124,21 +177,23 @@ class ScreenWidget
 
   constructor(webApp)
   {
+    this.webApp = webApp;
     this.svgAreaNode = document.getElementById("svgArea");
     this.screenAreaNode = document.getElementById("screenArea");
+    this.gammaAreaNode = document.getElementById("gammaArea");
     this.uvRectangle = new Rectangle(document.getElementById("uvArea"));
     this.svgLightNameNode = document.getElementById("svgLightName");
     this.svgLightUVSizeNode = document.getElementById("svgLightUVSize");
     this.previewArea = document.getElementById("previewRectangles");
     this.legendText = document.getElementById("legendText");
 
-    this.webApp = webApp;
+    this.gammaCursor = new GammaHandle(this, this.gammaAreaNode);
 
     let handleIds = ["tl", "tr", "bl", "br"];
     this.handles = {}
 
     for(let handleId of handleIds){
-      this.handles[handleId] = new Handle(handleId, this);
+      this.handles[handleId] = new Handle(handleId, this, this.screenAreaNode);
     };
 
     document.addEventListener("mouseup", () => {this.drop();})
@@ -153,6 +208,13 @@ class ScreenWidget
   screenDimensions()
   {
     let bbox = this.screenAreaNode.getBoundingClientRect();
+    return {x : bbox.width, y : bbox.height};
+  }
+
+
+  gammaAreaDimensions()
+  {
+    let bbox = this.gammaAreaNode.getBoundingClientRect();
     return {x : bbox.width, y : bbox.height};
   }
 
@@ -176,6 +238,11 @@ class ScreenWidget
     this.uvRectangle.show(show);
     for(let [key, handle] of Object.entries(this.handles)){
       handle.handleNode.style.display = display;
+    }
+
+    this.gammaAreaNode.style.display = display;
+    if(show){
+      this.gammaCursor.affectFactor(this.currentLight.gammaFactor);
     }
   }
 
@@ -270,7 +337,7 @@ class ScreenWidget
   _updateMousePosition(event)
   {
     if(this.draggedHandle){
-      var ctm = this.screenAreaNode.getScreenCTM();
+      var ctm = this.draggedHandle.parentNode.getScreenCTM();
 
       let point = {
         x: (event.clientX - ctm.e) / ctm.a,

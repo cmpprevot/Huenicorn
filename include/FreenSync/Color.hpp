@@ -10,9 +10,10 @@
 
 class Color
 {
-  using ChannelDepth = uint8_t;
-
 public:
+  using ChannelDepth = uint8_t;
+  static constexpr float Max = static_cast<float>(std::numeric_limits<ChannelDepth>().max());
+
   using GamutCoordinates = std::array<glm::vec2, 3>;
 
   Color(ChannelDepth r = 0, ChannelDepth g = 0,  ChannelDepth b = 0):
@@ -44,11 +45,10 @@ public:
 
   glm::vec3 toNormalized() const
   {
-    float max = static_cast<float>(std::numeric_limits<ChannelDepth>().max());
     return glm::vec3(
-      m_r / max,
-      m_g / max,
-      m_b / max
+      m_r / Color::Max,
+      m_g / Color::Max,
+      m_b / Color::Max
     );
   }
 
@@ -94,9 +94,9 @@ public:
   }
 
 
-  uint8_t brightness() const
+  float brightness() const
   {
-    return ((m_r * 0.3f + m_g * 0.59f + m_b * 0.11f));
+    return (m_r * 0.3f + m_g * 0.59f + m_b * 0.11f) / Color::Max;
   }
 
 

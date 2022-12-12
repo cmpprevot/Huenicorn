@@ -32,10 +32,30 @@ class WebUI
 
   notifyUV(uvData)
   {
-    RequestUtils.put("/setLightUV/" + this.screenWidget.currentLight.id, JSON.stringify(uvData), (jsonCheckedUVs) => {
+    RequestUtils.put(`/setLightUV/${this.screenWidget.currentLight.id}`, JSON.stringify(uvData), (jsonCheckedUVs) => {
       let checkedUVs = JSON.parse(jsonCheckedUVs);
       this.syncedLights[this.screenWidget.currentLight.id].uvs = checkedUVs;
       this.screenWidget.uvCallback(checkedUVs);
+    });
+  }
+
+
+  updateGammaFactor(gammaFactor)
+  {
+    if(!this.screenWidget.currentLight){
+      return;
+    }
+
+    if(gammaFactor == this.screenWidget.currentLight.gammaFactor){
+      return;
+    }
+
+    this.screenWidget.currentLight.gammaFactor = gammaFactor;
+
+    RequestUtils.put(`/setLightGammaFactor/${this.screenWidget.currentLight.id}`, JSON.stringify({gammaFactor : gammaFactor}), (jsonGammaFactorData) => {
+      let gammaFactorData = JSON.parse(jsonGammaFactorData);
+      let gammaFactor = gammaFactorData.gammaFactor;
+      this.screenWidget.currentLight.gammaFactor = Utils.truncate(gammaFactor, 2);
     });
   }
 
@@ -184,6 +204,7 @@ class WebUI
       this.screenWidget.setLegend(ScreenWidget.Legends.pleaseSelect);
       this.screenWidget.showWidgets(false);
       this.screenWidget.showPreview();
+      this.screenWidget.currentLight = null;
 
       return;
     }

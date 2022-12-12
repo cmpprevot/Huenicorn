@@ -30,7 +30,8 @@ public:
 
 
   // Setters
-const SyncedLight::UVs& setLightUV(const std::string& syncedLightId, SyncedLight::UV&& uv, SyncedLight::UVType uvType);
+  const SyncedLight::UVs& setLightUV(const std::string& syncedLightId, SyncedLight::UV&& uv, SyncedLight::UVType uvType);
+  void setLightGammaFactor(const std::string& syncedLightId, float gammaFactor);
 
   // Methods
   void start();

@@ -21,12 +21,7 @@
 
         <!-- UV area + handlers -->
         <svg x="0%" y="0%" width="100%" height="100%">
-
-          <svg x="0%" y="0%" width="100%" height="100%" id="previewRectangles">
-            <!--<rect x="30%" y="30%" width="40%" height="40%"/>-->
-          </svg>
-
-          
+          <svg x="0%" y="0%" width="100%" height="100%" id="previewRectangles"></svg>
           <svg x="0%" y="0%" width="100%" height="100%" id="uvArea" style="display: none;">
             <rect x="0%" y="0%" width="100%" height="100%"/>
             <text id="svgLightName" x="50%" y="50%" dy="-0.5em" fill="var(--foregroundColor)" style="text-anchor: middle;"></text>
@@ -37,6 +32,13 @@
           <circle r="2.5%" cx="100%" cy="0%" class="handler" id="tr" style="display: none;"/>
           <circle r="2.5%" cx="0%" cy="100%" class="handler" id="bl" style="display: none;"/>
           <circle r="2.5%" cx="100%" cy="100%" class="handler" id="br" style="display: none;"/>
+        </svg>
+      </svg>
+      <svg x="35%" y="90%" width="30%" height="10%">
+        <svg x="0%" y="0%" width="100%" height="100%" id="gammaArea" style="display: none;">
+          <text x="50%" y="40%" fill="var(--foregroundColor)" style="text-anchor: middle;">Gamma correction</text>
+          <line x1="0%" y1="60%" x2="100%" y2="60%" stroke="var(--foregroundColor)"/>
+          <circle r="3.0%" cx="50%" cy="60%" class="handler" id="gammaCursor"/>
         </svg>
       </svg>
     </svg>

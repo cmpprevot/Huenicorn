@@ -44,6 +44,7 @@ public:
   bool state() const;
   const Color::GamutCoordinates& gamutCoordinates() const;
   const UVs& uvs() const;
+  float gammaFactor() const;
 
   nlohmann::json serialize() const;
 
@@ -51,9 +52,18 @@ public:
   void setState(bool state);
   void setColor(const Color& color);
   const UVs& setUV(UV&& uv, UVType uvType);
+  void setGammaFactor(float gammaFactor);
 
 
 private:
+
+  inline float _gammaExponent()
+  {
+    float factor = 2.f;
+    float exponent = pow(2, -m_gammaFactor * factor);
+    return exponent;
+  }
+
   // Attributes
   SharedBridgeData m_bridgeData;
   LightSummary m_lightSummary;
@@ -62,6 +72,7 @@ private:
   uint8_t m_brightness;
   bool m_state;
 
+  float m_gammaFactor{0.f};
 
   UVs m_uvs{glm::vec2(0), glm::vec2(1)};
 

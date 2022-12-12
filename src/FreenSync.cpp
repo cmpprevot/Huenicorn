@@ -98,8 +98,15 @@ glm::vec2 FreenSync::screenResolution() const
 const SyncedLight::UVs& FreenSync::setLightUV(const std::string& syncedLightId, SyncedLight::UV&& uv, SyncedLight::UVType uvType)
 {
   _resetJsonLightsCache();
-  return  syncedLights().at(syncedLightId)->setUV(std::move(uv), uvType);
+  return syncedLights().at(syncedLightId)->setUV(std::move(uv), uvType);
 }
+
+
+void FreenSync::setLightGammaFactor(const std::string& syncedLightId, float gammaExponent)
+{
+  m_syncedLights.at(syncedLightId)->setGammaFactor(gammaExponent);
+}
+
 
 void FreenSync::start()
 {
@@ -166,7 +173,8 @@ void FreenSync::saveProfile() const
             "uvB", {{"x", uvs.max.x}, {"y", uvs.max.y}}
           }
         }
-      }
+      },
+      {"gammaFactor", light->gammaFactor()}
     });
   }
 
@@ -202,6 +210,7 @@ void FreenSync::_loadProfile()
 
       newSyncedLight->setUV({uvAx, uvAy}, SyncedLight::UVType::TopLeft);
       newSyncedLight->setUV({uvBx, uvBy}, SyncedLight::UVType::BottomRight);
+      newSyncedLight->setGammaFactor(jsonLight.at("gammaFactor"));
       m_syncedLights.insert({lightId, newSyncedLight});
     }
   }

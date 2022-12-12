@@ -44,6 +44,12 @@ const SyncedLight::UVs& SyncedLight::uvs() const
 }
 
 
+float SyncedLight::gammaFactor() const
+{
+  return m_gammaFactor;
+}
+
+
 nlohmann::json SyncedLight::serialize() const
 {
   json serialized = {
@@ -59,6 +65,7 @@ nlohmann::json SyncedLight::serialize() const
         }
       }
     },
+    {"gammaFactor", m_gammaFactor}
   };
 
   return serialized;
@@ -82,7 +89,9 @@ void SyncedLight::setColor(const Color& color)
   m_lastColor = color;
 
   m_xy = m_lastColor.toXY(m_lightSummary.gamutCoordinates);
-  m_brightness = m_lastColor.brightness();
+
+  float correctedBrightness = pow(m_lastColor.brightness(), _gammaExponent());
+  m_brightness = static_cast<Color::ChannelDepth>(correctedBrightness * Color::Max);
 
   m_bridgeData->_notify(shared_from_this());
 }
@@ -139,4 +148,10 @@ const SyncedLight::UVs& SyncedLight::setUV(UV&& uv, SyncedLight::UVType uvType)
   std::swap(m_uvs, newUVs);
 
   return m_uvs;
+}
+
+
+void SyncedLight::setGammaFactor(float gammaFactor)
+{
+  m_gammaFactor = gammaFactor;
 }
