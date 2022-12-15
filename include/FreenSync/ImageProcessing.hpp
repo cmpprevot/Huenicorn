@@ -6,14 +6,17 @@
 
 #include <FreenSync/Color.hpp>
 
-using Colors = std::vector<Color>;
 
-
-namespace ImageProcessing
+namespace FreenSync
 {
-  void rescale(cv::Mat& img, int targetWidth);
+  using Colors = std::vector<Color>;
 
-  cv::Mat getSubImage(const cv::Mat& sourceImage, const glm::ivec2& a, const glm::ivec2& b);
+  namespace ImageProcessing
+  {
+    void rescale(cv::Mat& img, int targetWidth);
 
-  Colors getDominantColors(cv::Mat& img, unsigned k = 1);
-};
+    cv::Mat getSubImage(const cv::Mat& sourceImage, const glm::ivec2& a, const glm::ivec2& b);
+
+    Colors getDominantColors(cv::Mat& img, unsigned k = 1);
+  };
+}

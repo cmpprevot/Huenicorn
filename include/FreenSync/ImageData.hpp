@@ -3,10 +3,13 @@
 #include <vector>
 #include <cstdint>
 
-struct ImageData
+namespace FreenSync
 {
-  std::vector<uint8_t> pixels;
-  int width;
-  int height;
-  int bitsPerPixel;
-};
+  struct ImageData
+  {
+    std::vector<uint8_t> pixels;
+    int width;
+    int height;
+    int bitsPerPixel;
+  };
+}

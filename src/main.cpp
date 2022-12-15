@@ -1,6 +1,6 @@
 #include <thread>
 
-#include <FreenSync/FreenSync.hpp>
+#include <FreenSync/FreenSyncCore.hpp>
 #include <FreenSync/RestServer.hpp>
 
 
@@ -9,13 +9,13 @@ using namespace std;
 
 void startFreenSync()
 {
-  FreenSync fs;
-  fs.start();
+  FreenSync::FreenSyncCore core;
+  core.start();
 
   cout << "Hit enter to stop" << endl;
   cin.get();
 
-  fs.stop();
+  core.stop();
 }
 
 

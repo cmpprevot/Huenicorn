@@ -19,7 +19,7 @@ add_executable(FreenSync
   src/main.cpp
   src/BridgeData.cpp
   src/Communicator.cpp
-  src/FreenSync.cpp
+  src/FreenSyncCore.cpp
   src/ImageProcessing.cpp
   src/SyncedLight.cpp
   src/RestServer.cpp
@@ -28,7 +28,7 @@ add_executable(FreenSync
   include/FreenSync/BridgeData.hpp
   include/FreenSync/Color.hpp
   include/FreenSync/Communicator.hpp
-  include/FreenSync/FreenSync.hpp
+  include/FreenSync/FreenSyncCore.hpp
   include/FreenSync/ImageProcessing.hpp
   include/FreenSync/ImageData.hpp
   include/FreenSync/SyncedLight.hpp

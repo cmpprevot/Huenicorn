@@ -4,9 +4,12 @@
 
 #include <glm/vec2.hpp>
 
-class ScreenUtils
+namespace FreenSync
 {
-public:
-  static void getScreenCapture(ImageData& imageData);
-  static glm::vec2 getScreenResolution();
-};
+  class ScreenUtils
+  {
+  public:
+    static void getScreenCapture(ImageData& imageData);
+    static glm::vec2 getScreenResolution();
+  };
+}

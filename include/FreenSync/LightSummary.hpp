@@ -5,19 +5,22 @@
 #include <FreenSync/Color.hpp>
 #include <nlohmann/json.hpp>
 
-struct LightSummary
+namespace FreenSync
 {
-  std::string id;
-  std::string name;
-  std::string productName;
-  Color::GamutCoordinates gamutCoordinates;
-
-  nlohmann::json serialize() const
+  struct LightSummary
   {
-    return {
-      {"id", id},
-      {"name", name},
-      {"productName", productName}
-    };
-  }
-};
+    std::string id;
+    std::string name;
+    std::string productName;
+    Color::GamutCoordinates gamutCoordinates;
+
+    nlohmann::json serialize() const
+    {
+      return {
+        {"id", id},
+        {"name", name},
+        {"productName", productName}
+      };
+    }
+  };
+}

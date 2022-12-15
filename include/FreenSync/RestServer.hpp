@@ -6,42 +6,45 @@
 
 #include <restbed>
 
-class FreenSync;
-
-class RestServer;
-using SharedRestServer = std::shared_ptr<RestServer>;
-
-class RestServer
+namespace FreenSync
 {
-  using SharedSession = std::shared_ptr<restbed::Session>;
+  class FreenSyncCore;
 
-public:
-  RestServer(FreenSync* freenSync);
+  class RestServer;
+  using SharedRestServer = std::shared_ptr<RestServer>;
 
-  bool start(int port);
-  bool stop();
+  class RestServer
+  {
+    using SharedSession = std::shared_ptr<restbed::Session>;
 
-private:
-  // Handlers
-  void _getAvailableLights(const SharedSession& session) const;
-  void _getSyncedLights(const SharedSession& session) const;
-  void _getSyncedLight(const SharedSession& session) const;
-  void _getAllLights(const SharedSession& session) const;
-  void _getDisplayInfo(const SharedSession& session) const;
-  void _getWebFile(const SharedSession& session) const;
-  void _setLightUV(const SharedSession& session) const;
-  void _setLightGammaFactor(const SharedSession& session) const;
-  void _syncLight(const SharedSession& session) const;
-  void _unsyncLight(const SharedSession& session) const;
-  void _saveProfile(const SharedSession& session) const;
+  public:
+    RestServer(FreenSyncCore* freenSyncCore);
 
-  // Attributes
-  FreenSync* m_freenSync;
+    bool start(int port);
+    bool stop();
 
-  std::shared_ptr<restbed::Settings> m_settings;
-  std::optional<std::thread> m_serviceThread;
-  restbed::Service m_service;
+  private:
+    // Handlers
+    void _getAvailableLights(const SharedSession& session) const;
+    void _getSyncedLights(const SharedSession& session) const;
+    void _getSyncedLight(const SharedSession& session) const;
+    void _getAllLights(const SharedSession& session) const;
+    void _getDisplayInfo(const SharedSession& session) const;
+    void _getWebFile(const SharedSession& session) const;
+    void _setLightUV(const SharedSession& session) const;
+    void _setLightGammaFactor(const SharedSession& session) const;
+    void _syncLight(const SharedSession& session) const;
+    void _unsyncLight(const SharedSession& session) const;
+    void _saveProfile(const SharedSession& session) const;
 
-  const std::filesystem::path m_webroot;
-  std::unordered_map<std::string, std::string> m_contentTypes;
-};
+    // Attributes
+    FreenSyncCore* m_freenSyncCore;
+
+    std::shared_ptr<restbed::Settings> m_settings;
+    std::optional<std::thread> m_serviceThread;
+    restbed::Service m_service;
+
+    const std::filesystem::path m_webroot;
+    std::unordered_map<std::string, std::string> m_contentTypes;
+  };
+}

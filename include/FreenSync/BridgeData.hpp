@@ -6,29 +6,32 @@
 #include <FreenSync/SyncedLight.hpp>
 #include <FreenSync/LightSummary.hpp>
 
-using LightSummaries = std::unordered_map<std::string, LightSummary>;
-
-class BridgeData
+namespace FreenSync
 {
-friend SyncedLight;
+  using LightSummaries = std::unordered_map<std::string, LightSummary>;
 
-public:
-  BridgeData(const nlohmann::json& config);
-  ~BridgeData();
+  class BridgeData
+  {
+  friend SyncedLight;
 
-  const nlohmann::json& bridgeData() const;
-  const LightSummaries& lightSummaries();
+  public:
+    BridgeData(const nlohmann::json& config);
+    ~BridgeData();
+
+    const nlohmann::json& bridgeData() const;
+    const LightSummaries& lightSummaries();
 
 
 
-private:
-  void _notify(SharedSyncedLight light);
+  private:
+    void _notify(SharedSyncedLight light);
 
-  std::filesystem::path m_bridgeAddress;
-  std::optional<std::string> m_apiKey;
+    std::filesystem::path m_bridgeAddress;
+    std::optional<std::string> m_apiKey;
 
-  mutable std::optional<nlohmann::json> m_bridgeData;
+    mutable std::optional<nlohmann::json> m_bridgeData;
 
-  mutable std::optional<LightSummaries> m_lightSummaries;
+    mutable std::optional<LightSummaries> m_lightSummaries;
 
-};
+  };
+}
