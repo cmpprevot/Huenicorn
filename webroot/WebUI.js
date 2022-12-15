@@ -229,7 +229,7 @@ class WebUI
 
 if(new URLSearchParams(window.location.search).has("unleashTheUnicorn")){
   var swagIncrement = 180;
-  document.documentElement.style.setProperty("--shadowRadius", "40px");
+  document.documentElement.style.setProperty("--shadowRadius", "60px");
   setInterval(() => {
     document.documentElement.style.setProperty("--shadowColor", `${swagIncrement}, 100%, 50%`);
     swagIncrement = (this.swagIncrement + 1) % 360;
