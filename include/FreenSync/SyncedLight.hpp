@@ -37,7 +37,7 @@ public:
     BottomRight = 3
   };
 
-  SyncedLight(SharedBridgeData bridgeData, const std::string& id, const LightSummary& lightSummary);
+  SyncedLight(SharedBridgeData bridgeData, const LightSummary& lightSummary);
 
   // Getters
   const std::string& id() const;

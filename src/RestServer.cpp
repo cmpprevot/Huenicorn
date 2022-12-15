@@ -146,6 +146,7 @@ void RestServer::_getAvailableLights(const SharedSession& session) const
   int contentLength = request->get_header("Content-Length", 0);
 
   session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+    (void)body;
     string response = m_freenSync->jsonAvailableLights().dump();
     session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
   });
@@ -158,6 +159,7 @@ void RestServer::_getSyncedLights(const SharedSession& session) const
   int contentLength = request->get_header("Content-Length", 0);
 
   session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+    (void)body;
     string response = m_freenSync->jsonSyncedLights().dump();
     session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
   });
@@ -171,6 +173,7 @@ void RestServer::_getSyncedLight(const SharedSession& session) const
   string lightId = request->get_path_parameter("lightId");
 
   session->fetch(contentLength, [this, lightId](const SharedSession& session, const restbed::Bytes& body){
+    (void)body;
     SharedSyncedLight syncedLight = m_freenSync->syncedLight(lightId);
 
     json jsonLight = syncedLight ? syncedLight->serialize() : json::object();
@@ -187,6 +190,7 @@ void RestServer::_getAllLights(const SharedSession& session) const
   int contentLength = request->get_header("Content-Length", 0);
 
   session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+    (void)body;
     string response = m_freenSync->jsonAllLights().dump();
     session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
   });
@@ -199,6 +203,7 @@ void RestServer::_getDisplayInfo(const SharedSession& session) const
   int contentLength = request->get_header("Content-Length", 0);
 
   session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+    (void)body;
     glm::vec2 screenResolution = m_freenSync->screenResolution();
     json jsonScreen{
       {"x", screenResolution.x},
@@ -381,6 +386,7 @@ void RestServer::_saveProfile(const SharedSession& session) const
   int contentLength = request->get_header("Content-Length", 0);
 
   session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+    (void)body;
     m_freenSync->saveProfile();
 
     json jsonResponse = {

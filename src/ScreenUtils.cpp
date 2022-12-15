@@ -11,7 +11,7 @@ void ScreenUtils::getScreenCapture(ImageData& imageData)
   Display* display = XOpenDisplay(nullptr);
   Window root = DefaultRootWindow(display);
 
-  XWindowAttributes attributes = {0};
+  XWindowAttributes attributes = XWindowAttributes();
   XGetWindowAttributes(display, root, &attributes);
 
   imageData.width = attributes.width;

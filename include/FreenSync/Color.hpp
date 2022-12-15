@@ -84,6 +84,7 @@ public:
     }
 
     // Checking xy boundaries
+    (void)gamutCoordinates;
     /*
     if(!_xyInGamut(xy, gamutCoordinates)){
       // ToDo implement at some point

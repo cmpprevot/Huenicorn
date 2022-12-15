@@ -12,10 +12,10 @@ using namespace glm;
 using namespace nlohmann;
 using namespace std;
 
-SyncedLight::SyncedLight(SharedBridgeData bridgeData, const string& id, const LightSummary& lightSummary):
+SyncedLight::SyncedLight(SharedBridgeData bridgeData, const LightSummary& lightSummary):
 m_bridgeData(bridgeData),
-m_state(true),
-m_lightSummary(lightSummary)
+m_lightSummary(lightSummary),
+m_state(true)
 {
 }
 

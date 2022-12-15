@@ -82,5 +82,5 @@ void BridgeData::_notify(SharedSyncedLight light)
   
   filesystem::path url = m_bridgeAddress / "api" / m_apiKey.value() / "lights" / light->id() / "state";
 
-  auto response = Communicator::sendRequest(url, "PUT", request.dump());
+  Communicator::sendRequest(url, "PUT", request.dump());
 }

@@ -148,7 +148,7 @@ void FreenSync::stop()
 SharedSyncedLight FreenSync::addSyncedLight(const std::string& lightId)
 {
   const auto& lightSummary = m_bridge->lightSummaries().at(lightId);
-  auto [it, ok] = m_syncedLights.insert({lightId, make_shared<SyncedLight>(m_bridge, lightId, lightSummary)});
+  auto [it, ok] = m_syncedLights.insert({lightId, make_shared<SyncedLight>(m_bridge, lightSummary)});
 
   _resetJsonLightsCache();
   return ok ? it->second : nullptr;

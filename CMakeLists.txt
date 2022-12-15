@@ -42,6 +42,18 @@ set_target_properties(FreenSync PROPERTIES CXX_STANDARD 20)
 
 target_link_libraries(FreenSync PUBLIC X11 ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp restbed)
 
+
+target_compile_options(FreenSync PRIVATE
+  -Werror
+  -Wall
+  -Wextra
+  -Wnon-virtual-dtor
+  -pedantic
+  -Wno-deprecated-declarations
+  -Wno-deprecated-copy
+)
+
+
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 

@@ -2,10 +2,6 @@
 
 #include <algorithm>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-
-using namespace std;
 
 namespace ImageProcessing{
   void rescale(cv::Mat& img, int targetWidth)
@@ -46,11 +42,11 @@ namespace ImageProcessing{
 
     cv::TermCriteria criteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 10, 1.0);
 
-    vector<int> labels;
+    std::vector<int> labels;
     cv::Mat centers;
     int flags = cv::KmeansFlags::KMEANS_PP_CENTERS;
     //int flags = cv::KmeansFlags::KMEANS_RANDOM_CENTERS;
-    double compactness = cv::kmeans(data, k, labels, criteria, 10, flags, centers);
+    cv::kmeans(data, k, labels, criteria, 10, flags, centers);
 
     centers.convertTo(centers, CV_8U);
 
