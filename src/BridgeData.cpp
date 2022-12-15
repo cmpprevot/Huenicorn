@@ -3,7 +3,7 @@
 #include <iostream>
 #include <filesystem>
 
-#include <FreenSync/Communicator.hpp>
+#include <FreenSync/RequestUtils.hpp>
 
 
 using namespace nlohmann;
@@ -39,7 +39,7 @@ namespace FreenSync
       string url = m_bridgeAddress;
       url += "/api/" + m_apiKey.value();
 
-      m_bridgeData.emplace(Communicator::sendRequest(url, "GET", ""));
+      m_bridgeData.emplace(RequestUtils::sendRequest(url, "GET", ""));
     }
 
     return m_bridgeData.value();
@@ -84,6 +84,6 @@ namespace FreenSync
     
     filesystem::path url = m_bridgeAddress / "api" / m_apiKey.value() / "lights" / light->id() / "state";
 
-    //Communicator::sendRequest(url, "PUT", request.dump());
+    RequestUtils::sendRequest(url, "PUT", request.dump());
   }
 }

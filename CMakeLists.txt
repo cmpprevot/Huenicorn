@@ -18,21 +18,21 @@ link_directories(build/ext/restbed) # ToDo : Fix path
 add_executable(FreenSync
   src/main.cpp
   src/BridgeData.cpp
-  src/Communicator.cpp
   src/FreenSyncCore.cpp
   src/ImageProcessing.cpp
   src/SyncedLight.cpp
+  src/RequestUtils.cpp
   src/RestServer.cpp
   src/ScreenUtils.cpp
   src/TickSynchronizer.cpp
   include/FreenSync/BridgeData.hpp
   include/FreenSync/Color.hpp
-  include/FreenSync/Communicator.hpp
   include/FreenSync/FreenSyncCore.hpp
   include/FreenSync/ImageProcessing.hpp
   include/FreenSync/ImageData.hpp
   include/FreenSync/SyncedLight.hpp
   include/FreenSync/LightSummary.hpp
+  include/FreenSync/RequestUtils.hpp
   include/FreenSync/RestServer.hpp
   include/FreenSync/ScreenUtils.hpp
   include/FreenSync/TickSynchronizer.hpp
