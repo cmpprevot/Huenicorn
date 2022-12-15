@@ -2,7 +2,9 @@
 {
   --foregroundColor: #ffffff;
   --backgroundColor: #000000;
-  --border: 1px solid rgba(255, 255, 255, 0.1);
+  --borderColor: rgba(255, 255, 255, 0.1);
+  --gridColor: rgba(255, 255, 255, 0.05);
+  --border: 1px solid var(--borderColor);
 
   --shadowRadius: 25px;
   --shadowColor: 0, 100%, 100%;

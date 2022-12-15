@@ -67,13 +67,14 @@ class Handle
     let x = Utils.clamp(position.x, minX, maxX);
     let y = Utils.clamp(position.y, minY, maxY);
 
-    this.handleNode.setAttribute("cx", x);
-    this.handleNode.setAttribute("cy", y);
+    x = Math.round(x * (this.screenWidget.subsampleWidth / screenDimensions.x));
+    y = Math.round(y * (this.screenWidget.subsampleHeight / screenDimensions.y));
 
-    let xRange = (maxX - minX);
-    let xNorm = x / xRange;
-    let yRange = (maxY - minY);
-    let yNorm = y / yRange;
+    let xNorm = x / (this.screenWidget.subsampleWidth);
+    let yNorm = y / (this.screenWidget.subsampleHeight);
+
+    this.handleNode.setAttribute("cx", `${xNorm * 100}%`);
+    this.handleNode.setAttribute("cy", `${yNorm * 100}%`);
 
     let uvData = {
       x : xNorm,
@@ -139,7 +140,6 @@ class GammaHandle
 }
 
 
-
 class Rectangle
 {
   constructor(rectangleNode)
@@ -186,6 +186,7 @@ class ScreenWidget
     this.svgLightUVSizeNode = document.getElementById("svgLightUVSize");
     this.previewArea = document.getElementById("previewRectangles");
     this.legendText = document.getElementById("legendText");
+    this.gridAreaNode = document.getElementById("gridArea");
 
     this.gammaCursor = new GammaHandle(this, this.gammaAreaNode);
 
@@ -231,6 +232,42 @@ class ScreenWidget
   setLegend(legendFlag){
     this.legendText.innerHTML = legendFlag;
   }
+
+
+  setDimensions(width, height, subsampleWidth)
+  {
+    this.subsampleWidth = subsampleWidth;
+    this.subsampleHeight = height / width * subsampleWidth;
+
+    for(let i = 0; i < this.subsampleWidth; i++){
+      let x = i / this.subsampleWidth;
+      var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+
+      line.setAttribute("x1", `${x * 100}%`);
+      line.setAttribute("x2", `${x * 100}%`);
+      line.setAttribute("y1", `0%`);
+      line.setAttribute("y2", `100%`);
+      line.setAttribute("stroke", "var(--gridColor)");
+      line.setAttribute("stroke-width", "1");
+
+      this.gridAreaNode.appendChild(line);
+    }
+
+    for(let i = 0; i < this.subsampleHeight; i++){
+      let y = i / this.subsampleHeight;
+      var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+
+      line.setAttribute("x1", `0%`);
+      line.setAttribute("x2", `100%`);
+      line.setAttribute("y1", `${y * 100}%`);
+      line.setAttribute("y2", `${y * 100}%`);
+      line.setAttribute("stroke", "var(--gridColor)");
+      line.setAttribute("stroke-width", "1");
+
+      this.gridAreaNode.appendChild(line);
+    }
+  }
+
 
   showWidgets(show)
   {

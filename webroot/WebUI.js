@@ -26,7 +26,7 @@ class WebUI
   initUI()
   {
     RequestUtils.get("/allLights", (data) => this._refreshLightLists(JSON.parse(data)));
-    RequestUtils.get("/screen", (data) => this._screenPreviewCallback(data));
+    RequestUtils.get("/displayInfo", (data) => this._displayInfoCallback(data));
   }
 
 
@@ -175,16 +175,14 @@ class WebUI
   }
 
 
-  _screenPreviewCallback(jsonScreen)
+  _displayInfoCallback(jsonDisplayInfo)
   {
-    // ToDo : get ratio / resampled res to display / clip the handlers
-    /*
-    let screen = JSON.parse(jsonScreen);
-    let x = screen.x;
-    let y = screen.y;
+    let displayInfo = JSON.parse(jsonDisplayInfo);
+    let x = displayInfo.x;
+    let y = displayInfo.y;
+    let subsampleWidth = displayInfo.subsampleWidth;
 
-    //this.screenPreview.setDimensions(x, y);
-    */
+    this.screenWidget.setDimensions(x, y, subsampleWidth);
   }
 
 

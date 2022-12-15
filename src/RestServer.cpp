@@ -70,8 +70,8 @@ m_webroot("webroot")
 
   {
     auto resource = make_shared<restbed::Resource>();
-    resource->set_path("/screen");
-    resource->set_method_handler("GET", [this](SharedSession session){_getScreen(session);});
+    resource->set_path("/displayInfo");
+    resource->set_method_handler("GET", [this](SharedSession session){_getDisplayInfo(session);});
     m_service.publish(resource);
   }
 
@@ -193,7 +193,7 @@ void RestServer::_getAllLights(const SharedSession& session) const
 }
 
 
-void RestServer::_getScreen(const SharedSession& session) const
+void RestServer::_getDisplayInfo(const SharedSession& session) const
 {
   const auto request = session->get_request();
   int contentLength = request->get_header("Content-Length", 0);
@@ -202,7 +202,8 @@ void RestServer::_getScreen(const SharedSession& session) const
     glm::vec2 screenResolution = m_freenSync->screenResolution();
     json jsonScreen{
       {"x", screenResolution.x},
-      {"y", screenResolution.y}
+      {"y", screenResolution.y},
+      {"subsampleWidth", this->m_freenSync->subsampleWidth()}
     };
 
     string response = jsonScreen.dump();

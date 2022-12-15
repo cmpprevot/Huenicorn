@@ -95,6 +95,12 @@ glm::vec2 FreenSync::screenResolution() const
 }
 
 
+unsigned FreenSync::subsampleWidth() const
+{
+  return m_config.at("subsampleWidth");
+}
+
+
 const SyncedLight::UVs& FreenSync::setLightUV(const std::string& syncedLightId, SyncedLight::UV&& uv, SyncedLight::UVType uvType)
 {
   _resetJsonLightsCache();
@@ -241,7 +247,7 @@ void FreenSync::_processScreenFrame()
   int type = m_imageData.bitsPerPixel > 24 ? CV_8UC4 : CV_8UC3;
   cv::Mat img = cv::Mat(m_imageData.height, m_imageData.width, type, m_imageData.pixels.data());
 
-  ImageProcessing::rescale(img, 100);
+  ImageProcessing::rescale(img, m_config.at("subsampleWidth").get<unsigned>());
 
   cv::cvtColor(img, img, cv::COLOR_RGBA2RGB);
 

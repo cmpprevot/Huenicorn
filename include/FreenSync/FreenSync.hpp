@@ -27,6 +27,7 @@ public:
   const nlohmann::json& jsonAllLights() const;
   bool syncedLightExists(const std::string& lightId) const;
   glm::vec2 screenResolution() const;
+  unsigned subsampleWidth() const;
 
 
   // Setters
