@@ -91,7 +91,7 @@ class WebUI
     this._refreshAvailableLights(lights.available);
 
     if(lights.available.length == 0){
-      this.screenArea.setLegend(ScreenWidget.legends.noLight);
+      this.screenWidget.setLegend(ScreenWidget.Legends.noLight);
     }
     else if(Object.keys(this.syncedLights).length == 0){
       this.screenWidget.setLegend(ScreenWidget.Legends.pleaseDrag);
