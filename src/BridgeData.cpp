@@ -13,17 +13,18 @@ using namespace std;
 
 namespace FreenSync
 {
-  BridgeData::BridgeData(const json& config)
+  BridgeData::BridgeData(const Config& config):
+  m_config(config)
   {
-    m_bridgeAddress = filesystem::path(config.at("bridgeAddress"));
-
-    if(!config.contains("apiKey")){
-      // Todo : Registration procedure
+    if(!config.bridgeAddress().has_value()){
+      cout << "Error : no bridge address was provided in configuration file" << endl;
+      return;
+    }
+    
+    if(!config.apiKey().has_value()){
       cout << "Error : no API key was provided in configuration file" << endl;
       return;
     }
-
-    m_apiKey.emplace(config.at("apiKey"));
   }
 
 
@@ -36,8 +37,8 @@ namespace FreenSync
   const json& BridgeData::bridgeData() const
   {
     if(!m_bridgeData.has_value()){
-      string url = m_bridgeAddress;
-      url += "/api/" + m_apiKey.value();
+      string url = m_config.bridgeAddress().value();
+      url += "/api/" + m_config.apiKey().value();
 
       m_bridgeData.emplace(RequestUtils::sendRequest(url, "GET", ""));
     }
@@ -82,7 +83,7 @@ namespace FreenSync
       {"transitiontime", 1}
     };
     
-    filesystem::path url = m_bridgeAddress / "api" / m_apiKey.value() / "lights" / light->id() / "state";
+    filesystem::path url = m_config.bridgeAddress().value() + "/api/" + m_config.apiKey().value() + "/lights/" + light->id() + "/state";
 
     RequestUtils::sendRequest(url, "PUT", request.dump());
   }

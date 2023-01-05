@@ -6,6 +6,7 @@
 
 #include <FreenSync/ScreenUtils.hpp>
 #include <FreenSync/TickSynchronizer.hpp>
+#include <FreenSync/RequestUtils.hpp>
 
 using namespace nlohmann;
 using namespace std;
@@ -16,12 +17,6 @@ namespace FreenSync
   FreenSyncCore::FreenSyncCore():
   m_restServer(this)
   {
-    ifstream configFile("config.json");
-    m_config = json::parse(configFile);
-
-    m_bridge = make_shared<BridgeData>(m_config);
-
-    m_restServer.start(m_config.at("restServerPort"));
   }
 
 
@@ -65,11 +60,6 @@ namespace FreenSync
   const nlohmann::json& FreenSyncCore::jsonAllLights() const
   {
     if(!m_cachedJsonAllLights.has_value()){
-
-      json test = {
-        {"a", 42}
-      };
-
       m_cachedJsonAllLights.emplace(
         json::object(
           {
@@ -99,7 +89,7 @@ namespace FreenSync
 
   unsigned FreenSyncCore::subsampleWidth() const
   {
-    return m_config.at("subsampleWidth");
+    return m_config.subsampleWidth();
   }
 
 
@@ -118,13 +108,30 @@ namespace FreenSync
 
   void FreenSyncCore::start()
   {
+    m_bridge = make_shared<BridgeData>(m_config);
+
+    if(!m_config.bridgeAddress().has_value()){
+      if(!_registerBridgeAddress()){
+        return;
+      }
+    }
+
+    if(!m_config.apiKey().has_value()){
+      if(!_registerApiToken()){
+        return;
+      }
+    }
+
+    cout << "Configuration is ready. Feel free to modify it manually by editing " << std::quoted(m_config.configFilePath().string()) << endl;
+
     if(m_loopThread.has_value()){
       cout << "Service is already running" << endl;
       return;
     }
 
+    m_restServer.start(m_config.restServerPort());
     m_keepLooping = true;
-    m_refreshRate = m_config.at("refreshRate").get<float>();
+    m_refreshRate = m_config.refreshRate();
     m_loopThread.emplace([this](){_loop();});
 
     _loadProfile();
@@ -133,6 +140,8 @@ namespace FreenSync
 
   void FreenSyncCore::stop()
   {
+    m_restServer.stop();
+
     if(!m_loopThread.has_value()){
       cout << "Service is not running" << endl;
       return;
@@ -140,8 +149,6 @@ namespace FreenSync
 
     m_keepLooping = false;
     m_loopThread.value().join();
-
-    m_restServer.stop();
 
     _shutdownLights();
   }
@@ -189,6 +196,111 @@ namespace FreenSync
     ofstream profileFile("profile.json", ofstream::out);
     profileFile << profile.dump(2) << endl;
     profileFile.close();
+  }
+
+
+  bool FreenSyncCore::_registerBridgeAddress()
+  {
+    while(!m_config.bridgeAddress().has_value()){
+      cout << "To get started, you first need to provide the address of the Hue bridge. Are you ready to proceed ? [y/N]" << endl;
+      string response;
+      std::getline(std::cin, response);
+
+      if(response != "y"){
+        return false;
+      }
+
+      cout << "Please now provide the Hue bridge address" << endl;
+      string bridgeAddress;
+      std::getline(std::cin, bridgeAddress);
+
+      try{
+        auto response = RequestUtils::sendRequest(bridgeAddress + "/api", "GET", "");
+        if(response.size() != 0){
+          m_config.setBridgeAddress(bridgeAddress);
+          cout << "Successfully registered bridge address" << endl;
+        }
+      }
+      catch(const json::exception& exception){
+        cout << "Could not register bridge address : " << std::quoted(bridgeAddress) << endl;
+        cout << exception.what() << endl;
+      }
+    }
+
+    return true;
+  }
+
+
+  bool FreenSyncCore::_registerApiToken()
+  {
+    if(!m_config.apiKey().has_value()){
+      cout << "An API token is required to interact with your Hue bridge.\n Can you provide any registered token ? [y/N]" << endl;
+
+      string userResponse;
+      std::getline(std::cin, userResponse);
+
+      if(userResponse == "y"){
+        size_t expectedTokenLength = 40;
+        cout << "Please input a registered Hue Bridge API token (" << expectedTokenLength << " alphanumerical digits)" << endl;
+        string userToken;
+        std::getline(std::cin, userToken);
+
+        if(userToken.size() != expectedTokenLength){
+          cout << "Invalid token format" << endl;
+          return false;
+        }
+
+        try{
+          auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api/" + userToken, "GET", "");
+          if(response.size() != 0){
+            m_config.setApiKey(userToken);
+            cout << "Successfully registered API token" << endl;
+            return true;
+          }
+        }
+        catch(const json::exception& exception){
+          cout << "Could not register API token" << endl;
+          cout << exception.what() << endl;
+          return false;
+        }
+      }
+      else{
+        cout << "In order to generate a new token, you now need to press the central button on the Hue Bridge. Is it done and are you ready to proceed ? [y/N]" << endl;
+        std::getline(std::cin, userResponse);
+        if(userResponse == "y"){
+          try{
+            json request = {{"devicetype", "freenSync"}};
+
+            auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api", "POST", request.dump());
+
+            if(response.size() < 1){
+              return false;
+            }
+
+            if(response.at(0).contains("error")){
+              cout << "Error : " << response.at(0).at("error").at("description") << endl;
+              return false;
+            }
+
+            if(response.at(0).contains("success")){
+              string apiToken = response.at(0).at("success").at("username");
+              cout << "Api token " << std::quoted(apiToken) << "has been successfully generated !" << endl;
+              m_config.setApiKey(apiToken);
+              return true;
+            }
+          }
+          catch(const json::exception& exception){
+            return false;
+          }
+        }
+        else{
+          cout << "Aborting API token registration" << endl;
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
 
@@ -249,7 +361,7 @@ namespace FreenSync
     int type = m_imageData.bitsPerPixel > 24 ? CV_8UC4 : CV_8UC3;
     cv::Mat img = cv::Mat(m_imageData.height, m_imageData.width, type, m_imageData.pixels.data());
 
-    ImageProcessing::rescale(img, m_config.at("subsampleWidth").get<unsigned>());
+    ImageProcessing::rescale(img, m_config.subsampleWidth());
 
     cv::cvtColor(img, img, cv::COLOR_RGBA2RGB);
 

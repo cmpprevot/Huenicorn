@@ -3,6 +3,7 @@
 #include <optional>
 #include <nlohmann/json.hpp>
 
+#include <FreenSync/Config.hpp>
 #include <FreenSync/SyncedLight.hpp>
 #include <FreenSync/LightSummary.hpp>
 
@@ -15,7 +16,7 @@ namespace FreenSync
   friend SyncedLight;
 
   public:
-    BridgeData(const nlohmann::json& config);
+    BridgeData(const Config& config);
     ~BridgeData();
 
     const nlohmann::json& bridgeData() const;
@@ -26,12 +27,9 @@ namespace FreenSync
   private:
     void _notify(SharedSyncedLight light);
 
-    std::filesystem::path m_bridgeAddress;
-    std::optional<std::string> m_apiKey;
+    const Config& m_config;
 
     mutable std::optional<nlohmann::json> m_bridgeData;
-
     mutable std::optional<LightSummaries> m_lightSummaries;
-
   };
 }

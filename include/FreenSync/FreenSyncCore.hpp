@@ -48,6 +48,9 @@ namespace FreenSync
   private:
 
     // Private methods
+    bool _registerBridgeAddress();
+    bool _registerApiToken();
+
     void _loadProfile();
     void _loop();
     void _processScreenFrame();
@@ -56,7 +59,7 @@ namespace FreenSync
 
 
     // Attributes
-    nlohmann::json m_config;
+    Config m_config;
 
     std::optional<std::thread> m_loopThread;
     bool m_keepLooping;
