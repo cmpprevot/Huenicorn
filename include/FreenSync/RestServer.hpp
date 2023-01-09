@@ -19,11 +19,14 @@ namespace FreenSync
 
   public:
     RestServer(FreenSyncCore* freenSyncCore);
+    ~RestServer();
 
     bool start(int port);
-    bool stop();
+    void stop();
 
   private:
+    bool _stop();
+
     // Handlers
     void _getAvailableLights(const SharedSession& session) const;
     void _getSyncedLights(const SharedSession& session) const;

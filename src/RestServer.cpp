@@ -114,6 +114,12 @@ namespace FreenSync
   }
 
 
+  RestServer::~RestServer()
+  {
+    _stop();
+  }
+
+
   bool RestServer::start(int port)
   {
     if(m_serviceThread.has_value()){
@@ -129,7 +135,13 @@ namespace FreenSync
   }
 
 
-  bool RestServer::stop()
+  void RestServer::stop()
+  {
+    _stop();
+  }
+
+
+  bool RestServer::_stop()
   {
     if(!m_serviceThread.has_value()){
       return false;

@@ -107,18 +107,26 @@ namespace FreenSync
       cout << "Missing 'restServerPort' in config. Falling back to " << m_restServerPort << endl;
     }
 
+    bool ready = true;
     if(!configRoot.contains("bridgeAddress")){
-      return false;
+      ready = false;
     }
-
-    m_bridgeAddress.emplace(configRoot.at("bridgeAddress"));
+    else{
+      m_bridgeAddress.emplace(configRoot.at("bridgeAddress"));
+    }
 
     if(!configRoot.contains("apiKey")){
       std::cout << "Missing 'apiKey' in config" << endl;
+      ready = false;
+    }
+    else{
+      m_apiKey.emplace(configRoot.at("apiKey"));
+    }
+
+    if(!ready){
       return false;
     }
 
-    m_apiKey.emplace(configRoot.at("apiKey"));
 
     if(configRoot.contains("subsampleWidth")){
       m_subsampleWidth = configRoot.at("subsampleWidth");

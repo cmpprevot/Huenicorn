@@ -140,8 +140,6 @@ namespace FreenSync
 
   void FreenSyncCore::stop()
   {
-    m_restServer.stop();
-
     if(!m_loopThread.has_value()){
       cout << "Service is not running" << endl;
       return;
@@ -202,7 +200,7 @@ namespace FreenSync
   bool FreenSyncCore::_registerBridgeAddress()
   {
     while(!m_config.bridgeAddress().has_value()){
-      cout << "To get started, you first need to provide the address of the Hue bridge. Are you ready to proceed ? [y/N]" << endl;
+      cout << "A Hue bridge address is needed to enable light control. Are you ready to provide it ? [y/N]" << endl;
       string response;
       std::getline(std::cin, response);
 
