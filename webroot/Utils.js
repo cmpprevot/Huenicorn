@@ -43,4 +43,14 @@ class RequestUtils
     };
     xhr.send(data);
   }
-};
+}
+
+
+class MathUtils
+{
+  static roundPrecision(num, decimals)
+  {
+    let factor = Math.pow(10, decimals);
+    return Math.round(num * factor) / factor;
+  }
+}

@@ -18,6 +18,12 @@ class WebUI
 
     this.screenWidget = new ScreenWidget(this);
 
+    this.advancedSettingsCheckbox = document.getElementById("advancedSettingsCheckbox");
+    this.advancedSettingsCheckbox.addEventListener("click", (e) => {this._toggleAdvancedDisplay(e.target.checked);});
+    this.advancedSettingsNode = document.getElementById("advancedSettings");
+    this.availableSubsamplesNode = document.getElementById("availableSubsampleWidths");
+    this.availableSubsamplesNode.addEventListener("change", (event) => {this._setSubsampleWidth(event.target)});
+
     this.saveProfileButton = document.getElementById("saveProfileButton");
     this.saveProfileButton.addEventListener("click", () => {this._saveProfile()});
   }
@@ -57,6 +63,38 @@ class WebUI
       let gammaFactor = gammaFactorData.gammaFactor;
       this.screenWidget.currentLight.gammaFactor = Utils.truncate(gammaFactor, 2);
     });
+  }
+
+
+  _initAdvancedSettings()
+  {
+    let showAdvancedSettings = false;
+    this.advancedSettingsCheckbox.checked = showAdvancedSettings;
+    this._toggleAdvancedDisplay(showAdvancedSettings);
+
+    this.availableSubsamplesNode.innerHTML = "";
+    for(let subsampleCandidate of this.screenWidget.subsampleResolutionCandidates){
+      let newOption = document.createElement("option");
+      let width = subsampleCandidate.x;
+      let height = subsampleCandidate.y;
+      let percentage = width / this.screenWidget.width * 100;
+      percentage = MathUtils.roundPrecision(percentage, 2);
+      newOption.innerHTML = width + "x" + height;
+      newOption.innerHTML += ` (${percentage}%)`;
+      newOption.value = width;
+      this.availableSubsamplesNode.appendChild(newOption);
+    }
+  }
+
+
+  _toggleAdvancedDisplay(checked)
+  {
+    if(checked){
+      this.advancedSettingsNode.style.display = "block";
+    }
+    else{
+      this.advancedSettingsNode.style.display = "none";
+    }
   }
 
 
@@ -183,6 +221,10 @@ class WebUI
     let subsampleWidth = displayInfo.subsampleWidth;
 
     this.screenWidget.setDimensions(x, y, subsampleWidth);
+    this.screenWidget.setSubsampleCandidates(displayInfo.subsampleResolutionCandidates);
+
+    this._initAdvancedSettings();
+    this.availableSubsamplesNode.value = subsampleWidth.toString();
   }
 
 
@@ -216,6 +258,16 @@ class WebUI
       let syncedLightData = JSON.parse(jsonSyncedLight);
       this.syncedLights[lightId].uvs = syncedLightData.uvs;
       this.screenWidget.initLightRegion(this.syncedLights[lightId]);
+    });
+  }
+
+
+  _setSubsampleWidth(eventTarget)
+  {
+    log(eventTarget.value);
+    RequestUtils.put("/setSubsampleWidth", JSON.stringify(parseInt(eventTarget.value)), (jsonDisplayInfo) => {
+      let displayInfo = JSON.parse(jsonDisplayInfo);
+      this.screenWidget.setDimensions(displayInfo.x, displayInfo.y, displayInfo.subsampleWidth);
     });
   }
 

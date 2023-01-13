@@ -93,6 +93,13 @@ namespace FreenSync
 
     {
       auto resource = make_shared<restbed::Resource>();
+      resource->set_path("/setSubsampleWidth");
+      resource->set_method_handler("PUT", [this](SharedSession session){_setSubsampleWidth(session);});
+      m_service.publish(resource);
+    }
+
+    {
+      auto resource = make_shared<restbed::Resource>();
       resource->set_path("/syncLight");
       resource->set_method_handler("POST", [this](SharedSession session){_syncLight(session);});
       m_service.publish(resource);
@@ -218,14 +225,25 @@ namespace FreenSync
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
-      glm::vec2 screenResolution = m_freenSyncCore->screenResolution();
-      json jsonScreen{
+      glm::ivec2 screenResolution = m_freenSyncCore->screenResolution();
+      auto subsampleResolutionCandidates = m_freenSyncCore->subsampleResolutionCandidates();
+
+      json jsonSubsampleCandidates = json::array();
+      for(const auto& candidate : this->m_freenSyncCore->subsampleResolutionCandidates()){
+        jsonSubsampleCandidates.push_back({
+          {"x", candidate.x},
+          {"y", candidate.y}
+        });
+      }
+
+      json displayInfo{
         {"x", screenResolution.x},
         {"y", screenResolution.y},
-        {"subsampleWidth", this->m_freenSyncCore->subsampleWidth()}
+        {"subsampleWidth", this->m_freenSyncCore->subsampleWidth()},
+        {"subsampleResolutionCandidates", jsonSubsampleCandidates}
       };
 
-      string response = jsonScreen.dump();
+      string response = displayInfo.dump();
 
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
     });
@@ -300,7 +318,7 @@ namespace FreenSync
 
   void RestServer::_setLightGammaFactor(const SharedSession& session) const
   {
-    const auto request = session->get_request();
+    const auto& request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
@@ -328,6 +346,32 @@ namespace FreenSync
       };
 
       string response = jsonResponse.dump();
+      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+    });
+  }
+
+
+  void RestServer::_setSubsampleWidth(const SharedSession& session) const
+  {
+    const auto request = session->get_request();
+    int contentLength = request->get_header("Content-Length", 0);
+
+    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+      string data(reinterpret_cast<const char*>(body.data()), body.size());
+
+      int subsampleWidth = json::parse(data).get<int>();
+
+      m_freenSyncCore->setSubsampleWidth(subsampleWidth);
+
+      glm::ivec2 screenResolution = m_freenSyncCore->screenResolution();
+      json jsonScreen{
+        {"x", screenResolution.x},
+        {"y", screenResolution.y},
+        {"subsampleWidth", this->m_freenSyncCore->subsampleWidth()}
+      };
+
+      string response = jsonScreen.dump();
+
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
     });
   }

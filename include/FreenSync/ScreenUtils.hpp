@@ -9,7 +9,10 @@ namespace FreenSync
   class ScreenUtils
   {
   public:
+    using Divisors = std::vector<int>;
+
     static void getScreenCapture(ImageData& imageData);
-    static glm::vec2 getScreenResolution();
+    static glm::ivec2 getScreenResolution();
+    static std::vector<glm::ivec2> subsampleResolutionCandidates();
   };
 }

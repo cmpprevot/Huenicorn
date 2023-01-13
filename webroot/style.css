@@ -48,9 +48,21 @@ button
   border-radius: var(--borderRadius);
 }
 
+
 button:hover
 {
   box-shadow: inset var(--shadow);
+}
+
+
+select
+{
+  text-align: center;
+  background-color: var(--backgroundColor);
+  color: var(--foregroundColor);
+  border: var(--border);
+  border-radius: var(--borderRadius);
+  margin-left: 20px;
 }
 
 
@@ -80,6 +92,17 @@ button:hover
   border-radius: var(--borderRadius);
 }
 
+
+#advancedSettings
+{
+  width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 20px;
+  box-shadow: var(--shadow);
+  border: var(--border);
+  border-radius: var(--borderRadius);
+}
 
 .lightList>p
 {

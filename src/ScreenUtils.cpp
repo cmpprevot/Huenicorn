@@ -5,6 +5,8 @@
 #include <err.h>
 
 #include <cstring>
+#include <algorithm>
+
 
 namespace FreenSync
 {
@@ -30,7 +32,7 @@ namespace FreenSync
   }
 
 
-  glm::vec2 ScreenUtils::getScreenResolution()
+  glm::ivec2 ScreenUtils::getScreenResolution()
   {
     Display* display;
 
@@ -46,6 +48,51 @@ namespace FreenSync
     width = DisplayWidth(display, screenId);
     height = DisplayHeight(display, screenId);
 
-    return glm::vec2(width, height);
+    return {width, height};
+  }
+
+
+  std::vector<int> _divisors(int number)
+  {
+    std::vector<int >divisors;
+    for(int i = 1; i < number / 2; i++){
+      if(number % i == 0){
+        divisors.push_back(i);
+      }
+    }
+
+    divisors.push_back(number);
+
+    return divisors;
+  }
+
+
+  ScreenUtils::Divisors _selectValidDivisors(int width, int height, const ScreenUtils::Divisors& candidateDivisors)
+  {
+    ScreenUtils::Divisors validDivisors;
+
+    std::copy_if(candidateDivisors.begin(), candidateDivisors.end(), std::back_inserter(validDivisors), [&](int candidateDivisor){
+      return (height % (width / candidateDivisor)) != 0;
+    });
+
+    return validDivisors;
+  }
+
+
+  std::vector<glm::ivec2> ScreenUtils::subsampleResolutionCandidates()
+  {
+    auto screenResolution = getScreenResolution();
+    auto wDivisors = _divisors(screenResolution.x);
+    auto validDivisors = _selectValidDivisors(screenResolution.x, screenResolution.y, wDivisors);
+
+    std::vector<glm::ivec2> subsampleResolutionCandidates;
+
+    for(const auto& validDivisor : validDivisors){
+      int width = screenResolution.x / validDivisor;
+      int height = (screenResolution.y * width) / screenResolution.x;
+      subsampleResolutionCandidates.emplace_back(width, height);
+    }
+
+   return subsampleResolutionCandidates;
   }
 }

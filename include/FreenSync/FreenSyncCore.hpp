@@ -29,13 +29,15 @@ namespace FreenSync
     const nlohmann::json& jsonSyncedLights() const;
     const nlohmann::json& jsonAllLights() const;
     bool syncedLightExists(const std::string& lightId) const;
-    glm::vec2 screenResolution() const;
+    glm::ivec2 screenResolution() const;
+    std::vector<glm::ivec2> subsampleResolutionCandidates() const;
     unsigned subsampleWidth() const;
 
 
     // Setters
     const SyncedLight::UVs& setLightUV(const std::string& syncedLightId, SyncedLight::UV&& uv, SyncedLight::UVType uvType);
     void setLightGammaFactor(const std::string& syncedLightId, float gammaFactor);
+    void setSubsampleWidth(int subsampleWidth);
 
     // Methods
     void start();

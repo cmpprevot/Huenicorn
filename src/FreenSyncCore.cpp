@@ -81,9 +81,15 @@ namespace FreenSync
   }
 
 
-  glm::vec2 FreenSyncCore::screenResolution() const
+  glm::ivec2 FreenSyncCore::screenResolution() const
   {
     return ScreenUtils::getScreenResolution();
+  }
+
+
+  vector<glm::ivec2> FreenSyncCore::subsampleResolutionCandidates() const
+  {
+    return ScreenUtils::subsampleResolutionCandidates();
   }
 
 
@@ -103,6 +109,12 @@ namespace FreenSync
   void FreenSyncCore::setLightGammaFactor(const std::string& syncedLightId, float gammaExponent)
   {
     m_syncedLights.at(syncedLightId)->setGammaFactor(gammaExponent);
+  }
+
+
+  void FreenSyncCore::setSubsampleWidth(int subsampleWidth)
+  {
+    m_config.setSubsampleWidth(subsampleWidth);
   }
 
 
@@ -313,6 +325,8 @@ namespace FreenSync
 
     ifstream profileFile(profilePath);
     json jsonProfile = json::parse(profileFile);
+
+    // ToDo : Try/catch
     const auto& lightSummaries = m_bridge->lightSummaries();
 
     for(const auto& jsonLight : jsonProfile.at("lights")){

@@ -70,10 +70,15 @@ namespace FreenSync
   }
 
 
+  void Config::setSubsampleWidth(int subsampleWidth)
+  {
+    m_subsampleWidth = subsampleWidth;
+    save();
+  }
+
+
   void Config::save() const
   {
-    ofstream configFile(m_configFilePath);
-
     json outConfig = {
       {"refreshRate", m_refreshRate},
       {"subsampleWidth", m_subsampleWidth},
@@ -88,6 +93,7 @@ namespace FreenSync
       outConfig["apiKey"] = m_apiKey.value();
     }
 
+    ofstream configFile(m_configFilePath);
     configFile << outConfig.dump(2) << endl;
   }
 

@@ -236,8 +236,13 @@ class ScreenWidget
 
   setDimensions(width, height, subsampleWidth)
   {
+    this.width = width;
+    this.height = height;
+
     this.subsampleWidth = subsampleWidth;
-    this.subsampleHeight = height / width * subsampleWidth;
+    this.subsampleHeight = this.height / this.width * subsampleWidth;
+
+    this.gridAreaNode.innerHTML = "";
 
     for(let i = 0; i < this.subsampleWidth; i++){
       let x = i / this.subsampleWidth;
@@ -266,6 +271,12 @@ class ScreenWidget
 
       this.gridAreaNode.appendChild(line);
     }
+  }
+
+
+  setSubsampleCandidates(subsampleResolutionCandidates)
+  {
+    this.subsampleResolutionCandidates = subsampleResolutionCandidates;
   }
 
 

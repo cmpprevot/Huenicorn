@@ -19,12 +19,13 @@ namespace FreenSync
     int restServerPort() const;
     const std::optional<std::string>& bridgeAddress() const;
     const std::optional<std::string>& apiKey() const;
+    float refreshRate() const;
+    int subsampleWidth() const;
 
   // Setters
-  float refreshRate() const;
-  int subsampleWidth() const;
-  void setBridgeAddress(const std::string& bridgeAddress);
-  void setApiKey(const std::string& apiKey);
+    void setBridgeAddress(const std::string& bridgeAddress);
+    void setApiKey(const std::string& apiKey);
+    void setSubsampleWidth(int subsampleWidth);
 
   // Methods
   void save() const;
