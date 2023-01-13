@@ -1,18 +1,18 @@
-#include <FreenSync/SyncedLight.hpp>
+#include <Huenicorn/SyncedLight.hpp>
 
 #include <iostream>
 
 #include <glm/common.hpp>
 #include <glm/gtx/string_cast.hpp> // ToDo : remove
 
-#include <FreenSync/BridgeData.hpp>
+#include <Huenicorn/BridgeData.hpp>
 
 
 using namespace glm;
 using namespace nlohmann;
 using namespace std;
 
-namespace FreenSync
+namespace Huenicorn
 {
   SyncedLight::SyncedLight(SharedBridgeData bridgeData, const LightSummary& lightSummary):
   m_bridgeData(bridgeData),

@@ -1,9 +1,9 @@
-#include <FreenSync/BridgeData.hpp>
+#include <Huenicorn/BridgeData.hpp>
 
 #include <iostream>
 #include <filesystem>
 
-#include <FreenSync/RequestUtils.hpp>
+#include <Huenicorn/RequestUtils.hpp>
 
 
 using namespace nlohmann;
@@ -11,7 +11,7 @@ using namespace std;
 
 #include <fstream>
 
-namespace FreenSync
+namespace Huenicorn
 {
   BridgeData::BridgeData(const Config& config):
   m_config(config)

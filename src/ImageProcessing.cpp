@@ -1,9 +1,9 @@
-#include <FreenSync/ImageProcessing.hpp>
+#include <Huenicorn/ImageProcessing.hpp>
 
 #include <algorithm>
 
 
-namespace FreenSync
+namespace Huenicorn
 {
   namespace ImageProcessing
   {

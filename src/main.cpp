@@ -1,15 +1,15 @@
 #include <thread>
 
-#include <FreenSync/FreenSyncCore.hpp>
-#include <FreenSync/RestServer.hpp>
+#include <Huenicorn/HuenicornCore.hpp>
+#include <Huenicorn/RestServer.hpp>
 
 
 using namespace std;
 
 
-void startFreenSync()
+void startHuenicorn()
 {
-  FreenSync::FreenSyncCore core;
+  Huenicorn::HuenicornCore core;
   core.start();
 
   cout << "Hit enter to stop" << endl;
@@ -21,7 +21,7 @@ void startFreenSync()
 
 int main()
 {
-  startFreenSync();
+  startHuenicorn();
 
   return 0;
 }

@@ -1,38 +1,38 @@
-#include <FreenSync/FreenSyncCore.hpp>
+#include <Huenicorn/HuenicornCore.hpp>
 
 #include <iostream>
 #include <fstream>
 #include <chrono>
 
-#include <FreenSync/ScreenUtils.hpp>
-#include <FreenSync/TickSynchronizer.hpp>
-#include <FreenSync/RequestUtils.hpp>
+#include <Huenicorn/ScreenUtils.hpp>
+#include <Huenicorn/TickSynchronizer.hpp>
+#include <Huenicorn/RequestUtils.hpp>
 
 using namespace nlohmann;
 using namespace std;
 
 
-namespace FreenSync
+namespace Huenicorn
 {
-  FreenSyncCore::FreenSyncCore():
+  HuenicornCore::HuenicornCore():
   m_restServer(this)
   {
   }
 
 
-  const LightSummaries& FreenSyncCore::availableLights() const
+  const LightSummaries& HuenicornCore::availableLights() const
   {
     return m_bridge->lightSummaries();
   }
 
 
-  const SyncedLights& FreenSyncCore::syncedLights() const
+  const SyncedLights& HuenicornCore::syncedLights() const
   {
     return m_syncedLights;
   }
 
 
-  const nlohmann::json& FreenSyncCore::jsonAvailableLights() const
+  const nlohmann::json& HuenicornCore::jsonAvailableLights() const
   {
     if(!m_cachedJsonAvailableLights.has_value()){
       m_cachedJsonAvailableLights.emplace(json::array());
@@ -45,7 +45,7 @@ namespace FreenSync
   }
 
 
-  const nlohmann::json& FreenSyncCore::jsonSyncedLights() const
+  const nlohmann::json& HuenicornCore::jsonSyncedLights() const
   {
     if(!m_cachedJsonSyncedLights.has_value()){
       m_cachedJsonSyncedLights.emplace(json::array());
@@ -57,7 +57,7 @@ namespace FreenSync
   }
 
 
-  const nlohmann::json& FreenSyncCore::jsonAllLights() const
+  const nlohmann::json& HuenicornCore::jsonAllLights() const
   {
     if(!m_cachedJsonAllLights.has_value()){
       m_cachedJsonAllLights.emplace(
@@ -74,51 +74,51 @@ namespace FreenSync
   }
 
 
-  SharedSyncedLight FreenSyncCore::syncedLight(const std::string& lightId) const
+  SharedSyncedLight HuenicornCore::syncedLight(const std::string& lightId) const
   {
     const auto& syncedLight = m_syncedLights.find(lightId);
     return (syncedLight != m_syncedLights.end()) ? syncedLight->second : nullptr;
   }
 
 
-  glm::ivec2 FreenSyncCore::screenResolution() const
+  glm::ivec2 HuenicornCore::screenResolution() const
   {
     return ScreenUtils::getScreenResolution();
   }
 
 
-  vector<glm::ivec2> FreenSyncCore::subsampleResolutionCandidates() const
+  vector<glm::ivec2> HuenicornCore::subsampleResolutionCandidates() const
   {
     return ScreenUtils::subsampleResolutionCandidates();
   }
 
 
-  unsigned FreenSyncCore::subsampleWidth() const
+  unsigned HuenicornCore::subsampleWidth() const
   {
     return m_config.subsampleWidth();
   }
 
 
-  const SyncedLight::UVs& FreenSyncCore::setLightUV(const std::string& syncedLightId, SyncedLight::UV&& uv, SyncedLight::UVType uvType)
+  const SyncedLight::UVs& HuenicornCore::setLightUV(const std::string& syncedLightId, SyncedLight::UV&& uv, SyncedLight::UVType uvType)
   {
     _resetJsonLightsCache();
     return syncedLights().at(syncedLightId)->setUV(std::move(uv), uvType);
   }
 
 
-  void FreenSyncCore::setLightGammaFactor(const std::string& syncedLightId, float gammaExponent)
+  void HuenicornCore::setLightGammaFactor(const std::string& syncedLightId, float gammaExponent)
   {
     m_syncedLights.at(syncedLightId)->setGammaFactor(gammaExponent);
   }
 
 
-  void FreenSyncCore::setSubsampleWidth(int subsampleWidth)
+  void HuenicornCore::setSubsampleWidth(int subsampleWidth)
   {
     m_config.setSubsampleWidth(subsampleWidth);
   }
 
 
-  void FreenSyncCore::start()
+  void HuenicornCore::start()
   {
     m_bridge = make_shared<BridgeData>(m_config);
 
@@ -150,7 +150,7 @@ namespace FreenSync
   }
 
 
-  void FreenSyncCore::stop()
+  void HuenicornCore::stop()
   {
     if(!m_loopThread.has_value()){
       cout << "Service is not running" << endl;
@@ -164,7 +164,7 @@ namespace FreenSync
   }
 
 
-  SharedSyncedLight FreenSyncCore::addSyncedLight(const std::string& lightId)
+  SharedSyncedLight HuenicornCore::addSyncedLight(const std::string& lightId)
   {
     const auto& lightSummary = m_bridge->lightSummaries().at(lightId);
     auto [it, ok] = m_syncedLights.insert({lightId, make_shared<SyncedLight>(m_bridge, lightSummary)});
@@ -174,7 +174,7 @@ namespace FreenSync
   }
 
 
-  bool FreenSyncCore::removeSyncedLight(const std::string& lightId)
+  bool HuenicornCore::removeSyncedLight(const std::string& lightId)
   {
     auto n = m_syncedLights.erase(lightId);
     _resetJsonLightsCache();
@@ -182,7 +182,7 @@ namespace FreenSync
   }
 
 
-  void FreenSyncCore::saveProfile() const
+  void HuenicornCore::saveProfile() const
   {
     nlohmann::json profile = json::object();
     profile["lights"] = json::array();
@@ -209,7 +209,7 @@ namespace FreenSync
   }
 
 
-  bool FreenSyncCore::_registerBridgeAddress()
+  bool HuenicornCore::_registerBridgeAddress()
   {
     while(!m_config.bridgeAddress().has_value()){
       cout << "A Hue bridge address is needed to enable light control. Are you ready to provide it ? [y/N]" << endl;
@@ -241,7 +241,7 @@ namespace FreenSync
   }
 
 
-  bool FreenSyncCore::_registerApiToken()
+  bool HuenicornCore::_registerApiToken()
   {
     if(!m_config.apiKey().has_value()){
       cout << "An API token is required to interact with your Hue bridge.\n Can you provide any registered token ? [y/N]" << endl;
@@ -279,7 +279,7 @@ namespace FreenSync
         std::getline(std::cin, userResponse);
         if(userResponse == "y"){
           try{
-            json request = {{"devicetype", "freenSync"}};
+            json request = {{"devicetype", "Huenicorn"}};
 
             auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api", "POST", request.dump());
 
@@ -314,7 +314,7 @@ namespace FreenSync
   }
 
 
-  void FreenSyncCore::_loadProfile()
+  void HuenicornCore::_loadProfile()
   {
     filesystem::path profilePath = "profile.json";
 
@@ -349,7 +349,7 @@ namespace FreenSync
   }
 
 
-  void FreenSyncCore::_loop()
+  void HuenicornCore::_loop()
   {
     TickSynchronizer ts(1.0f / m_refreshRate);
 
@@ -367,7 +367,7 @@ namespace FreenSync
   }
 
 
-  void FreenSyncCore::_processScreenFrame()
+  void HuenicornCore::_processScreenFrame()
   {
     ScreenUtils::getScreenCapture(m_imageData);
     int type = m_imageData.bitsPerPixel > 24 ? CV_8UC4 : CV_8UC3;
@@ -394,7 +394,7 @@ namespace FreenSync
   }
 
 
-  void FreenSyncCore::_shutdownLights()
+  void HuenicornCore::_shutdownLights()
   {
     for(const auto& [_, syncedLight] : m_syncedLights){
       syncedLight->setState(false);
@@ -402,7 +402,7 @@ namespace FreenSync
   }
 
 
-  void FreenSyncCore::_resetJsonLightsCache()
+  void HuenicornCore::_resetJsonLightsCache()
   {
     m_cachedJsonAllLights.reset();
     m_cachedJsonAvailableLights.reset();

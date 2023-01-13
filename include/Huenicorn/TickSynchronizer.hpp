@@ -4,7 +4,7 @@
 #include <thread>
 
 
-namespace FreenSync
+namespace Huenicorn
 {
   /**
    * @brief Timing tool allowing to sync on a time inverval and compute stats

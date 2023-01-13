@@ -1,4 +1,4 @@
-#include <FreenSync/ScreenUtils.hpp>
+#include <Huenicorn/ScreenUtils.hpp>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -8,7 +8,7 @@
 #include <algorithm>
 
 
-namespace FreenSync
+namespace Huenicorn
 {
   void ScreenUtils::getScreenCapture(ImageData& imageData)
   {

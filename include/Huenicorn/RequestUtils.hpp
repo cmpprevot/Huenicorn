@@ -2,7 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
-namespace FreenSync
+namespace Huenicorn
 {
   namespace RequestUtils
   {

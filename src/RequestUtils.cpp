@@ -1,4 +1,4 @@
-#include <FreenSync/RequestUtils.hpp>
+#include <Huenicorn/RequestUtils.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -13,7 +13,7 @@ using namespace nlohmann;
 using namespace std;
 
 
-namespace FreenSync
+namespace Huenicorn
 {
 
   namespace RequestUtils

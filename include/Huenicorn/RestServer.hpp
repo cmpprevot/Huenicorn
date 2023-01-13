@@ -6,9 +6,9 @@
 
 #include <restbed>
 
-namespace FreenSync
+namespace Huenicorn
 {
-  class FreenSyncCore;
+  class HuenicornCore;
 
   class RestServer;
   using SharedRestServer = std::shared_ptr<RestServer>;
@@ -18,7 +18,7 @@ namespace FreenSync
     using SharedSession = std::shared_ptr<restbed::Session>;
 
   public:
-    RestServer(FreenSyncCore* freenSyncCore);
+    RestServer(HuenicornCore* HuenicornCore);
     ~RestServer();
 
     bool start(int port);
@@ -42,7 +42,7 @@ namespace FreenSync
     void _saveProfile(const SharedSession& session) const;
 
     // Attributes
-    FreenSyncCore* m_freenSyncCore;
+    HuenicornCore* m_HuenicornCore;
 
     std::shared_ptr<restbed::Settings> m_settings;
     std::optional<std::thread> m_serviceThread;

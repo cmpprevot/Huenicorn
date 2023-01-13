@@ -7,11 +7,11 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
-#include <FreenSync/LightSummary.hpp>
-#include <FreenSync/Color.hpp>
+#include <Huenicorn/LightSummary.hpp>
+#include <Huenicorn/Color.hpp>
 
 
-namespace FreenSync
+namespace Huenicorn
 {
   class BridgeData;
   using SharedBridgeData = std::shared_ptr<BridgeData>;

@@ -1,8 +1,8 @@
-#include <FreenSync/TickSynchronizer.hpp>
+#include <Huenicorn/TickSynchronizer.hpp>
 
 #include <iostream>
 
-namespace FreenSync
+namespace Huenicorn
 {
   TickSynchronizer::TickSynchronizer(TimeUnitType tickInterval):
   m_tickInterval(tickInterval)

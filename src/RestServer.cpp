@@ -1,19 +1,19 @@
-#include <FreenSync/RestServer.hpp>
+#include <Huenicorn/RestServer.hpp>
 
 #include <iostream>
 #include <fstream>
 
 #include <nlohmann/json.hpp>
 
-#include <FreenSync/FreenSyncCore.hpp>
+#include <Huenicorn/HuenicornCore.hpp>
 
 using namespace nlohmann;
 using namespace std;
 
-namespace FreenSync
+namespace Huenicorn
 {
-  RestServer::RestServer(FreenSyncCore* freenSyncCore):
-  m_freenSyncCore(freenSyncCore),
+  RestServer::RestServer(HuenicornCore* HuenicornCore):
+  m_HuenicornCore(HuenicornCore),
   m_webroot("webroot")
   {
     m_settings = make_shared<restbed::Settings>();
@@ -168,7 +168,7 @@ namespace FreenSync
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
-      string response = m_freenSyncCore->jsonAvailableLights().dump();
+      string response = m_HuenicornCore->jsonAvailableLights().dump();
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
     });
   }
@@ -181,7 +181,7 @@ namespace FreenSync
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
-      string response = m_freenSyncCore->jsonSyncedLights().dump();
+      string response = m_HuenicornCore->jsonSyncedLights().dump();
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
     });
   }
@@ -195,7 +195,7 @@ namespace FreenSync
 
     session->fetch(contentLength, [this, lightId](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
-      SharedSyncedLight syncedLight = m_freenSyncCore->syncedLight(lightId);
+      SharedSyncedLight syncedLight = m_HuenicornCore->syncedLight(lightId);
 
       json jsonLight = syncedLight ? syncedLight->serialize() : json::object();
       string response = jsonLight.dump();
@@ -212,7 +212,7 @@ namespace FreenSync
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
-      string response = m_freenSyncCore->jsonAllLights().dump();
+      string response = m_HuenicornCore->jsonAllLights().dump();
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
     });
   }
@@ -225,11 +225,11 @@ namespace FreenSync
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
-      glm::ivec2 screenResolution = m_freenSyncCore->screenResolution();
-      auto subsampleResolutionCandidates = m_freenSyncCore->subsampleResolutionCandidates();
+      glm::ivec2 screenResolution = m_HuenicornCore->screenResolution();
+      auto subsampleResolutionCandidates = m_HuenicornCore->subsampleResolutionCandidates();
 
       json jsonSubsampleCandidates = json::array();
-      for(const auto& candidate : this->m_freenSyncCore->subsampleResolutionCandidates()){
+      for(const auto& candidate : this->m_HuenicornCore->subsampleResolutionCandidates()){
         jsonSubsampleCandidates.push_back({
           {"x", candidate.x},
           {"y", candidate.y}
@@ -239,7 +239,7 @@ namespace FreenSync
       json displayInfo{
         {"x", screenResolution.x},
         {"y", screenResolution.y},
-        {"subsampleWidth", this->m_freenSyncCore->subsampleWidth()},
+        {"subsampleWidth", this->m_HuenicornCore->subsampleWidth()},
         {"subsampleResolutionCandidates", jsonSubsampleCandidates}
       };
 
@@ -302,7 +302,7 @@ namespace FreenSync
       float y = jsonUV.at("y");
       SyncedLight::UVType uvType = static_cast<SyncedLight::UVType>(jsonUV.at("type").get<int>());
 
-      const auto& clampedUVs = m_freenSyncCore->setLightUV(lightId, {x, y}, uvType);
+      const auto& clampedUVs = m_HuenicornCore->setLightUV(lightId, {x, y}, uvType);
 
       json jsonResponse = {
         {"uvA", {{"x", clampedUVs.min.x}, {"y", clampedUVs.min.y}}},
@@ -328,7 +328,7 @@ namespace FreenSync
       string lightId = request->get_path_parameter("lightId");
 
       float gammaFactor = jsonGammaFactorData.at("gammaFactor");
-      const auto& availableLights = m_freenSyncCore->availableLights();
+      const auto& availableLights = m_HuenicornCore->availableLights();
       if(availableLights.find(lightId) == availableLights.end()){
         string response = json{
           {"status", false},
@@ -338,7 +338,7 @@ namespace FreenSync
         return;
       }
 
-      m_freenSyncCore->setLightGammaFactor(lightId, gammaFactor);
+      m_HuenicornCore->setLightGammaFactor(lightId, gammaFactor);
 
       json jsonResponse = json{
         {"status", true},
@@ -361,13 +361,13 @@ namespace FreenSync
 
       int subsampleWidth = json::parse(data).get<int>();
 
-      m_freenSyncCore->setSubsampleWidth(subsampleWidth);
+      m_HuenicornCore->setSubsampleWidth(subsampleWidth);
 
-      glm::ivec2 screenResolution = m_freenSyncCore->screenResolution();
+      glm::ivec2 screenResolution = m_HuenicornCore->screenResolution();
       json jsonScreen{
         {"x", screenResolution.x},
         {"y", screenResolution.y},
-        {"subsampleWidth", this->m_freenSyncCore->subsampleWidth()}
+        {"subsampleWidth", this->m_HuenicornCore->subsampleWidth()}
       };
 
       string response = jsonScreen.dump();
@@ -387,7 +387,7 @@ namespace FreenSync
       json jsonLightData = json::parse(data);
 
       string lightId = jsonLightData.at("id");
-      const auto& availableLights = m_freenSyncCore->availableLights();
+      const auto& availableLights = m_HuenicornCore->availableLights();
       if(availableLights.find(lightId) == availableLights.end()){
         string response = json{
           {"status", false},
@@ -398,13 +398,13 @@ namespace FreenSync
       }
 
       json jsonResponse = json::object();
-      bool succeeded = m_freenSyncCore->addSyncedLight(lightId) != nullptr;
+      bool succeeded = m_HuenicornCore->addSyncedLight(lightId) != nullptr;
       if(succeeded){
         jsonResponse["newSyncedLightId"] = lightId;
       }
 
       jsonResponse["status"] = succeeded;
-      jsonResponse["lights"] = m_freenSyncCore->jsonAllLights();
+      jsonResponse["lights"] = m_HuenicornCore->jsonAllLights();
 
       string response = jsonResponse.dump();
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
@@ -424,13 +424,13 @@ namespace FreenSync
       string lightId = jsonLightData.at("id");
 
       json jsonResponse = json::object();
-      bool succeeded = m_freenSyncCore->removeSyncedLight(lightId);
+      bool succeeded = m_HuenicornCore->removeSyncedLight(lightId);
       if(succeeded){
         jsonResponse["unsyncedLightId"] = lightId;
       }
 
       jsonResponse["status"] = succeeded;
-      jsonResponse["lights"] = m_freenSyncCore->jsonAllLights();
+      jsonResponse["lights"] = m_HuenicornCore->jsonAllLights();
 
       string response = jsonResponse.dump();
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
@@ -445,7 +445,7 @@ namespace FreenSync
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
-      m_freenSyncCore->saveProfile();
+      m_HuenicornCore->saveProfile();
 
       json jsonResponse = {
         "status", true

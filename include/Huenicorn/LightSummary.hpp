@@ -2,10 +2,10 @@
 
 #include <string>
 
-#include <FreenSync/Color.hpp>
+#include <Huenicorn/Color.hpp>
 #include <nlohmann/json.hpp>
 
-namespace FreenSync
+namespace Huenicorn
 {
   struct LightSummary
   {

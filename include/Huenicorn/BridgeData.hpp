@@ -3,11 +3,11 @@
 #include <optional>
 #include <nlohmann/json.hpp>
 
-#include <FreenSync/Config.hpp>
-#include <FreenSync/SyncedLight.hpp>
-#include <FreenSync/LightSummary.hpp>
+#include <Huenicorn/Config.hpp>
+#include <Huenicorn/SyncedLight.hpp>
+#include <Huenicorn/LightSummary.hpp>
 
-namespace FreenSync
+namespace Huenicorn
 {
   using LightSummaries = std::unordered_map<std::string, LightSummary>;
 

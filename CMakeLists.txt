@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(FreenSync VERSION 0.1.0)
+project(Huenicorn VERSION 0.1.0)
 
 
 find_package(OpenCV REQUIRED)
@@ -15,37 +15,37 @@ include_directories(
 add_subdirectory(ext/restbed)
 link_directories(build/ext/restbed) # ToDo : Fix path
 
-add_executable(FreenSync
+add_executable(Huenicorn
   src/main.cpp
   src/BridgeData.cpp
   src/Config.cpp
-  src/FreenSyncCore.cpp
+  src/HuenicornCore.cpp
   src/ImageProcessing.cpp
   src/SyncedLight.cpp
   src/RequestUtils.cpp
   src/RestServer.cpp
   src/ScreenUtils.cpp
   src/TickSynchronizer.cpp
-  include/FreenSync/BridgeData.hpp
-  include/FreenSync/Color.hpp
-  include/FreenSync/Config.hpp
-  include/FreenSync/FreenSyncCore.hpp
-  include/FreenSync/ImageProcessing.hpp
-  include/FreenSync/ImageData.hpp
-  include/FreenSync/SyncedLight.hpp
-  include/FreenSync/LightSummary.hpp
-  include/FreenSync/RequestUtils.hpp
-  include/FreenSync/RestServer.hpp
-  include/FreenSync/ScreenUtils.hpp
-  include/FreenSync/TickSynchronizer.hpp
+  include/Huenicorn/BridgeData.hpp
+  include/Huenicorn/Color.hpp
+  include/Huenicorn/Config.hpp
+  include/Huenicorn/HuenicornCore.hpp
+  include/Huenicorn/ImageProcessing.hpp
+  include/Huenicorn/ImageData.hpp
+  include/Huenicorn/SyncedLight.hpp
+  include/Huenicorn/LightSummary.hpp
+  include/Huenicorn/RequestUtils.hpp
+  include/Huenicorn/RestServer.hpp
+  include/Huenicorn/ScreenUtils.hpp
+  include/Huenicorn/TickSynchronizer.hpp
 )
 
-set_target_properties(FreenSync PROPERTIES CXX_STANDARD 20)
+set_target_properties(Huenicorn PROPERTIES CXX_STANDARD 20)
 
-target_link_libraries(FreenSync PUBLIC X11 ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp restbed)
+target_link_libraries(Huenicorn PUBLIC X11 ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp restbed)
 
 
-target_compile_options(FreenSync PRIVATE
+target_compile_options(Huenicorn PRIVATE
   -Werror
   -Wall
   -Wextra

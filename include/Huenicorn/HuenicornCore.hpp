@@ -3,22 +3,22 @@
 #include <optional>
 #include <thread>
 
-#include <FreenSync/ImageProcessing.hpp>
-#include <FreenSync/BridgeData.hpp>
-#include <FreenSync/ImageData.hpp>
-#include <FreenSync/RestServer.hpp>
+#include <Huenicorn/ImageProcessing.hpp>
+#include <Huenicorn/BridgeData.hpp>
+#include <Huenicorn/ImageData.hpp>
+#include <Huenicorn/RestServer.hpp>
 
 
-namespace FreenSync
+namespace Huenicorn
 {
   using SyncedLights = std::unordered_map<std::string, SharedSyncedLight>;
   using SharedBridgeData = std::shared_ptr<BridgeData>;
 
-  class FreenSyncCore
+  class HuenicornCore
   {
   public:
     // Constructor
-    FreenSyncCore();
+    HuenicornCore();
 
 
     // Getters

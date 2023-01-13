@@ -3,7 +3,7 @@
 #include <vector>
 #include <cstdint>
 
-namespace FreenSync
+namespace Huenicorn
 {
   struct ImageData
   {

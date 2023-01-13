@@ -1,4 +1,4 @@
-#include <FreenSync/Config.hpp>
+#include <Huenicorn/Config.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -8,7 +8,7 @@
 using namespace std;
 using namespace nlohmann;
 
-namespace FreenSync
+namespace Huenicorn
 {
   Config::Config():
   m_configFilePath("config.json")

@@ -5,7 +5,7 @@
 
 #include <nlohmann/json.hpp>
 
-namespace FreenSync
+namespace Huenicorn
 {
   class Config
   {

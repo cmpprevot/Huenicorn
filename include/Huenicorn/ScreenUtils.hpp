@@ -1,10 +1,10 @@
 #pragma once
 
-#include <FreenSync/ImageData.hpp>
+#include <Huenicorn/ImageData.hpp>
 
 #include <glm/vec2.hpp>
 
-namespace FreenSync
+namespace Huenicorn
 {
   class ScreenUtils
   {

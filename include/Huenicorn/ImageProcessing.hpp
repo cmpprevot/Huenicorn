@@ -4,10 +4,10 @@
 
 #include <opencv2/opencv.hpp>
 
-#include <FreenSync/Color.hpp>
+#include <Huenicorn/Color.hpp>
 
 
-namespace FreenSync
+namespace Huenicorn
 {
   using Colors = std::vector<Color>;
 
