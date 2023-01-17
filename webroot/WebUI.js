@@ -22,7 +22,9 @@ class WebUI
     this.advancedSettingsCheckbox.addEventListener("click", (e) => {this._toggleAdvancedDisplay(e.target.checked);});
     this.advancedSettingsNode = document.getElementById("advancedSettings");
     this.availableSubsamplesNode = document.getElementById("availableSubsampleWidths");
-    this.availableSubsamplesNode.addEventListener("change", (event) => {this._setSubsampleWidth(event.target)});
+    this.availableSubsamplesNode.addEventListener("change", (event) => {this._setSubsampleWidth(parseInt(event.target.value));});
+    this.refreshRateInputNode = document.getElementById("refreshRate");
+    this.refreshRateInputNode.addEventListener("change", (event) => {this._setRefreshRate(event.target.valueAsNumber);});
 
     this.saveProfileButton = document.getElementById("saveProfileButton");
     this.saveProfileButton.addEventListener("click", () => {this._saveProfile()});
@@ -68,7 +70,7 @@ class WebUI
 
   _initAdvancedSettings()
   {
-    let showAdvancedSettings = false;
+    let showAdvancedSettings = true;
     this.advancedSettingsCheckbox.checked = showAdvancedSettings;
     this._toggleAdvancedDisplay(showAdvancedSettings);
 
@@ -262,13 +264,23 @@ class WebUI
   }
 
 
-  _setSubsampleWidth(eventTarget)
+  _setSubsampleWidth(subsampleWidth)
   {
-    log(eventTarget.value);
-    RequestUtils.put("/setSubsampleWidth", JSON.stringify(parseInt(eventTarget.value)), (jsonDisplayInfo) => {
+    RequestUtils.put("/setSubsampleWidth", JSON.stringify(subsampleWidth), (jsonDisplayInfo) => {
       let displayInfo = JSON.parse(jsonDisplayInfo);
       this.screenWidget.setDimensions(displayInfo.x, displayInfo.y, displayInfo.subsampleWidth);
     });
+  }
+
+
+  _setRefreshRate(refreshRate){
+    RequestUtils.put("/setRefreshRate", JSON.stringify(refreshRate), (data) => {this._setRefreshRateCallback(JSON.parse(data).refreshRate);});
+  }
+
+
+  _setRefreshRateCallback(refreshRate)
+  {
+    this.refreshRateInputNode.value = refreshRate;
   }
 
 

@@ -5,7 +5,6 @@
 #include <chrono>
 
 #include <Huenicorn/ScreenUtils.hpp>
-#include <Huenicorn/TickSynchronizer.hpp>
 #include <Huenicorn/RequestUtils.hpp>
 
 using namespace nlohmann;
@@ -99,6 +98,12 @@ namespace Huenicorn
   }
 
 
+  unsigned HuenicornCore::refreshRate() const
+  {
+    return m_config.refreshRate();
+  }
+
+
   const SyncedLight::UVs& HuenicornCore::setLightUV(const std::string& syncedLightId, SyncedLight::UV&& uv, SyncedLight::UVType uvType)
   {
     _resetJsonLightsCache();
@@ -112,9 +117,17 @@ namespace Huenicorn
   }
 
 
-  void HuenicornCore::setSubsampleWidth(int subsampleWidth)
+  void HuenicornCore::setSubsampleWidth(unsigned subsampleWidth)
   {
     m_config.setSubsampleWidth(subsampleWidth);
+  }
+
+
+  void HuenicornCore::setRefreshRate(unsigned refreshRate)
+  {
+    m_config.setRefreshRate(refreshRate);
+    refreshRate = m_config.refreshRate();
+    m_tickSynchronizer->setTickInterval(1.0f / refreshRate);
   }
 
 
@@ -143,7 +156,6 @@ namespace Huenicorn
 
     m_restServer.start(m_config.restServerPort());
     m_keepLooping = true;
-    m_refreshRate = m_config.refreshRate();
     m_loopThread.emplace([this](){_loop();});
 
     _loadProfile();
@@ -351,16 +363,16 @@ namespace Huenicorn
 
   void HuenicornCore::_loop()
   {
-    TickSynchronizer ts(1.0f / m_refreshRate);
+    m_tickSynchronizer = make_unique<TickSynchronizer>(1.0f / static_cast<float>(m_config.refreshRate()));
 
-    ts.start();
+    m_tickSynchronizer->start();
 
     m_keepLooping = true;
     while(m_keepLooping){
       _processScreenFrame();
 
-      if(!ts.sync()){
-        cout << "Scheduled interval has been exceeded of " << ts.lastExcess().extra << " (" << ts.lastExcess().rate * 100 << "%)." << endl;
+      if(!m_tickSynchronizer->sync()){
+        cout << "Scheduled interval has been exceeded of " << m_tickSynchronizer->lastExcess().extra << " (" << m_tickSynchronizer->lastExcess().rate * 100 << "%)." << endl;
         cout << "Please reduce refreshRate if this warning persists." << endl;
       }
     }

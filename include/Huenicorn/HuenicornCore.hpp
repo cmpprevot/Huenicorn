@@ -7,6 +7,7 @@
 #include <Huenicorn/BridgeData.hpp>
 #include <Huenicorn/ImageData.hpp>
 #include <Huenicorn/RestServer.hpp>
+#include <Huenicorn/TickSynchronizer.hpp>
 
 
 namespace Huenicorn
@@ -32,12 +33,14 @@ namespace Huenicorn
     glm::ivec2 screenResolution() const;
     std::vector<glm::ivec2> subsampleResolutionCandidates() const;
     unsigned subsampleWidth() const;
+    unsigned refreshRate() const;
 
 
     // Setters
     const SyncedLight::UVs& setLightUV(const std::string& syncedLightId, SyncedLight::UV&& uv, SyncedLight::UVType uvType);
     void setLightGammaFactor(const std::string& syncedLightId, float gammaFactor);
-    void setSubsampleWidth(int subsampleWidth);
+    void setSubsampleWidth(unsigned subsampleWidth);
+    void setRefreshRate(unsigned subsampleWidth);
 
     // Methods
     void start();
@@ -65,7 +68,7 @@ namespace Huenicorn
 
     std::optional<std::thread> m_loopThread;
     bool m_keepLooping;
-    float m_refreshRate;
+    std::unique_ptr<TickSynchronizer> m_tickSynchronizer;
 
     //  Infrastructure
     SharedBridgeData m_bridge;

@@ -19,13 +19,14 @@ namespace Huenicorn
     int restServerPort() const;
     const std::optional<std::string>& bridgeAddress() const;
     const std::optional<std::string>& apiKey() const;
-    float refreshRate() const;
+    unsigned refreshRate() const;
     int subsampleWidth() const;
 
   // Setters
     void setBridgeAddress(const std::string& bridgeAddress);
     void setApiKey(const std::string& apiKey);
-    void setSubsampleWidth(int subsampleWidth);
+    void setSubsampleWidth(unsigned subsampleWidth);
+    void setRefreshRate(unsigned refreshRate);
 
   // Methods
   void save() const;
@@ -40,7 +41,7 @@ namespace Huenicorn
     int m_restServerPort{8080};
     std::optional<std::string> m_bridgeAddress;
     std::optional<std::string> m_apiKey;
-    float m_refreshRate{10};
-    int m_subsampleWidth{64};
+    unsigned m_refreshRate{10};
+    unsigned m_subsampleWidth{64};
   };
 }

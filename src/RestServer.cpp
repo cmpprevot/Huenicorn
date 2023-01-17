@@ -100,6 +100,13 @@ namespace Huenicorn
 
     {
       auto resource = make_shared<restbed::Resource>();
+      resource->set_path("/setRefreshRate");
+      resource->set_method_handler("PUT", [this](SharedSession session){_setRefreshRate(session);});
+      m_service.publish(resource);
+    }
+
+    {
+      auto resource = make_shared<restbed::Resource>();
       resource->set_path("/syncLight");
       resource->set_method_handler("POST", [this](SharedSession session){_syncLight(session);});
       m_service.publish(resource);
@@ -367,10 +374,33 @@ namespace Huenicorn
       json jsonScreen{
         {"x", screenResolution.x},
         {"y", screenResolution.y},
-        {"subsampleWidth", this->m_HuenicornCore->subsampleWidth()}
+        {"subsampleWidth", m_HuenicornCore->subsampleWidth()}
       };
 
       string response = jsonScreen.dump();
+
+      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+    });
+  }
+
+
+  void RestServer::_setRefreshRate(const SharedSession& session) const
+  {
+    const auto request = session->get_request();
+    int contentLength = request->get_header("Content-Length", 0);
+
+    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+      string data(reinterpret_cast<const char*>(body.data()), body.size());
+
+      unsigned refreshRate = json::parse(data).get<unsigned>();
+
+      m_HuenicornCore->setRefreshRate(refreshRate);
+
+      json jsonRefreshRate{
+        {"refreshRate", m_HuenicornCore->refreshRate()}
+      };
+
+      string response = jsonRefreshRate.dump();
 
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
     });

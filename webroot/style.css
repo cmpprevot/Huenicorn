@@ -55,7 +55,7 @@ button:hover
 }
 
 
-select
+select, input[type=number]
 {
   text-align: center;
   background-color: var(--backgroundColor);
@@ -63,6 +63,12 @@ select
   border: var(--border);
   border-radius: var(--borderRadius);
   margin-left: 20px;
+}
+
+
+input[type=number]
+{
+  width: 80px;
 }
 
 

@@ -32,7 +32,7 @@ namespace Huenicorn
   }
 
 
-  float Config::refreshRate() const
+  unsigned Config::refreshRate() const
   {
     return m_refreshRate;
   }
@@ -70,9 +70,20 @@ namespace Huenicorn
   }
 
 
-  void Config::setSubsampleWidth(int subsampleWidth)
+  void Config::setSubsampleWidth(unsigned subsampleWidth)
   {
     m_subsampleWidth = subsampleWidth;
+    save();
+  }
+
+
+  void Config::setRefreshRate(unsigned refreshRate)
+  {
+    if(refreshRate < 1){
+      refreshRate = 1;
+    }
+
+    m_refreshRate = refreshRate;
     save();
   }
 
@@ -133,11 +144,14 @@ namespace Huenicorn
       return false;
     }
 
-
     if(configRoot.contains("subsampleWidth")){
       m_subsampleWidth = configRoot.at("subsampleWidth");
     }
 
+    if(configRoot.contains("refreshRate")){
+      m_refreshRate = configRoot.at("refreshRate");
+    }
+    
     return !configRoot.empty();
   }
 }
