@@ -25,6 +25,8 @@ class WebUI
     this.availableSubsamplesNode.addEventListener("change", (event) => {this._setSubsampleWidth(parseInt(event.target.value));});
     this.refreshRateInputNode = document.getElementById("refreshRate");
     this.refreshRateInputNode.addEventListener("change", (event) => {this._setRefreshRate(event.target.valueAsNumber);});
+    this.transitionTimeInputNode = document.getElementById("transitionTime");
+    this.transitionTimeInputNode.addEventListener("change", (event) => {this._setTransitionTime(event.target.valueAsNumber);});
 
     this.saveProfileButton = document.getElementById("saveProfileButton");
     this.saveProfileButton.addEventListener("click", () => {this._saveProfile()});
@@ -34,7 +36,8 @@ class WebUI
   initUI()
   {
     RequestUtils.get("/allLights", (data) => this._refreshLightLists(JSON.parse(data)));
-    RequestUtils.get("/displayInfo", (data) => this._displayInfoCallback(data));
+    RequestUtils.get("/displayInfo", (data) => this._displayInfoCallback(JSON.parse(data)));
+    RequestUtils.get("/transitionTime_c", (data) => this._setTransitionTimeCallback(JSON.parse(data).transitionTime));
   }
 
 
@@ -70,7 +73,7 @@ class WebUI
 
   _initAdvancedSettings()
   {
-    let showAdvancedSettings = true;
+    let showAdvancedSettings = false;
     this.advancedSettingsCheckbox.checked = showAdvancedSettings;
     this._toggleAdvancedDisplay(showAdvancedSettings);
 
@@ -215,9 +218,8 @@ class WebUI
   }
 
 
-  _displayInfoCallback(jsonDisplayInfo)
+  _displayInfoCallback(displayInfo)
   {
-    let displayInfo = JSON.parse(jsonDisplayInfo);
     let x = displayInfo.x;
     let y = displayInfo.y;
     let subsampleWidth = displayInfo.subsampleWidth;
@@ -278,9 +280,21 @@ class WebUI
   }
 
 
+  _setTransitionTime(transitionTime)
+  {
+    RequestUtils.put("/setTransitionTime_c", JSON.stringify(transitionTime), (data) => {this._setTransitionTimeCallback(JSON.parse(data).transitionTime_c);});
+  }
+
+
   _setRefreshRateCallback(refreshRate)
   {
     this.refreshRateInputNode.value = refreshRate;
+  }
+
+
+  _setTransitionTimeCallback(transitionTime)
+  {
+    this.transitionTimeInputNode.value = transitionTime;
   }
 
 

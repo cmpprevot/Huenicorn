@@ -34,6 +34,7 @@ namespace Huenicorn
     std::vector<glm::ivec2> subsampleResolutionCandidates() const;
     unsigned subsampleWidth() const;
     unsigned refreshRate() const;
+    unsigned transitionTime_c() const;
 
 
     // Setters
@@ -41,6 +42,7 @@ namespace Huenicorn
     void setLightGammaFactor(const std::string& syncedLightId, float gammaFactor);
     void setSubsampleWidth(unsigned subsampleWidth);
     void setRefreshRate(unsigned subsampleWidth);
+    void setTransitionTime_c(unsigned transitionTime_c);
 
     // Methods
     void start();

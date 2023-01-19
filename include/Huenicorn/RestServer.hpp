@@ -33,17 +33,19 @@ namespace Huenicorn
     void _getSyncedLight(const SharedSession& session) const;
     void _getAllLights(const SharedSession& session) const;
     void _getDisplayInfo(const SharedSession& session) const;
+    void _getTransitionTime_c(const SharedSession& session) const;
     void _getWebFile(const SharedSession& session) const;
     void _setLightUV(const SharedSession& session) const;
     void _setLightGammaFactor(const SharedSession& session) const;
     void _setSubsampleWidth(const SharedSession& session) const;
     void _setRefreshRate(const SharedSession& session) const;
+    void _setTransitionTime_c(const SharedSession& session) const;
     void _syncLight(const SharedSession& session) const;
     void _unsyncLight(const SharedSession& session) const;
     void _saveProfile(const SharedSession& session) const;
 
     // Attributes
-    HuenicornCore* m_HuenicornCore;
+    HuenicornCore* m_huenicornCore;
 
     std::shared_ptr<restbed::Settings> m_settings;
     std::optional<std::thread> m_serviceThread;

@@ -38,9 +38,15 @@ namespace Huenicorn
   }
 
 
-  int Config::subsampleWidth() const
+  unsigned Config::subsampleWidth() const
   {
     return m_subsampleWidth;
+  }
+
+
+  unsigned Config::transitionTime_c() const
+  {
+    return m_transitionTime_c;
   }
 
 
@@ -88,11 +94,19 @@ namespace Huenicorn
   }
 
 
+  void Config::setTransitionTime_c(unsigned transitionTime_c)
+  {
+    m_transitionTime_c = std::clamp(transitionTime_c, 0u, 10u);
+    save();
+  }
+
+
   void Config::save() const
   {
     json outConfig = {
-      {"refreshRate", m_refreshRate},
       {"subsampleWidth", m_subsampleWidth},
+      {"refreshRate", m_refreshRate},
+      {"transitionTime_c", m_transitionTime_c},
       {"restServerPort", m_restServerPort},
     };
 

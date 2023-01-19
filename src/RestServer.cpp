@@ -12,8 +12,8 @@ using namespace std;
 
 namespace Huenicorn
 {
-  RestServer::RestServer(HuenicornCore* HuenicornCore):
-  m_HuenicornCore(HuenicornCore),
+  RestServer::RestServer(HuenicornCore* huenicornCore):
+  m_huenicornCore(huenicornCore),
   m_webroot("webroot")
   {
     m_settings = make_shared<restbed::Settings>();
@@ -79,6 +79,13 @@ namespace Huenicorn
 
     {
       auto resource = make_shared<restbed::Resource>();
+      resource->set_path("/transitionTime_c");
+      resource->set_method_handler("GET", [this](SharedSession session){_getTransitionTime_c(session);});
+      m_service.publish(resource);
+    }
+
+    {
+      auto resource = make_shared<restbed::Resource>();
       resource->set_path("/setLightUV/{lightId: .+}");
       resource->set_method_handler("PUT", [this](SharedSession session){_setLightUV(session);});
       m_service.publish(resource);
@@ -102,6 +109,13 @@ namespace Huenicorn
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/setRefreshRate");
       resource->set_method_handler("PUT", [this](SharedSession session){_setRefreshRate(session);});
+      m_service.publish(resource);
+    }
+    
+    {
+      auto resource = make_shared<restbed::Resource>();
+      resource->set_path("/setTransitionTime_c");
+      resource->set_method_handler("PUT", [this](SharedSession session){_setTransitionTime_c(session);});
       m_service.publish(resource);
     }
 
@@ -175,7 +189,7 @@ namespace Huenicorn
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
-      string response = m_HuenicornCore->jsonAvailableLights().dump();
+      string response = m_huenicornCore->jsonAvailableLights().dump();
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
     });
   }
@@ -188,7 +202,7 @@ namespace Huenicorn
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
-      string response = m_HuenicornCore->jsonSyncedLights().dump();
+      string response = m_huenicornCore->jsonSyncedLights().dump();
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
     });
   }
@@ -202,7 +216,7 @@ namespace Huenicorn
 
     session->fetch(contentLength, [this, lightId](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
-      SharedSyncedLight syncedLight = m_HuenicornCore->syncedLight(lightId);
+      SharedSyncedLight syncedLight = m_huenicornCore->syncedLight(lightId);
 
       json jsonLight = syncedLight ? syncedLight->serialize() : json::object();
       string response = jsonLight.dump();
@@ -219,7 +233,7 @@ namespace Huenicorn
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
-      string response = m_HuenicornCore->jsonAllLights().dump();
+      string response = m_huenicornCore->jsonAllLights().dump();
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
     });
   }
@@ -232,25 +246,44 @@ namespace Huenicorn
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
-      glm::ivec2 screenResolution = m_HuenicornCore->screenResolution();
-      auto subsampleResolutionCandidates = m_HuenicornCore->subsampleResolutionCandidates();
+      glm::ivec2 screenResolution = m_huenicornCore->screenResolution();
+      auto subsampleResolutionCandidates = m_huenicornCore->subsampleResolutionCandidates();
 
       json jsonSubsampleCandidates = json::array();
-      for(const auto& candidate : this->m_HuenicornCore->subsampleResolutionCandidates()){
+      for(const auto& candidate : this->m_huenicornCore->subsampleResolutionCandidates()){
         jsonSubsampleCandidates.push_back({
           {"x", candidate.x},
           {"y", candidate.y}
         });
       }
 
-      json displayInfo{
+      json jsonDisplayInfo{
         {"x", screenResolution.x},
         {"y", screenResolution.y},
-        {"subsampleWidth", this->m_HuenicornCore->subsampleWidth()},
+        {"subsampleWidth", this->m_huenicornCore->subsampleWidth()},
         {"subsampleResolutionCandidates", jsonSubsampleCandidates}
       };
 
-      string response = displayInfo.dump();
+      string response = jsonDisplayInfo.dump();
+
+      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+    });
+  }
+
+
+  void RestServer::_getTransitionTime_c(const SharedSession& session) const
+  {
+    const auto request = session->get_request();
+    int contentLength = request->get_header("Content-Length", 0);
+
+    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+      (void)body;
+
+      json jsonTransitionTime{
+        {"transitionTime", this->m_huenicornCore->transitionTime_c()},
+      };
+
+      string response = jsonTransitionTime.dump();
 
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
     });
@@ -309,7 +342,7 @@ namespace Huenicorn
       float y = jsonUV.at("y");
       SyncedLight::UVType uvType = static_cast<SyncedLight::UVType>(jsonUV.at("type").get<int>());
 
-      const auto& clampedUVs = m_HuenicornCore->setLightUV(lightId, {x, y}, uvType);
+      const auto& clampedUVs = m_huenicornCore->setLightUV(lightId, {x, y}, uvType);
 
       json jsonResponse = {
         {"uvA", {{"x", clampedUVs.min.x}, {"y", clampedUVs.min.y}}},
@@ -335,7 +368,7 @@ namespace Huenicorn
       string lightId = request->get_path_parameter("lightId");
 
       float gammaFactor = jsonGammaFactorData.at("gammaFactor");
-      const auto& availableLights = m_HuenicornCore->availableLights();
+      const auto& availableLights = m_huenicornCore->availableLights();
       if(availableLights.find(lightId) == availableLights.end()){
         string response = json{
           {"status", false},
@@ -345,7 +378,7 @@ namespace Huenicorn
         return;
       }
 
-      m_HuenicornCore->setLightGammaFactor(lightId, gammaFactor);
+      m_huenicornCore->setLightGammaFactor(lightId, gammaFactor);
 
       json jsonResponse = json{
         {"status", true},
@@ -368,13 +401,13 @@ namespace Huenicorn
 
       int subsampleWidth = json::parse(data).get<int>();
 
-      m_HuenicornCore->setSubsampleWidth(subsampleWidth);
+      m_huenicornCore->setSubsampleWidth(subsampleWidth);
 
-      glm::ivec2 screenResolution = m_HuenicornCore->screenResolution();
+      glm::ivec2 screenResolution = m_huenicornCore->screenResolution();
       json jsonScreen{
         {"x", screenResolution.x},
         {"y", screenResolution.y},
-        {"subsampleWidth", m_HuenicornCore->subsampleWidth()}
+        {"subsampleWidth", m_huenicornCore->subsampleWidth()}
       };
 
       string response = jsonScreen.dump();
@@ -394,13 +427,36 @@ namespace Huenicorn
 
       unsigned refreshRate = json::parse(data).get<unsigned>();
 
-      m_HuenicornCore->setRefreshRate(refreshRate);
+      m_huenicornCore->setRefreshRate(refreshRate);
 
       json jsonRefreshRate{
-        {"refreshRate", m_HuenicornCore->refreshRate()}
+        {"refreshRate", m_huenicornCore->refreshRate()}
       };
 
       string response = jsonRefreshRate.dump();
+
+      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+    });
+  }
+
+
+  void RestServer::_setTransitionTime_c(const SharedSession& session) const
+  {
+    const auto request = session->get_request();
+    int contentLength = request->get_header("Content-Length", 0);
+
+    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+      string data(reinterpret_cast<const char*>(body.data()), body.size());
+
+      unsigned refreshRate = json::parse(data).get<unsigned>();
+
+      m_huenicornCore->setTransitionTime_c(refreshRate);
+
+      json jsonTransitionTime{
+        {"transitionTime_c", m_huenicornCore->transitionTime_c()}
+      };
+
+      string response = jsonTransitionTime.dump();
 
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
     });
@@ -417,7 +473,7 @@ namespace Huenicorn
       json jsonLightData = json::parse(data);
 
       string lightId = jsonLightData.at("id");
-      const auto& availableLights = m_HuenicornCore->availableLights();
+      const auto& availableLights = m_huenicornCore->availableLights();
       if(availableLights.find(lightId) == availableLights.end()){
         string response = json{
           {"status", false},
@@ -428,13 +484,13 @@ namespace Huenicorn
       }
 
       json jsonResponse = json::object();
-      bool succeeded = m_HuenicornCore->addSyncedLight(lightId) != nullptr;
+      bool succeeded = m_huenicornCore->addSyncedLight(lightId) != nullptr;
       if(succeeded){
         jsonResponse["newSyncedLightId"] = lightId;
       }
 
       jsonResponse["status"] = succeeded;
-      jsonResponse["lights"] = m_HuenicornCore->jsonAllLights();
+      jsonResponse["lights"] = m_huenicornCore->jsonAllLights();
 
       string response = jsonResponse.dump();
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
@@ -454,13 +510,13 @@ namespace Huenicorn
       string lightId = jsonLightData.at("id");
 
       json jsonResponse = json::object();
-      bool succeeded = m_HuenicornCore->removeSyncedLight(lightId);
+      bool succeeded = m_huenicornCore->removeSyncedLight(lightId);
       if(succeeded){
         jsonResponse["unsyncedLightId"] = lightId;
       }
 
       jsonResponse["status"] = succeeded;
-      jsonResponse["lights"] = m_HuenicornCore->jsonAllLights();
+      jsonResponse["lights"] = m_huenicornCore->jsonAllLights();
 
       string response = jsonResponse.dump();
       session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
@@ -475,7 +531,7 @@ namespace Huenicorn
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
-      m_HuenicornCore->saveProfile();
+      m_huenicornCore->saveProfile();
 
       json jsonResponse = {
         "status", true

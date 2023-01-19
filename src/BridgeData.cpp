@@ -80,7 +80,7 @@ namespace Huenicorn
       {"on", light->m_state},
       {"bri", light->m_brightness},
       {"xy", {light->m_xy.x, light->m_xy.y}},
-      {"transitiontime", 1}
+      {"transitiontime", m_config.transitionTime_c()}
     };
     
     filesystem::path url = m_config.bridgeAddress().value() + "/api/" + m_config.apiKey().value() + "/lights/" + light->id() + "/state";
