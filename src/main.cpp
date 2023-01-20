@@ -55,7 +55,7 @@ int main()
   signal(SIGTERM, signalHandler);
 
   app.start();
-  cout << "Huenicorn terinated properly" << endl;
+  cout << "Huenicorn terminated properly" << endl;
 
   return 0;
 }
