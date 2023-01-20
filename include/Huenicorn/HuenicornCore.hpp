@@ -68,7 +68,6 @@ namespace Huenicorn
     // Attributes
     Config m_config;
 
-    std::optional<std::thread> m_loopThread;
     bool m_keepLooping;
     std::unique_ptr<TickSynchronizer> m_tickSynchronizer;
 

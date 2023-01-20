@@ -2,26 +2,60 @@
 
 #include <Huenicorn/HuenicornCore.hpp>
 #include <Huenicorn/RestServer.hpp>
-
+#include <csignal>
 
 using namespace std;
 
 
-void startHuenicorn()
+class Application
 {
-  Huenicorn::HuenicornCore core;
-  core.start();
+public:
+  void start()
+  {
+    m_core = make_unique<Huenicorn::HuenicornCore>();
+    m_applicationThread.emplace([&](){
+      m_core->start();
+    });
 
-  cout << "Hit enter to stop" << endl;
-  cin.get();
+    m_applicationThread.value().join();
+    m_applicationThread.reset();
+    m_core.reset();
+  }
 
-  core.stop();
+
+  void stop()
+  {
+    if(!m_core){
+      return;
+    }
+
+    m_core->stop();
+  }
+
+private:
+  unique_ptr<Huenicorn::HuenicornCore> m_core;
+  std::optional<thread> m_applicationThread;
+};
+
+
+Application app;
+
+
+void signalHandler(int signal)
+{
+  if(signal == SIGTERM){
+    cout << "Closing application" << endl;
+    app.stop();
+  }
 }
 
 
 int main()
 {
-  startHuenicorn();
+  signal(SIGTERM, signalHandler);
+
+  app.start();
+  cout << "Huenicorn terinated properly" << endl;
 
   return 0;
 }

@@ -161,29 +161,16 @@ namespace Huenicorn
 
     cout << "Configuration is ready. Feel free to modify it manually by editing " << std::quoted(m_config.configFilePath().string()) << endl;
 
-    if(m_loopThread.has_value()){
-      cout << "Service is already running" << endl;
-      return;
-    }
-
     m_restServer.start(m_config.restServerPort());
     m_keepLooping = true;
-    m_loopThread.emplace([this](){_loop();});
-
     _loadProfile();
+    _loop();
   }
 
 
   void HuenicornCore::stop()
   {
-    if(!m_loopThread.has_value()){
-      cout << "Service is not running" << endl;
-      return;
-    }
-
     m_keepLooping = false;
-    m_loopThread.value().join();
-
     _shutdownLights();
   }
 
