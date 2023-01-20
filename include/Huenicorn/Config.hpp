@@ -44,7 +44,7 @@ namespace Huenicorn
     std::optional<std::string> m_bridgeAddress;
     std::optional<std::string> m_apiKey;
     unsigned m_refreshRate{10};
-    unsigned m_subsampleWidth{64};
+    unsigned m_subsampleWidth{0};
     unsigned m_transitionTime_c{1};
   };
 }

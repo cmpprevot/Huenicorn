@@ -78,7 +78,7 @@ class WebUI
     this._toggleAdvancedDisplay(showAdvancedSettings);
 
     this.availableSubsamplesNode.innerHTML = "";
-    for(let subsampleCandidate of this.screenWidget.subsampleResolutionCandidates){
+    for(let subsampleCandidate of this.screenWidget.subsampleResolutionCandidates.reverse()){
       let newOption = document.createElement("option");
       let width = subsampleCandidate.x;
       let height = subsampleCandidate.y;

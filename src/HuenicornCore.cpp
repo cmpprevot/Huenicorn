@@ -159,6 +159,10 @@ namespace Huenicorn
       }
     }
 
+    if(m_config.subsampleWidth() == 0){
+      m_config.setSubsampleWidth(ScreenUtils::subsampleResolutionCandidates().back().x);
+    }
+
     cout << "Configuration is ready. Feel free to modify it manually by editing " << std::quoted(m_config.configFilePath().string()) << endl;
 
     m_restServer.start(m_config.restServerPort());
