@@ -191,8 +191,10 @@ namespace Huenicorn
 
   bool HuenicornCore::removeSyncedLight(const std::string& lightId)
   {
+    SharedSyncedLight tmpLight = m_syncedLights.at(lightId);
     auto n = m_syncedLights.erase(lightId);
     _resetJsonLightsCache();
+    tmpLight->setState(false);
     return n > 0;
   }
 
