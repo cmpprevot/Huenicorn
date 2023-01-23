@@ -58,17 +58,17 @@ class Handle
 
   setPosition(position, notify = false)
   {
-    let screenDimensions = this.screenWidget.screenDimensions();
-    let maxX = screenDimensions.x;
-    let maxY = screenDimensions.y;
+    let screenWidgetResolution = this.screenWidget.screenWidgetResolution();
+    let maxX = screenWidgetResolution.x;
+    let maxY = screenWidgetResolution.y;
     let minX = 0;
     let minY = 0;
 
     let x = Utils.clamp(position.x, minX, maxX);
     let y = Utils.clamp(position.y, minY, maxY);
 
-    x = Math.round(x * (this.screenWidget.subsampleWidth / screenDimensions.x));
-    y = Math.round(y * (this.screenWidget.subsampleHeight / screenDimensions.y));
+    x = Math.round(x * (this.screenWidget.subsampleWidth / screenWidgetResolution.x));
+    y = Math.round(y * (this.screenWidget.subsampleHeight / screenWidgetResolution.y));
 
     let xNorm = x / (this.screenWidget.subsampleWidth);
     let yNorm = y / (this.screenWidget.subsampleHeight);
@@ -206,7 +206,7 @@ class ScreenWidget
   }
 
 
-  screenDimensions()
+  screenWidgetResolution()
   {
     let bbox = this.screenAreaNode.getBoundingClientRect();
     return {x : bbox.width, y : bbox.height};
@@ -243,6 +243,10 @@ class ScreenWidget
     this.subsampleHeight = this.height / this.width * subsampleWidth;
 
     this.gridAreaNode.innerHTML = "";
+
+    if((this.screenWidgetResolution().x / this.subsampleWidth) < 2){
+      return;
+    }
 
     for(let i = 0; i < this.subsampleWidth; i++){
       let x = i / this.subsampleWidth;
@@ -300,7 +304,7 @@ class ScreenWidget
     this.previewArea.innerHTML = "";
 
     let syncedLights = this.webApp.syncedLights;
-    let screenDimensions = this.screenDimensions();
+    let screenWidgetResolution = this.screenWidgetResolution();
 
     if(!syncedLights){
       return;
@@ -321,10 +325,10 @@ class ScreenWidget
       textNode.setAttribute("text-anchor", "middle");
 
       let uvs = syncedLight.uvs;
-      let ax = uvs.uvA.x * screenDimensions.x;
-      let ay = uvs.uvA.y * screenDimensions.y;
-      let bx = uvs.uvB.x * screenDimensions.x;
-      let by = uvs.uvB.y * screenDimensions.y;
+      let ax = uvs.uvA.x * screenWidgetResolution.x;
+      let ay = uvs.uvA.y * screenWidgetResolution.y;
+      let bx = uvs.uvB.x * screenWidgetResolution.x;
+      let by = uvs.uvB.y * screenWidgetResolution.y;
       let width = bx - ax;
       let height = by - ay;
 
@@ -361,12 +365,12 @@ class ScreenWidget
 
   _updateShape(uvs)
   {
-    let screenDimensions = this.screenDimensions();
+    let screenWidgetResolution = this.screenWidgetResolution();
 
-    let ax = uvs.uvA.x * screenDimensions.x;
-    let ay = uvs.uvA.y * screenDimensions.y;
-    let bx = uvs.uvB.x * screenDimensions.x;
-    let by = uvs.uvB.y * screenDimensions.y;
+    let ax = uvs.uvA.x * screenWidgetResolution.x;
+    let ay = uvs.uvA.y * screenWidgetResolution.y;
+    let bx = uvs.uvB.x * screenWidgetResolution.x;
+    let by = uvs.uvB.y * screenWidgetResolution.y;
 
     this.handles["tl"].setPosition({x : ax, y : ay});
     this.handles["tr"].setPosition({x : bx, y : ay});

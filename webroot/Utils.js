@@ -54,3 +54,22 @@ class MathUtils
     return Math.round(num * factor) / factor;
   }
 }
+
+
+class StyleUtils
+{
+  static greenRedGradient(proportion)
+  {
+    let rFactor = proportion;
+    let gFactor = 1 - proportion;
+    let bFactor = 0;
+
+    let norm = Math.sqrt(rFactor * rFactor + gFactor * gFactor + bFactor * bFactor);
+
+    rFactor /= norm;
+    gFactor /= norm;
+    bFactor /= norm;
+
+    return `rgb(${rFactor * 255}, ${gFactor * 255}, ${bFactor * 255})`;
+  }
+}

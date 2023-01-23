@@ -89,6 +89,10 @@ class WebUI
       newOption.value = width;
       this.availableSubsamplesNode.appendChild(newOption);
     }
+    
+    let proportion = parseInt(this.availableSubsamplesNode.value) / this.screenWidget.width;
+    let gradientColor = StyleUtils.greenRedGradient(proportion);
+    this.availableSubsamplesNode.style.color = gradientColor;
   }
 
 
@@ -271,6 +275,11 @@ class WebUI
     RequestUtils.put("/setSubsampleWidth", JSON.stringify(subsampleWidth), (jsonDisplayInfo) => {
       let displayInfo = JSON.parse(jsonDisplayInfo);
       this.screenWidget.setDimensions(displayInfo.x, displayInfo.y, displayInfo.subsampleWidth);
+
+      let proportion = subsampleWidth / this.screenWidget.width;
+
+      let gradientColor = StyleUtils.greenRedGradient(proportion);
+      this.availableSubsamplesNode.style.color = gradientColor;
     });
   }
 
@@ -289,6 +298,9 @@ class WebUI
   _setRefreshRateCallback(refreshRate)
   {
     this.refreshRateInputNode.value = refreshRate;
+    if(refreshRate.value > 10){
+      this.refreshRateInputNode.style.color = "#ff0000";
+    }
   }
 
 
