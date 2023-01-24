@@ -19,7 +19,7 @@ namespace Huenicorn
     m_settings = make_shared<restbed::Settings>();
     m_settings->set_default_headers({
       {"Connection", "close"},
-      {"Content-Type", "text/plain"},
+      {"Access-Control-Allow-Origin", "*"}
     });
 
     m_contentTypes = {
@@ -190,7 +190,10 @@ namespace Huenicorn
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
       string response = m_huenicornCore->jsonAvailableLights().dump();
-      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 
@@ -203,7 +206,10 @@ namespace Huenicorn
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
       string response = m_huenicornCore->jsonSyncedLights().dump();
-      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 
@@ -221,7 +227,10 @@ namespace Huenicorn
       json jsonLight = syncedLight ? syncedLight->serialize() : json::object();
       string response = jsonLight.dump();
 
-      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 
@@ -234,7 +243,10 @@ namespace Huenicorn
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       (void)body;
       string response = m_huenicornCore->jsonAllLights().dump();
-      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 
@@ -266,7 +278,10 @@ namespace Huenicorn
 
       string response = jsonDisplayInfo.dump();
 
-      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 
@@ -285,7 +300,10 @@ namespace Huenicorn
 
       string response = jsonTransitionTime.dump();
 
-      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 
@@ -351,7 +369,10 @@ namespace Huenicorn
 
       string response = jsonResponse.dump();
       
-      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 
@@ -386,7 +407,10 @@ namespace Huenicorn
       };
 
       string response = jsonResponse.dump();
-      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 
@@ -412,7 +436,10 @@ namespace Huenicorn
 
       string response = jsonScreen.dump();
 
-      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 
@@ -435,7 +462,10 @@ namespace Huenicorn
 
       string response = jsonRefreshRate.dump();
 
-      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 
@@ -458,7 +488,10 @@ namespace Huenicorn
 
       string response = jsonTransitionTime.dump();
 
-      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 
@@ -493,7 +526,10 @@ namespace Huenicorn
       jsonResponse["lights"] = m_huenicornCore->jsonAllLights();
 
       string response = jsonResponse.dump();
-      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 
@@ -519,7 +555,10 @@ namespace Huenicorn
       jsonResponse["lights"] = m_huenicornCore->jsonAllLights();
 
       string response = jsonResponse.dump();
-      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 
@@ -538,7 +577,10 @@ namespace Huenicorn
       };
 
       string response = jsonResponse.dump();
-      session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 }
