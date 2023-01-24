@@ -43,7 +43,7 @@ Application app;
 
 void signalHandler(int signal)
 {
-  if(signal == SIGTERM){
+  if(signal == SIGTERM || signal == SIGINT || signal == SIGTSTP){
     cout << "Closing application" << endl;
     app.stop();
   }
@@ -53,6 +53,8 @@ void signalHandler(int signal)
 int main()
 {
   signal(SIGTERM, signalHandler);
+  signal(SIGINT, signalHandler);
+  signal(SIGTSTP, signalHandler);
 
   app.start();
   cout << "Huenicorn terminated properly" << endl;
