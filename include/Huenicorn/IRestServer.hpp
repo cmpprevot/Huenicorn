@@ -5,6 +5,7 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <unordered_set>
 
 #include <restbed>
 
@@ -102,7 +103,7 @@ namespace Huenicorn
 
       std::filesystem::path webFileFullPath = m_webroot / webFileName;
 
-      if(!std::filesystem::exists(webFileFullPath)){
+      if(!std::filesystem::exists(webFileFullPath) || m_webfileBlackList.contains(webFileName)){
         webFileName = "404.html";
         webFileFullPath = m_webroot / webFileName;
       }
@@ -132,6 +133,7 @@ namespace Huenicorn
     const std::filesystem::path m_webroot;
     std::unordered_map<std::string, std::string> m_contentTypes;
     std::string m_indexFile{"index.html"};
+    std::unordered_set<std::string> m_webfileBlackList;
   };
 }
 

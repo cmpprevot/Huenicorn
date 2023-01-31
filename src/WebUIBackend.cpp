@@ -113,6 +113,8 @@ namespace Huenicorn
       resource->set_method_handler("POST", [this](SharedSession session){_saveProfile(session);});
       m_service.publish(resource);
     }
+
+    m_webfileBlackList.insert("setup.html");
   }
 
 

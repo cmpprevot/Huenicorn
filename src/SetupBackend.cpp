@@ -60,6 +60,8 @@ namespace Huenicorn
       resource->set_method_handler("PUT", [this](SharedSession session){_requestNewApiKey(session);});
       m_service.publish(resource);
     }
+
+    m_webfileBlackList.insert("index.html");
   }
 
 
