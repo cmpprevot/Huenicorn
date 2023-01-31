@@ -6,7 +6,7 @@
 #include <Huenicorn/ImageProcessing.hpp>
 #include <Huenicorn/BridgeData.hpp>
 #include <Huenicorn/ImageData.hpp>
-#include <Huenicorn/RestServer.hpp>
+#include <Huenicorn/WebUIBackend.hpp>
 #include <Huenicorn/TickSynchronizer.hpp>
 
 
@@ -17,10 +17,15 @@ namespace Huenicorn
 
   class HuenicornCore
   {
+    struct ThreadedRestService
+    {
+      std::unique_ptr<IRestServer> server;
+      std::optional<std::thread> thread;
+    };
+
   public:
     // Constructor
     HuenicornCore();
-
 
     // Getters
     const LightSummaries& availableLights() const;
@@ -35,6 +40,8 @@ namespace Huenicorn
     unsigned subsampleWidth() const;
     unsigned refreshRate() const;
     unsigned transitionTime_c() const;
+    nlohmann::json autoDetectedBridge() const;
+    nlohmann::json requestNewApiKey();
 
 
     // Setters
@@ -47,6 +54,8 @@ namespace Huenicorn
     // Methods
     void start();
     void stop();
+    bool validateBridgeAddress(const std::string& bridgeAddress);
+    bool validateApiKey(const std::string& apiKey);
     SharedSyncedLight addSyncedLight(const std::string& lightId);
     bool removeSyncedLight(const std::string& lightId);
     void saveProfile() const;
@@ -55,9 +64,6 @@ namespace Huenicorn
   private:
 
     // Private methods
-    bool _registerBridgeAddress();
-    bool _registerApiToken();
-
     void _loadProfile();
     void _loop();
     void _processScreenFrame();
@@ -85,6 +91,6 @@ namespace Huenicorn
 
 
     //  Rest server
-    RestServer m_restServer;
+    ThreadedRestService m_webUIService;
   };
 }

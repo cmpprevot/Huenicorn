@@ -6,6 +6,6 @@ namespace Huenicorn
 {
   namespace RequestUtils
   {
-    nlohmann::json sendRequest(const std::string& url, const std::string& method, const std::string& body);
+    nlohmann::json sendRequest(const std::string& url, const std::string& method, const std::string& body = "");
   };
 }

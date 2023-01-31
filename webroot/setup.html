@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Huenicorn initial setup</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+
+  <body>
+    <h1>Huenicorn initial setup</h1>
+
+    <section id="setupSection">
+      <div class="step">
+        <h1>Welcome !</h1>
+        <p>Huenicorn requires a quick initial setup to get started</p>
+        <button onclick="setupUI.incStep()">Proceed</button>
+        <button onclick="setupUI.abort()">Abort</button>
+      </div>
+
+      <div class="step">
+        <h1>Identify Hue Bridge</h1>
+        <p>
+          Please enter the address of your Hue bridge<br/>
+          (or try an automatic identification)
+        </p>
+        <p><input type="text" id="bridgeAddress"/></p>
+        <p><button onclick="setupUI.autoDetectBridge()">Auto-detect</button></p>
+        <button onclick="setupUI.validateAddress()">Validate</button>
+        <button onclick="setupUI.abort()">Abort</button>
+      </div>
+
+      <div class="step">
+        <h1>API key</h1>
+        <p>
+          An API key is required to manage the bridge.
+        </p>
+        <p>
+          If you already have one and know it, you can provide it in the field below
+        </p>
+        <p><label>API key:</label><input type="text" id="apiKey"/></p>
+        
+        <p>
+          <button onclick="setupUI.validateApiKey()" style="width: 200px">Validate</button>
+          <button onclick="setupUI.incStep()" style="width: 200px">I don't have a key yet</button>
+        </p>
+        <button onclick="setupUI.abort()">Abort</button>
+      </div>
+
+      <div class="step">
+        <h1>Generate a new API key</h1>
+        <p>
+          In order to request a new API key, you now need to press the central button on your Hue bridge.
+        </p>
+        <p>
+          Once this is done, you have one minute to press the request button below.
+        </p>
+        <p>
+          <button onclick="setupUI.requestNewApiKey()" style="width: 200px">Request new API key</button>
+        </p>
+        <button onclick="setupUI.abort()">Abort</button>
+      </div>
+
+      <div id="finishSection" style="display: none;">
+        <h1>
+          Huenicorn is all setup now !
+        </h1>
+        <div id="refreshSection" style="display: none">
+          <p>Feel free to manually modify the configuration by editing the file 'config.json'</p>
+          <p>You can now refresh this page to access the Light Manager</p>
+          <p><button onclick="window.location.reload()">Refresh</button></p>
+        </div>
+      </div>
+
+      <div id="abortSection" style="display: none;">
+        <h1>The setup was aborted</h1>
+        <p>Hope to see you back soon !</p>
+      </div>
+    </section>
+
+    <script src="Utils.js"></script>
+    <script src="mainSetup.js"></script>
+  </body>
+</html>

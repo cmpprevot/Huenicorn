@@ -26,6 +26,12 @@ namespace Huenicorn
   }
 
 
+  bool Config::initialSetupOk() const
+  {
+    return m_bridgeAddress.has_value() && m_apiKey.has_value();
+  }
+
+
   int Config::restServerPort() const
   {
     return m_restServerPort;

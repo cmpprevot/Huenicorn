@@ -33,13 +33,15 @@ h2
 }
 
 h1, h2{
+  margin-top: 0px;
   text-shadow: 0px 0px 50px hsla(var(--shadowColor), 1.0);
 }
 
 
 button
 {
-  width: 400px;
+  /*width: 400px;*/
+  width: 100px;
   height: 30px;
   background-color: var(--backgroundColor);
   color: var(--foregroundColor);
@@ -72,6 +74,18 @@ input[type=number]
 }
 
 
+label
+{
+  margin-right: 10px;
+}
+
+input[type=text]
+{
+  text-align: center;
+  width: 300px;
+}
+
+
 #lightLists
 {
   width: 800px;
@@ -99,16 +113,24 @@ input[type=number]
 }
 
 
-#advancedSettings
+#advancedSettings, #setupSection
 {
   width: 400px;
   margin-left: auto;
   margin-right: auto;
   margin-top: 20px;
+  padding: 20px;
   box-shadow: var(--shadow);
   border: var(--border);
   border-radius: var(--borderRadius);
 }
+
+
+#setupSection
+{
+  width: 600px;
+}
+
 
 .lightList>p
 {

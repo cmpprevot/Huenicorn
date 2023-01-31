@@ -15,7 +15,6 @@ using namespace std;
 
 namespace Huenicorn
 {
-
   namespace RequestUtils
   {
     json sendRequest(const std::string& url, const std::string& method, const std::string& body)

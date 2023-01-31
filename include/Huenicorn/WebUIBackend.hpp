@@ -1,7 +1,7 @@
 #pragma once
 
-#include <thread>
-#include <optional>
+#include <Huenicorn/IRestServer.hpp>
+
 #include <filesystem>
 
 #include <restbed>
@@ -10,22 +10,14 @@ namespace Huenicorn
 {
   class HuenicornCore;
 
-  class RestServer;
-  using SharedRestServer = std::shared_ptr<RestServer>;
-
-  class RestServer
+  class WebUIBackend : public IRestServer
   {
     using SharedSession = std::shared_ptr<restbed::Session>;
 
   public:
-    RestServer(HuenicornCore* HuenicornCore);
-    ~RestServer();
-
-    bool start(int port);
-    void stop();
+    WebUIBackend(HuenicornCore* HuenicornCore);
 
   private:
-    bool _stop();
 
     // Handlers
     void _getAvailableLights(const SharedSession& session) const;
@@ -34,7 +26,6 @@ namespace Huenicorn
     void _getAllLights(const SharedSession& session) const;
     void _getDisplayInfo(const SharedSession& session) const;
     void _getTransitionTime_c(const SharedSession& session) const;
-    void _getWebFile(const SharedSession& session) const;
     void _setLightUV(const SharedSession& session) const;
     void _setLightGammaFactor(const SharedSession& session) const;
     void _setSubsampleWidth(const SharedSession& session) const;
@@ -47,11 +38,5 @@ namespace Huenicorn
     // Attributes
     HuenicornCore* m_huenicornCore;
 
-    std::shared_ptr<restbed::Settings> m_settings;
-    std::optional<std::thread> m_serviceThread;
-    restbed::Service m_service;
-
-    const std::filesystem::path m_webroot;
-    std::unordered_map<std::string, std::string> m_contentTypes;
   };
 }

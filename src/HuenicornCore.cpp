@@ -6,6 +6,7 @@
 
 #include <Huenicorn/ScreenUtils.hpp>
 #include <Huenicorn/RequestUtils.hpp>
+#include <Huenicorn/SetupBackend.hpp>
 
 using namespace nlohmann;
 using namespace std;
@@ -13,8 +14,7 @@ using namespace std;
 
 namespace Huenicorn
 {
-  HuenicornCore::HuenicornCore():
-  m_restServer(this)
+  HuenicornCore::HuenicornCore()
   {
   }
 
@@ -108,6 +108,46 @@ namespace Huenicorn
   {
     return m_config.transitionTime_c();
   }
+  
+  
+  json HuenicornCore::autoDetectedBridge() const
+  {
+    string bridgeAddress;
+    try{
+      auto detectedBridgeData = RequestUtils::sendRequest("https://discovery.meethue.com/", "GET");
+
+      if(detectedBridgeData.size() < 1){
+        return {{"succeeded", false}, {"error", "Could not autodetect bridge."}};
+      }
+
+     bridgeAddress = detectedBridgeData.front().at("internalipaddress");
+    }
+    catch(const json::exception& e){
+      return {{"succeeded", false}, {"error", "Could not autodetect bridge."}};
+    }
+
+    return {{"succeeded", bridgeAddress != ""}, {"bridgeAddress", bridgeAddress}};
+  }
+
+
+  json HuenicornCore::requestNewApiKey()
+  {
+    json request = {{"devicetype", "Huenicorn"}};
+    auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api", "POST", request.dump());
+
+    if(response.size() < 1){
+      return {{"succeeded", false}, {"error", "unreachable bridge"}};
+    }
+
+    if(response.at(0).contains("error")){
+      return {{"succeeded", false}, {"error", response.at(0).at("error").at("description")}};
+    }
+
+    string apiToken = response.at(0).at("success").at("username");
+    m_config.setApiKey(apiToken);
+
+    return {{"succeeded", true}, {"apiKey", apiToken}};
+  }
 
 
   const SyncedLight::UVs& HuenicornCore::setLightUV(const std::string& syncedLightId, SyncedLight::UV&& uv, SyncedLight::UVType uvType)
@@ -145,19 +185,28 @@ namespace Huenicorn
 
   void HuenicornCore::start()
   {
+    unsigned port = m_config.restServerPort();
+
+    if(!m_config.initialSetupOk()){
+      cout << "Starting setup backend" << endl;
+
+      SetupBackend sb(this);
+      sb.start(port);
+
+      if(sb.aborted()){
+        cout << "Initial setup was aborted" << endl;
+        return;
+      }
+
+      cout << "Finished setup" << endl;
+    }
+
+    if(!m_config.initialSetupOk()){
+      cout << "There are errors in the config file" << endl;
+      return;
+    }
+
     m_bridge = make_shared<BridgeData>(m_config);
-
-    if(!m_config.bridgeAddress().has_value()){
-      if(!_registerBridgeAddress()){
-        return;
-      }
-    }
-
-    if(!m_config.apiKey().has_value()){
-      if(!_registerApiToken()){
-        return;
-      }
-    }
 
     if(m_config.subsampleWidth() == 0){
       m_config.setSubsampleWidth(ScreenUtils::subsampleResolutionCandidates().back().x);
@@ -165,7 +214,12 @@ namespace Huenicorn
 
     cout << "Configuration is ready. Feel free to modify it manually by editing " << std::quoted(m_config.configFilePath().string()) << endl;
 
-    m_restServer.start(m_config.restServerPort());
+
+    m_webUIService.server = make_unique<WebUIBackend>(this);
+    m_webUIService.thread.emplace([&](){
+      m_webUIService.server->start(port);
+    });
+
     m_keepLooping = true;
     _loadProfile();
     _loop();
@@ -176,6 +230,46 @@ namespace Huenicorn
   {
     m_keepLooping = false;
     _shutdownLights();
+  }
+
+
+  bool HuenicornCore::validateBridgeAddress(const std::string& bridgeAddress)
+  {
+    try{
+      string sanitizedAddress = bridgeAddress;
+      while (sanitizedAddress.back() == '/'){
+        sanitizedAddress.pop_back();
+      }
+
+      auto response = RequestUtils::sendRequest(sanitizedAddress + "/api", "GET", "");
+      if(response.size() != 0){
+        m_config.setBridgeAddress(sanitizedAddress);
+      }
+    }
+    catch(const json::exception& exception){
+      cout << exception.what() << endl;
+      return false;
+    }
+
+    return true;
+  }
+
+
+  bool HuenicornCore::validateApiKey(const std::string& apiKey)
+  {
+    try{
+      auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api/" + apiKey, "GET", "");
+      if(response.size() != 0){
+        m_config.setApiKey(apiKey);
+        cout << "Successfully registered API key" << endl;
+      }
+    }
+    catch(const json::exception& exception){
+      cout << exception.what() << endl;
+      return false;
+    }
+
+    return true;
   }
 
 
@@ -223,111 +317,6 @@ namespace Huenicorn
     ofstream profileFile("profile.json", ofstream::out);
     profileFile << profile.dump(2) << endl;
     profileFile.close();
-  }
-
-
-  bool HuenicornCore::_registerBridgeAddress()
-  {
-    while(!m_config.bridgeAddress().has_value()){
-      cout << "A Hue bridge address is needed to enable light control. Are you ready to provide it ? [y/N]" << endl;
-      string response;
-      std::getline(std::cin, response);
-
-      if(response != "y"){
-        return false;
-      }
-
-      cout << "Please now provide the Hue bridge address" << endl;
-      string bridgeAddress;
-      std::getline(std::cin, bridgeAddress);
-
-      try{
-        auto response = RequestUtils::sendRequest(bridgeAddress + "/api", "GET", "");
-        if(response.size() != 0){
-          m_config.setBridgeAddress(bridgeAddress);
-          cout << "Successfully registered bridge address" << endl;
-        }
-      }
-      catch(const json::exception& exception){
-        cout << "Could not register bridge address : " << std::quoted(bridgeAddress) << endl;
-        cout << exception.what() << endl;
-      }
-    }
-
-    return true;
-  }
-
-
-  bool HuenicornCore::_registerApiToken()
-  {
-    if(!m_config.apiKey().has_value()){
-      cout << "An API token is required to interact with your Hue bridge.\n Can you provide any registered token ? [y/N]" << endl;
-
-      string userResponse;
-      std::getline(std::cin, userResponse);
-
-      if(userResponse == "y"){
-        size_t expectedTokenLength = 40;
-        cout << "Please input a registered Hue Bridge API token (" << expectedTokenLength << " alphanumerical digits)" << endl;
-        string userToken;
-        std::getline(std::cin, userToken);
-
-        if(userToken.size() != expectedTokenLength){
-          cout << "Invalid token format" << endl;
-          return false;
-        }
-
-        try{
-          auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api/" + userToken, "GET", "");
-          if(response.size() != 0){
-            m_config.setApiKey(userToken);
-            cout << "Successfully registered API token" << endl;
-            return true;
-          }
-        }
-        catch(const json::exception& exception){
-          cout << "Could not register API token" << endl;
-          cout << exception.what() << endl;
-          return false;
-        }
-      }
-      else{
-        cout << "In order to generate a new token, you now need to press the central button on the Hue Bridge. Is it done and are you ready to proceed ? [y/N]" << endl;
-        std::getline(std::cin, userResponse);
-        if(userResponse == "y"){
-          try{
-            json request = {{"devicetype", "Huenicorn"}};
-
-            auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api", "POST", request.dump());
-
-            if(response.size() < 1){
-              return false;
-            }
-
-            if(response.at(0).contains("error")){
-              cout << "Error : " << response.at(0).at("error").at("description") << endl;
-              return false;
-            }
-
-            if(response.at(0).contains("success")){
-              string apiToken = response.at(0).at("success").at("username");
-              cout << "Api token " << std::quoted(apiToken) << "has been successfully generated !" << endl;
-              m_config.setApiKey(apiToken);
-              return true;
-            }
-          }
-          catch(const json::exception& exception){
-            return false;
-          }
-        }
-        else{
-          cout << "Aborting API token registration" << endl;
-          return false;
-        }
-      }
-    }
-
-    return true;
   }
 
 

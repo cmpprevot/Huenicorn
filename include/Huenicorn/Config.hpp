@@ -16,6 +16,7 @@ namespace Huenicorn
 
   // Getters
     const std::filesystem::path& configFilePath() const;
+    bool initialSetupOk() const;
     int restServerPort() const;
     const std::optional<std::string>& bridgeAddress() const;
     const std::optional<std::string>& apiKey() const;

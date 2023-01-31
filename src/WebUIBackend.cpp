@@ -1,4 +1,4 @@
-#include <Huenicorn/RestServer.hpp>
+#include <Huenicorn/WebUIBackend.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -12,36 +12,10 @@ using namespace std;
 
 namespace Huenicorn
 {
-  RestServer::RestServer(HuenicornCore* huenicornCore):
-  m_huenicornCore(huenicornCore),
-  m_webroot("webroot")
+  WebUIBackend::WebUIBackend(HuenicornCore* huenicornCore):
+  IRestServer("webroot"),
+  m_huenicornCore(huenicornCore)
   {
-    m_settings = make_shared<restbed::Settings>();
-    m_settings->set_default_headers({
-      {"Connection", "close"},
-      {"Access-Control-Allow-Origin", "*"}
-    });
-
-    m_contentTypes = {
-      {".js", "text/javascript"},
-      {".html", "text/html"},
-      {".css", "text/css"}
-    };
-
-    {
-      auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/");
-      resource->set_method_handler("GET", [this](SharedSession session){_getWebFile(session);});
-      m_service.publish(resource);
-    }
-
-    {
-      auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/{webFileName: [a-zA-Z0-9]+(\\.)[a-zA-Z0-9]+}");
-      resource->set_method_handler("GET", [this](SharedSession session){_getWebFile(session);});
-      m_service.publish(resource);
-    }
-
     {
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/availableLights");
@@ -142,47 +116,7 @@ namespace Huenicorn
   }
 
 
-  RestServer::~RestServer()
-  {
-    _stop();
-  }
-
-
-  bool RestServer::start(int port)
-  {
-    if(m_serviceThread.has_value()){
-      return false;
-    }
-
-    m_settings->set_port(port);
-
-    m_serviceThread.emplace([this](){m_service.start(m_settings);});
-    cout << "Web UI ready and available at http://127.0.0.1:" << port << endl;
-
-    return true;
-  }
-
-
-  void RestServer::stop()
-  {
-    _stop();
-  }
-
-
-  bool RestServer::_stop()
-  {
-    if(!m_serviceThread.has_value()){
-      return false;
-    }
-
-    m_service.stop();
-    m_serviceThread.value().join();
-
-    return true;
-  }
-
-
-  void RestServer::_getAvailableLights(const SharedSession& session) const
+  void WebUIBackend::_getAvailableLights(const SharedSession& session) const
   {
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
@@ -198,7 +132,7 @@ namespace Huenicorn
   }
 
 
-  void RestServer::_getSyncedLights(const SharedSession& session) const
+  void WebUIBackend::_getSyncedLights(const SharedSession& session) const
   {
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
@@ -214,7 +148,7 @@ namespace Huenicorn
   }
 
 
-  void RestServer::_getSyncedLight(const SharedSession& session) const
+  void WebUIBackend::_getSyncedLight(const SharedSession& session) const
   {
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
@@ -235,7 +169,7 @@ namespace Huenicorn
   }
 
 
-  void RestServer::_getAllLights(const SharedSession& session) const
+  void WebUIBackend::_getAllLights(const SharedSession& session) const
   {
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
@@ -251,7 +185,7 @@ namespace Huenicorn
   }
 
 
-  void RestServer::_getDisplayInfo(const SharedSession& session) const
+  void WebUIBackend::_getDisplayInfo(const SharedSession& session) const
   {
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
@@ -286,7 +220,7 @@ namespace Huenicorn
   }
 
 
-  void RestServer::_getTransitionTime_c(const SharedSession& session) const
+  void WebUIBackend::_getTransitionTime_c(const SharedSession& session) const
   {
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
@@ -308,43 +242,7 @@ namespace Huenicorn
   }
 
 
-  void RestServer::_getWebFile(const SharedSession& session) const
-  {
-    const auto request = session->get_request();
-    filesystem::path webFileName = request->get_path_parameter("webfileName");
-
-    if(webFileName == ""){
-      webFileName = "index.html";
-    }
-
-    filesystem::path webFileFullPath = m_webroot / webFileName;
-
-    if(!filesystem::exists(webFileFullPath)){
-      webFileName = "404.html";
-      webFileFullPath = m_webroot / webFileName;
-    }
-
-    string extension = webFileName.extension().string();
-    string contentType = "text/plain";
-
-    if(m_contentTypes.find(extension) != m_contentTypes.end()){
-      contentType = m_contentTypes.at(extension);
-    }
-
-    fstream webFile(webFileFullPath);
-    string response = string(std::istreambuf_iterator<char>(webFile), std::istreambuf_iterator<char>());
-
-    std::multimap<string, string> headers{
-      {"Content-Length", std::to_string(response.size())},
-      {"Content-Type", contentType}
-    };
-
-    // ToDo MIME headers
-    session->close(restbed::OK, response, headers);
-  }
-
-
-  void RestServer::_setLightUV(const SharedSession& session) const
+  void WebUIBackend::_setLightUV(const SharedSession& session) const
   {
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
@@ -377,7 +275,7 @@ namespace Huenicorn
   }
 
 
-  void RestServer::_setLightGammaFactor(const SharedSession& session) const
+  void WebUIBackend::_setLightGammaFactor(const SharedSession& session) const
   {
     const auto& request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
@@ -392,7 +290,7 @@ namespace Huenicorn
       const auto& availableLights = m_huenicornCore->availableLights();
       if(availableLights.find(lightId) == availableLights.end()){
         string response = json{
-          {"status", false},
+          {"succeeded", false},
           {"error", "key not found"}
         }.dump();
         session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
@@ -402,7 +300,7 @@ namespace Huenicorn
       m_huenicornCore->setLightGammaFactor(lightId, gammaFactor);
 
       json jsonResponse = json{
-        {"status", true},
+        {"succeeded", true},
         {"gammaFactor", gammaFactor}
       };
 
@@ -415,7 +313,7 @@ namespace Huenicorn
   }
 
 
-  void RestServer::_setSubsampleWidth(const SharedSession& session) const
+  void WebUIBackend::_setSubsampleWidth(const SharedSession& session) const
   {
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
@@ -444,7 +342,7 @@ namespace Huenicorn
   }
 
 
-  void RestServer::_setRefreshRate(const SharedSession& session) const
+  void WebUIBackend::_setRefreshRate(const SharedSession& session) const
   {
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
@@ -470,7 +368,7 @@ namespace Huenicorn
   }
 
 
-  void RestServer::_setTransitionTime_c(const SharedSession& session) const
+  void WebUIBackend::_setTransitionTime_c(const SharedSession& session) const
   {
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
@@ -496,7 +394,7 @@ namespace Huenicorn
   }
 
 
-  void RestServer::_syncLight(const SharedSession& session) const
+  void WebUIBackend::_syncLight(const SharedSession& session) const
   {
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
@@ -509,7 +407,7 @@ namespace Huenicorn
       const auto& availableLights = m_huenicornCore->availableLights();
       if(availableLights.find(lightId) == availableLights.end()){
         string response = json{
-          {"status", false},
+          {"succeeded", false},
           {"error", "key not found"}
         }.dump();
         session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
@@ -522,7 +420,7 @@ namespace Huenicorn
         jsonResponse["newSyncedLightId"] = lightId;
       }
 
-      jsonResponse["status"] = succeeded;
+      jsonResponse["succeeded"] = succeeded;
       jsonResponse["lights"] = m_huenicornCore->jsonAllLights();
 
       string response = jsonResponse.dump();
@@ -534,7 +432,7 @@ namespace Huenicorn
   }
 
 
-  void RestServer::_unsyncLight(const SharedSession& session) const
+  void WebUIBackend::_unsyncLight(const SharedSession& session) const
   {
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
@@ -551,7 +449,7 @@ namespace Huenicorn
         jsonResponse["unsyncedLightId"] = lightId;
       }
 
-      jsonResponse["status"] = succeeded;
+      jsonResponse["succeeded"] = succeeded;
       jsonResponse["lights"] = m_huenicornCore->jsonAllLights();
 
       string response = jsonResponse.dump();
@@ -563,7 +461,7 @@ namespace Huenicorn
   }
 
 
-  void RestServer::_saveProfile(const SharedSession& session) const
+  void WebUIBackend::_saveProfile(const SharedSession& session) const
   {
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
@@ -573,7 +471,7 @@ namespace Huenicorn
       m_huenicornCore->saveProfile();
 
       json jsonResponse = {
-        "status", true
+        "succeeded", true
       };
 
       string response = jsonResponse.dump();

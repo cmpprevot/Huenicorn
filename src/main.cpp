@@ -1,7 +1,6 @@
 #include <thread>
 
 #include <Huenicorn/HuenicornCore.hpp>
-#include <Huenicorn/RestServer.hpp>
 #include <csignal>
 
 using namespace std;
