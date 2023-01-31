@@ -29,7 +29,7 @@ class WebUI
     this.transitionTimeInputNode.addEventListener("change", (event) => {this._setTransitionTime(event.target.valueAsNumber);});
 
     this.saveProfileButton = document.getElementById("saveProfileButton");
-    this.saveProfileButton.addEventListener("click", () => {this._saveProfile()});
+    this.saveProfileButton.addEventListener("click", () => {this._saveProfile();});
   }
 
 
@@ -314,14 +314,4 @@ class WebUI
   {
     RequestUtils.post("/saveProfile", JSON.stringify(null), (data) => {log("Saved profile");});
   }
-}
-
-
-if(new URLSearchParams(window.location.search).has("unleashTheUnicorn")){
-  var swagIncrement = 180;
-  document.documentElement.style.setProperty("--shadowRadius", "60px");
-  setInterval(() => {
-    document.documentElement.style.setProperty("--shadowColor", `${swagIncrement}, 100%, 50%`);
-    swagIncrement = (this.swagIncrement + 1) % 360;
-  }, 50);
 }
