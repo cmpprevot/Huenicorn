@@ -23,6 +23,7 @@
           (or try an automatic identification)
         </p>
         <p><input type="text" id="bridgeAddress"/></p>
+        <p id="bridgeAddressErrorMessage" class="errorMessage"></p>
         <p><button onclick="setupUI.autoDetectBridge()">Auto-detect</button></p>
         <button onclick="setupUI.validateAddress()">Validate</button>
         <button onclick="setupUI.abort()">Abort</button>
@@ -37,6 +38,7 @@
           If you already have one and know it, you can provide it in the field below
         </p>
         <p><label>API key:</label><input type="text" id="apiKey"/></p>
+        <p id="apiKeyErrorMessage" class="errorMessage"></p>
         
         <p>
           <button onclick="setupUI.validateApiKey()" style="width: 200px">Validate</button>
@@ -53,6 +55,7 @@
         <p>
           Once this is done, you have one minute to press the request button below.
         </p>
+        <p id="newApiKeyErrorMessage" class="errorMessage"></p>
         <p>
           <button onclick="setupUI.requestNewApiKey()" style="width: 200px">Request new API key</button>
         </p>
@@ -72,7 +75,7 @@
 
       <div id="abortSection" style="display: none;">
         <h1>The setup was aborted</h1>
-        <p>Hope to see you back soon !</p>
+        <p>Hope to see you again soon !</p>
       </div>
     </section>
 

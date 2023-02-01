@@ -7,6 +7,7 @@ class SetupUI
   {
     this.setupSection = document.getElementById("setupSection");
     this.stepNodes = document.getElementsByClassName("step");
+    this.errorMessages = document.getElementsByClassName("errorMessages");
 
     this.stepId = 0;
     this.start();
@@ -45,6 +46,11 @@ class SetupUI
     if(data.succeeded){
       document.getElementById("bridgeAddress").value = data.bridgeAddress;
     }
+    else{
+      let errorMessageNode = document.getElementById("bridgeAddressErrorMessage");
+      errorMessageNode.style.visibility = "visible";
+      errorMessageNode.innerHTML = data.error;
+    }
   }
 
 
@@ -55,6 +61,11 @@ class SetupUI
     if(bridgeAddress != ""){
       RequestUtils.put("/validateBridgeAddress", JSON.stringify({bridgeAddress : bridgeAddress}), (data) => {this.validateBridgeAddressCallback(data);});
     }
+    else{
+      let errorMessageNode = document.getElementById("bridgeAddressErrorMessage");
+      errorMessageNode.style.visibility = "visible";
+      errorMessageNode.innerHTML = "Please provide a valid address";
+    }
   }
 
 
@@ -64,6 +75,11 @@ class SetupUI
 
     if(data.succeeded){
       this.incStep();
+    }
+    else{
+      let errorMessageNode = document.getElementById("bridgeAddressErrorMessage");
+      errorMessageNode.style.visibility = "visible";
+      errorMessageNode.innerHTML = "Could not resolve Hue bridge";
     }
   }
 
@@ -76,6 +92,11 @@ class SetupUI
     if(apiKey != ""){
       RequestUtils.put("/validateApiKey", JSON.stringify({apiKey: apiKey}), (data) => {this.validateApiKeyCallback(data);});
     }
+    else{
+      let errorMessageNode = document.getElementById("apiKeyErrorMessage");
+      errorMessageNode.style.visibility = "visible";
+      errorMessageNode.innerHTML = "Please provide a valid API key";
+    }
   }
 
 
@@ -85,6 +106,11 @@ class SetupUI
 
     if(data.succeeded){
       this._finish();
+    }
+    else{
+      let errorMessageNode = document.getElementById("apiKeyErrorMessage");
+      errorMessageNode.style.visibility = "visible";
+      errorMessageNode.innerHTML = "The provided key was denied";
     }
   }
 
@@ -103,6 +129,11 @@ class SetupUI
     if(data.succeeded){
       this._finish();
     }
+    else{
+      let errorMessageNode = document.getElementById("newApiKeyErrorMessage");
+      errorMessageNode.style.visibility = "visible";
+      errorMessageNode.innerHTML = "Please press the central button on the bridge and try again";
+    }
   }
 
 
@@ -114,6 +145,11 @@ class SetupUI
     for(let stepNode of this.stepNodes){
       let display = (i++ == this.stepId) ? "block" : "none";
       stepNode.style.display = display;
+    }
+
+    for(let errorMessageNode of this.errorMessages){
+      errorMessageNode.style.visibility = "hidden";
+      errorMessageNode.innerHTML = "";
     }
   }
 
@@ -149,6 +185,7 @@ class SetupUI
   {
     RequestUtils.get("/", () => {
       document.getElementById("refreshSection").style.display = "block";
+      clearInterval(setupUI.pingFunctionInterval);
     });
   }
 }

@@ -167,6 +167,19 @@ input[type=text]
 }
 
 
+.step
+{
+  padding-bottom: 20px;
+}
+
+
+.errorMessage
+{
+  visibility: hidden;
+  color: #ff8800;
+}
+
+
 #svgArea
 {
   fill: hsla(var(--shadowColor), 0.025);

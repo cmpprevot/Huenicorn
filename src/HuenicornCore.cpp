@@ -242,9 +242,11 @@ namespace Huenicorn
       }
 
       auto response = RequestUtils::sendRequest(sanitizedAddress + "/api", "GET", "");
-      if(response.size() != 0){
-        m_config.setBridgeAddress(sanitizedAddress);
+      if(response.size() == 0){
+        return false;
       }
+
+      m_config.setBridgeAddress(sanitizedAddress);
     }
     catch(const json::exception& exception){
       cout << exception.what() << endl;
@@ -259,10 +261,16 @@ namespace Huenicorn
   {
     try{
       auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api/" + apiKey, "GET", "");
-      if(response.size() != 0){
-        m_config.setApiKey(apiKey);
-        cout << "Successfully registered API key" << endl;
+      if(response.size() == 0){
+        return false;
       }
+
+      if(response.is_array() && response.at(0).contains("error")){
+        return false;
+      }
+
+      m_config.setApiKey(apiKey);
+      cout << "Successfully registered API key" << endl;
     }
     catch(const json::exception& exception){
       cout << exception.what() << endl;
