@@ -30,6 +30,17 @@ class WebUI
 
     this.saveProfileButton = document.getElementById("saveProfileButton");
     this.saveProfileButton.addEventListener("click", () => {this._saveProfile();});
+
+    this.stopButton = document.getElementById("stopButton");
+    this.stopButton.addEventListener("click", () => {this._askStopConfirmation()});
+    
+    this.overlay = document.getElementById("overlay");
+
+    this.confirmStopButton = document.getElementById("confirmStopButton");
+    this.confirmStopButton.addEventListener("click", () => {this._stop();});
+    
+    this.cancelStopButton = document.getElementById("cancelStopButton");
+    this.cancelStopButton.addEventListener("click", () => {this.overlay.style.display = "none";});
   }
 
 
@@ -313,5 +324,24 @@ class WebUI
   _saveProfile()
   {
     RequestUtils.post("/saveProfile", JSON.stringify(null), (data) => {log("Saved profile");});
+  }
+
+
+  _askStopConfirmation()
+  {
+    this.overlay.style.display = "block";
+    document.getElementById("confirmStopSection").style.display = "block";
+  }
+
+
+  _stop()
+  {
+    RequestUtils.post("/stop", JSON.stringify(null), (jsonData) => {
+      let data = JSON.parse(jsonData);
+      if(data.succeeded){
+        document.getElementById("confirmStopSection").style.display = "none";
+        document.getElementById("stoppedInfoSection").style.display = "block";
+      }
+    });
   }
 }

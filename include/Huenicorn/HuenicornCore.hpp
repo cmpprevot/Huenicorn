@@ -88,9 +88,5 @@ namespace Huenicorn
 
     //  Image Processing
     ImageData m_imageData;
-
-
-    //  Rest server
-    ThreadedRestService m_webUIService;
   };
 }

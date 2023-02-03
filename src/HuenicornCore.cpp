@@ -108,8 +108,8 @@ namespace Huenicorn
   {
     return m_config.transitionTime_c();
   }
-  
-  
+
+
   json HuenicornCore::autoDetectedBridge() const
   {
     string bridgeAddress;
@@ -214,13 +214,6 @@ namespace Huenicorn
 
     cout << "Configuration is ready. Feel free to modify it manually by editing " << std::quoted(m_config.configFilePath().string()) << endl;
 
-
-    m_webUIService.server = make_unique<WebUIBackend>(this);
-    m_webUIService.thread.emplace([&](){
-      m_webUIService.server->start(port);
-    });
-
-    m_keepLooping = true;
     _loadProfile();
     _loop();
   }
@@ -229,7 +222,6 @@ namespace Huenicorn
   void HuenicornCore::stop()
   {
     m_keepLooping = false;
-    _shutdownLights();
   }
 
 
@@ -365,6 +357,13 @@ namespace Huenicorn
 
   void HuenicornCore::_loop()
   {
+    unsigned port = m_config.restServerPort();
+    ThreadedRestService webUIService;
+    webUIService.server = make_unique<WebUIBackend>(this);
+    webUIService.thread.emplace([&](){
+      webUIService.server->start(port);
+    });
+
     m_tickSynchronizer = make_unique<TickSynchronizer>(1.0f / static_cast<float>(m_config.refreshRate()));
 
     m_tickSynchronizer->start();
@@ -378,6 +377,11 @@ namespace Huenicorn
         cout << "Please reduce refreshRate if this warning persists." << endl;
       }
     }
+
+    _shutdownLights();
+
+    webUIService.server->stop();
+    webUIService.thread.value().join();
   }
 
 

@@ -114,38 +114,33 @@ namespace Huenicorn
       m_service.publish(resource);
     }
 
+    {
+      auto resource = make_shared<restbed::Resource>();
+      resource->set_path("/stop");
+      resource->set_method_handler("POST", [this](SharedSession session){_stop(session);});
+      m_service.publish(resource);
+    }
+
     m_webfileBlackList.insert("setup.html");
   }
 
 
   void WebUIBackend::_getAvailableLights(const SharedSession& session) const
   {
-    const auto request = session->get_request();
-    int contentLength = request->get_header("Content-Length", 0);
-
-    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      (void)body;
-      string response = m_huenicornCore->jsonAvailableLights().dump();
-      session->close(restbed::OK, response, {
-        {"Content-Length", std::to_string(response.size())},
-        {"Content-Type", "application/json"}
-      });
+    string response = m_huenicornCore->jsonAvailableLights().dump();
+    session->close(restbed::OK, response, {
+      {"Content-Length", std::to_string(response.size())},
+      {"Content-Type", "application/json"}
     });
   }
 
 
   void WebUIBackend::_getSyncedLights(const SharedSession& session) const
   {
-    const auto request = session->get_request();
-    int contentLength = request->get_header("Content-Length", 0);
-
-    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      (void)body;
-      string response = m_huenicornCore->jsonSyncedLights().dump();
-      session->close(restbed::OK, response, {
-        {"Content-Length", std::to_string(response.size())},
-        {"Content-Type", "application/json"}
-      });
+    string response = m_huenicornCore->jsonSyncedLights().dump();
+    session->close(restbed::OK, response, {
+      {"Content-Length", std::to_string(response.size())},
+      {"Content-Type", "application/json"}
     });
   }
 
@@ -153,93 +148,70 @@ namespace Huenicorn
   void WebUIBackend::_getSyncedLight(const SharedSession& session) const
   {
     const auto request = session->get_request();
-    int contentLength = request->get_header("Content-Length", 0);
     string lightId = request->get_path_parameter("lightId");
+    SharedSyncedLight syncedLight = m_huenicornCore->syncedLight(lightId);
 
-    session->fetch(contentLength, [this, lightId](const SharedSession& session, const restbed::Bytes& body){
-      (void)body;
-      SharedSyncedLight syncedLight = m_huenicornCore->syncedLight(lightId);
+    json jsonLight = syncedLight ? syncedLight->serialize() : json::object();
+    string response = jsonLight.dump();
 
-      json jsonLight = syncedLight ? syncedLight->serialize() : json::object();
-      string response = jsonLight.dump();
-
-      session->close(restbed::OK, response, {
-        {"Content-Length", std::to_string(response.size())},
-        {"Content-Type", "application/json"}
-      });
+    session->close(restbed::OK, response, {
+      {"Content-Length", std::to_string(response.size())},
+      {"Content-Type", "application/json"}
     });
   }
 
 
   void WebUIBackend::_getAllLights(const SharedSession& session) const
   {
-    const auto request = session->get_request();
-    int contentLength = request->get_header("Content-Length", 0);
-
-    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      (void)body;
-      string response = m_huenicornCore->jsonAllLights().dump();
-      session->close(restbed::OK, response, {
-        {"Content-Length", std::to_string(response.size())},
-        {"Content-Type", "application/json"}
-      });
+    string response = m_huenicornCore->jsonAllLights().dump();
+    session->close(restbed::OK, response, {
+      {"Content-Length", std::to_string(response.size())},
+      {"Content-Type", "application/json"}
     });
+
   }
 
 
   void WebUIBackend::_getDisplayInfo(const SharedSession& session) const
   {
-    const auto request = session->get_request();
-    int contentLength = request->get_header("Content-Length", 0);
+    glm::ivec2 screenResolution = m_huenicornCore->screenResolution();
+    auto subsampleResolutionCandidates = m_huenicornCore->subsampleResolutionCandidates();
 
-    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      (void)body;
-      glm::ivec2 screenResolution = m_huenicornCore->screenResolution();
-      auto subsampleResolutionCandidates = m_huenicornCore->subsampleResolutionCandidates();
-
-      json jsonSubsampleCandidates = json::array();
-      for(const auto& candidate : this->m_huenicornCore->subsampleResolutionCandidates()){
-        jsonSubsampleCandidates.push_back({
-          {"x", candidate.x},
-          {"y", candidate.y}
-        });
-      }
-
-      json jsonDisplayInfo{
-        {"x", screenResolution.x},
-        {"y", screenResolution.y},
-        {"subsampleWidth", this->m_huenicornCore->subsampleWidth()},
-        {"subsampleResolutionCandidates", jsonSubsampleCandidates}
-      };
-
-      string response = jsonDisplayInfo.dump();
-
-      session->close(restbed::OK, response, {
-        {"Content-Length", std::to_string(response.size())},
-        {"Content-Type", "application/json"}
+    json jsonSubsampleCandidates = json::array();
+    for(const auto& candidate : this->m_huenicornCore->subsampleResolutionCandidates()){
+      jsonSubsampleCandidates.push_back({
+        {"x", candidate.x},
+        {"y", candidate.y}
       });
+    }
+
+    json jsonDisplayInfo{
+      {"x", screenResolution.x},
+      {"y", screenResolution.y},
+      {"subsampleWidth", this->m_huenicornCore->subsampleWidth()},
+      {"subsampleResolutionCandidates", jsonSubsampleCandidates}
+    };
+
+    string response = jsonDisplayInfo.dump();
+
+    session->close(restbed::OK, response, {
+      {"Content-Length", std::to_string(response.size())},
+      {"Content-Type", "application/json"}
     });
   }
 
 
   void WebUIBackend::_getTransitionTime_c(const SharedSession& session) const
   {
-    const auto request = session->get_request();
-    int contentLength = request->get_header("Content-Length", 0);
+    json jsonTransitionTime{
+      {"transitionTime", this->m_huenicornCore->transitionTime_c()},
+    };
 
-    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      (void)body;
+    string response = jsonTransitionTime.dump();
 
-      json jsonTransitionTime{
-        {"transitionTime", this->m_huenicornCore->transitionTime_c()},
-      };
-
-      string response = jsonTransitionTime.dump();
-
-      session->close(restbed::OK, response, {
-        {"Content-Length", std::to_string(response.size())},
-        {"Content-Type", "application/json"}
-      });
+    session->close(restbed::OK, response, {
+      {"Content-Length", std::to_string(response.size())},
+      {"Content-Type", "application/json"}
     });
   }
 
@@ -465,22 +437,32 @@ namespace Huenicorn
 
   void WebUIBackend::_saveProfile(const SharedSession& session) const
   {
-    const auto request = session->get_request();
-    int contentLength = request->get_header("Content-Length", 0);
+    m_huenicornCore->saveProfile();
 
-    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      (void)body;
-      m_huenicornCore->saveProfile();
+    json jsonResponse = {
+      "succeeded", true
+    };
 
-      json jsonResponse = {
-        "succeeded", true
-      };
-
-      string response = jsonResponse.dump();
-      session->close(restbed::OK, response, {
-        {"Content-Length", std::to_string(response.size())},
-        {"Content-Type", "application/json"}
-      });
+    string response = jsonResponse.dump();
+    session->close(restbed::OK, response, {
+      {"Content-Length", std::to_string(response.size())},
+      {"Content-Type", "application/json"}
     });
+  }
+
+
+  void WebUIBackend::_stop(const SharedSession& session) const
+  {
+    json jsonResponse = {{
+      "succeeded", true
+    }};
+
+    string response = jsonResponse.dump();
+    session->close(restbed::OK, response, {
+      {"Content-Length", std::to_string(response.size())},
+      {"Content-Type", "application/json"}
+    });
+
+    m_huenicornCore->stop();
   }
 }

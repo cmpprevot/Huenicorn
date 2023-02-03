@@ -34,6 +34,7 @@ namespace Huenicorn
     void _syncLight(const SharedSession& session) const;
     void _unsyncLight(const SharedSession& session) const;
     void _saveProfile(const SharedSession& session) const;
+    void _stop(const SharedSession& session) const;
 
     // Attributes
     HuenicornCore* m_huenicornCore;

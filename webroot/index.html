@@ -69,7 +69,23 @@
     <p>
       <button id="saveProfileButton">Save profile</button>
     </p>
+    <p>
+      <button id="stopButton">Shut down</button>
+    </p>
 
+    <div id="overlay">
+      <div class="overlayContent">
+        <div id="confirmStopSection" style="display: none;">
+          <p>Do you really want to stop Huenicorn ?</p>
+          <button id="confirmStopButton">Yes</button>
+          <button id="cancelStopButton">No</button>
+        </div>
+
+        <div id="stoppedInfoSection" style="display: none;">
+          <p style="padding-top: 20px;">Huenicorn is now off</p>
+        </div>
+      </div>
+    </div>
 
     <script src="Light.js"></script>
     <script src="Utils.js"></script>
