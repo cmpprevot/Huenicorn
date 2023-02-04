@@ -8,12 +8,8 @@ find_package(CURL REQUIRED)
 include_directories(
   ${OpenCV_INCLUDE_DIRS}
   include
-  ext/restbed/source
 )
 
-
-add_subdirectory(ext/restbed)
-link_directories(build/ext/restbed) # ToDo : Fix path
 
 add_executable(Huenicorn
   src/main.cpp
