@@ -84,6 +84,42 @@ namespace Huenicorn
   }
 
 
+  void SetupBackend::_onStart()
+  {
+    if(m_spawnBrowserThread.has_value()){
+      return;
+    }
+
+    m_spawnBrowserThread.emplace([this](){_spawnBrowser();});
+  }
+
+
+  void SetupBackend::_onStop()
+  {
+    if(!m_spawnBrowserThread.has_value()){
+      return;
+    }
+
+    m_spawnBrowserThread.value().join();
+    m_spawnBrowserThread.reset();
+  }
+
+
+  void SetupBackend::_spawnBrowser()
+  {
+    while (m_service.is_down()){
+      this_thread::sleep_for(100ms);
+    }
+    
+    stringstream serviceUrlStream;
+    serviceUrlStream << "http://127.0.0.1:" << m_settings->get_port();
+    string serviceURL = serviceUrlStream.str();
+    std::cout << "Web UI ready and available at " << serviceURL << std::endl;
+
+    system(string("xdg-open " + serviceURL).c_str());
+  }
+
+
   void SetupBackend::_finish(const SharedSession& session)
   {
     string response = "{}";

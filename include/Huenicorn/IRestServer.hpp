@@ -65,7 +65,8 @@ namespace Huenicorn
 
       m_settings->set_port(port);
 
-      std::cout << "Web UI ready and available at http://127.0.0.1:" << port << std::endl;
+      _onStart();
+
       m_service.start(m_settings);
 
       return true;
@@ -86,10 +87,15 @@ namespace Huenicorn
 
       m_service.stop();
 
+      _onStop();
+
       return true;
     }
 
   protected:
+    virtual void _onStart(){}
+    virtual void _onStop(){}
+
 
     // Handlers
     void _getWebFile(const SharedSession& session) const
@@ -128,7 +134,6 @@ namespace Huenicorn
 
     // Attributes
     std::shared_ptr<restbed::Settings> m_settings;
-    //std::optional<std::thread> m_serviceThread;
     restbed::Service m_service;
     const std::filesystem::path m_webroot;
     std::unordered_map<std::string, std::string> m_contentTypes;
