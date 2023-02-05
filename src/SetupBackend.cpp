@@ -39,6 +39,13 @@ namespace Huenicorn
       resource->set_method_handler("GET", [this](SharedSession session){_autoDetectBridge(session);});
       m_service.publish(resource);
     }
+    
+    {
+      auto resource = make_shared<restbed::Resource>();
+      resource->set_path("/configFilePath");
+      resource->set_method_handler("GET", [this](SharedSession session){_configFilePath(session);});
+      m_service.publish(resource);
+    }
 
     {
       auto resource = make_shared<restbed::Resource>();
@@ -106,6 +113,18 @@ namespace Huenicorn
   void SetupBackend::_autoDetectBridge(const SharedSession& session)
   {
     json jsonResponse = m_core->autoDetectedBridge();
+    string response = jsonResponse.dump();
+
+    session->close(restbed::OK, response, {
+      {"Content-Length", std::to_string(response.size())},
+      {"Content-Type", "application/json"}
+    });
+  }
+
+  
+  void SetupBackend::_configFilePath(const SharedSession& session)
+  {
+    json jsonResponse = {{"configFilePath", m_core->configFilePath()}};
     string response = jsonResponse.dump();
 
     session->close(restbed::OK, response, {

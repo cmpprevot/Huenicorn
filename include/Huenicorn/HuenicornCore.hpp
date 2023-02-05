@@ -25,9 +25,10 @@ namespace Huenicorn
 
   public:
     // Constructor
-    HuenicornCore();
+    HuenicornCore(const std::filesystem::path& configRoot);
 
     // Getters
+    const std::filesystem::path configFilePath() const;
     const LightSummaries& availableLights() const;
     const SyncedLights& syncedLights() const;
     SharedSyncedLight syncedLight(const std::string& lightId) const;
@@ -72,6 +73,8 @@ namespace Huenicorn
 
 
     // Attributes
+    std::filesystem::path m_configRoot;
+    std::filesystem::path m_profileFilePath;
     Config m_config;
 
     bool m_keepLooping;

@@ -3,7 +3,20 @@
 #include <Huenicorn/HuenicornCore.hpp>
 #include <csignal>
 
+#include <pwd.h>
+
 using namespace std;
+
+
+filesystem::path getConfigRoot()
+{
+  const char* homeDir;
+  if((homeDir = getenv("HOME")) == NULL){
+    homeDir = getpwuid(getuid())->pw_dir;
+  }
+
+  return std::filesystem::path(homeDir) / ".config/huenicorn";
+}
 
 
 class Application
@@ -11,7 +24,7 @@ class Application
 public:
   void start()
   {
-    m_core = make_unique<Huenicorn::HuenicornCore>();
+    m_core = make_unique<Huenicorn::HuenicornCore>(getConfigRoot());
     m_applicationThread.emplace([&](){
       m_core->start();
     });

@@ -10,8 +10,8 @@ using namespace nlohmann;
 
 namespace Huenicorn
 {
-  Config::Config():
-  m_configFilePath("config.json")
+  Config::Config(const std::filesystem::path& settingsRoot):
+  m_configFilePath(settingsRoot / "config.json")
   {
     _loadConfigFile();
   }
@@ -122,6 +122,10 @@ namespace Huenicorn
 
     if(m_apiKey.has_value()){
       outConfig["apiKey"] = m_apiKey.value();
+    }
+
+    if(!filesystem::exists(m_configFilePath)){
+      filesystem::create_directories(m_configFilePath.parent_path());
     }
 
     ofstream configFile(m_configFilePath);

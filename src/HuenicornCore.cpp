@@ -14,8 +14,17 @@ using namespace std;
 
 namespace Huenicorn
 {
-  HuenicornCore::HuenicornCore()
+  HuenicornCore::HuenicornCore(const std::filesystem::path& configRoot):
+  m_configRoot(configRoot),
+  m_profileFilePath(m_configRoot / "profile.json"),
+  m_config(m_configRoot)
   {
+  }
+  
+  
+  const std::filesystem::path HuenicornCore::configFilePath() const
+  {
+    return m_config.configFilePath();
   }
 
 
@@ -314,7 +323,7 @@ namespace Huenicorn
       });
     }
 
-    ofstream profileFile("profile.json", ofstream::out);
+    ofstream profileFile(m_profileFilePath, ofstream::out);
     profileFile << profile.dump(2) << endl;
     profileFile.close();
   }
@@ -322,7 +331,7 @@ namespace Huenicorn
 
   void HuenicornCore::_loadProfile()
   {
-    filesystem::path profilePath = "profile.json";
+    filesystem::path profilePath = m_profileFilePath;
 
     if(!filesystem::exists(profilePath) || !filesystem::is_regular_file(profilePath)){
       cout << "No profile found yet." << endl;

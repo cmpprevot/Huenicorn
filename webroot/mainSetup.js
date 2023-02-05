@@ -9,14 +9,27 @@ class SetupUI
     this.stepNodes = document.getElementsByClassName("step");
     this.errorMessages = document.getElementsByClassName("errorMessages");
 
-    this.stepId = 0;
+    this.setConfigFilePath();
+
     this.start();
+  }
+
+
+  setConfigFilePath()
+  {
+    RequestUtils.get("/configFilePath", (jsonData) => {
+      let data = JSON.parse(jsonData);
+      let configFileLink = document.getElementById("configFilePath");
+      configFileLink.href = `file://${data.configFilePath}`;
+      configFileLink.innerHTML = data.configFilePath;
+    })
   }
 
 
   start()
   {
-    this._loadStep(0);
+    this.stepId = 0;
+    this._loadStep(this.stepId);
   }
 
 

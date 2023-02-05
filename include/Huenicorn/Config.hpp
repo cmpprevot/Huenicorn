@@ -11,7 +11,7 @@ namespace Huenicorn
   {
   public:
   // Constructor
-    Config();
+    Config(const std::filesystem::path& settingsRoot);
     ~Config();
 
   // Getters

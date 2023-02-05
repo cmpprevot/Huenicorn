@@ -23,6 +23,7 @@ namespace Huenicorn
     void _finish(const SharedSession& session);
     void _abort(const SharedSession& session);
     void _autoDetectBridge(const SharedSession& session);
+    void _configFilePath(const SharedSession& session);
     void _validateBridgeAddress(const SharedSession& session);
     void _validateApiKey(const SharedSession& session);
     void _requestNewApiKey(const SharedSession& session);
