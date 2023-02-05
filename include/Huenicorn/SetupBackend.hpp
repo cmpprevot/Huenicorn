@@ -20,7 +20,6 @@ namespace Huenicorn
 
   protected:
     void _onStart() override;
-    void _onStop() override;
 
   private:
     void _spawnBrowser();
@@ -39,6 +38,5 @@ namespace Huenicorn
     const std::filesystem::path m_webroot;
     std::unordered_map<std::string, std::string> m_contentTypes;
     bool m_aborted{false};
-    std::optional<std::thread> m_spawnBrowserThread;
   };
 }

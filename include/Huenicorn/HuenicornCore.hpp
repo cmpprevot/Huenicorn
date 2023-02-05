@@ -65,7 +65,8 @@ namespace Huenicorn
   private:
 
     // Private methods
-    void _loadProfile();
+    bool _loadProfile();
+    void _spawnBrowser();
     void _loop();
     void _processScreenFrame();
     void _shutdownLights();
@@ -88,6 +89,10 @@ namespace Huenicorn
     mutable std::optional<nlohmann::json> m_cachedJsonAvailableLights;
     mutable std::optional<nlohmann::json> m_cachedJsonSyncedLights;
     mutable std::optional<nlohmann::json> m_cachedJsonAllLights;
+
+    // Service and flags
+    bool m_openedSetup{false};
+    ThreadedRestService m_webUIService;
 
     //  Image Processing
     ImageData m_imageData;

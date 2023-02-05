@@ -86,22 +86,8 @@ namespace Huenicorn
 
   void SetupBackend::_onStart()
   {
-    if(m_spawnBrowserThread.has_value()){
-      return;
-    }
-
-    m_spawnBrowserThread.emplace([this](){_spawnBrowser();});
-  }
-
-
-  void SetupBackend::_onStop()
-  {
-    if(!m_spawnBrowserThread.has_value()){
-      return;
-    }
-
-    m_spawnBrowserThread.value().join();
-    m_spawnBrowserThread.reset();
+    thread spawnBrowserThread([this](){_spawnBrowser();});
+    spawnBrowserThread.detach();
   }
 
 
@@ -114,7 +100,7 @@ namespace Huenicorn
     stringstream serviceUrlStream;
     serviceUrlStream << "http://127.0.0.1:" << m_settings->get_port();
     string serviceURL = serviceUrlStream.str();
-    std::cout << "Web UI ready and available at " << serviceURL << std::endl;
+    std::cout << "Setup WebUI is ready and available at " << serviceURL << std::endl;
 
     system(string("xdg-open " + serviceURL).c_str());
   }

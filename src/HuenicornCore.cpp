@@ -208,6 +208,7 @@ namespace Huenicorn
       }
 
       cout << "Finished setup" << endl;
+      m_openedSetup = true;
     }
 
     if(!m_config.initialSetupOk()){
@@ -223,7 +224,6 @@ namespace Huenicorn
 
     cout << "Configuration is ready. Feel free to modify it manually by editing " << std::quoted(m_config.configFilePath().string()) << endl;
 
-    _loadProfile();
     _loop();
   }
 
@@ -329,13 +329,13 @@ namespace Huenicorn
   }
 
 
-  void HuenicornCore::_loadProfile()
+  bool HuenicornCore::_loadProfile()
   {
     filesystem::path profilePath = m_profileFilePath;
 
     if(!filesystem::exists(profilePath) || !filesystem::is_regular_file(profilePath)){
       cout << "No profile found yet." << endl;
-      return;
+      return false;
     }
 
     ifstream profileFile(profilePath);
@@ -361,17 +361,38 @@ namespace Huenicorn
         m_syncedLights.insert({lightId, newSyncedLight});
       }
     }
+
+    return true;
+  }
+
+
+  void HuenicornCore::_spawnBrowser()
+  {
+    while (!m_webUIService.server->running()){
+      this_thread::sleep_for(100ms);
+    }
+    
+    stringstream serviceUrlStream;
+    serviceUrlStream << "http://127.0.0.1:" << m_config.restServerPort();
+    string serviceURL = serviceUrlStream.str();
+    std::cout << "Management WebUI is ready and available at " << serviceURL << std::endl;
+
+    system(string("xdg-open " + serviceURL).c_str());
   }
 
 
   void HuenicornCore::_loop()
   {
     unsigned port = m_config.restServerPort();
-    ThreadedRestService webUIService;
-    webUIService.server = make_unique<WebUIBackend>(this);
-    webUIService.thread.emplace([&](){
-      webUIService.server->start(port);
+    m_webUIService.server = make_unique<WebUIBackend>(this);
+    m_webUIService.thread.emplace([&](){
+      m_webUIService.server->start(port);
     });
+
+    if(!_loadProfile() && ! m_openedSetup){
+      thread spawnBrowser([this](){_spawnBrowser();});
+      spawnBrowser.detach();
+    }
 
     m_tickSynchronizer = make_unique<TickSynchronizer>(1.0f / static_cast<float>(m_config.refreshRate()));
 
@@ -389,8 +410,8 @@ namespace Huenicorn
 
     _shutdownLights();
 
-    webUIService.server->stop();
-    webUIService.thread.value().join();
+    m_webUIService.server->stop();
+    m_webUIService.thread.value().join();
   }
 
 
