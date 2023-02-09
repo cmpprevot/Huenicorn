@@ -3,10 +3,9 @@
 #include <optional>
 #include <thread>
 
-#include <Huenicorn/ImageProcessing.hpp>
+#include <Huenicorn/IGrabber.hpp>
+#include <Huenicorn/IRestServer.hpp>
 #include <Huenicorn/BridgeData.hpp>
-#include <Huenicorn/ImageData.hpp>
-#include <Huenicorn/WebUIBackend.hpp>
 #include <Huenicorn/TickSynchronizer.hpp>
 
 
@@ -95,6 +94,7 @@ namespace Huenicorn
     ThreadedRestService m_webUIService;
 
     //  Image Processing
-    ImageData m_imageData;
+    std::unique_ptr<IGrabber> m_grabber;
+    cv::Mat m_cvImage;
   };
 }

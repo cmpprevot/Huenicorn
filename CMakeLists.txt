@@ -20,23 +20,23 @@ add_executable(Huenicorn
   src/SyncedLight.cpp
   src/RequestUtils.cpp
   src/SetupBackend.cpp
-  src/ScreenUtils.cpp
   src/TickSynchronizer.cpp
   src/WebUIBackend.cpp
+  src/X11Grabber.cpp
   include/Huenicorn/BridgeData.hpp
   include/Huenicorn/Color.hpp
   include/Huenicorn/Config.hpp
   include/Huenicorn/HuenicornCore.hpp
+  include/Huenicorn/IGrabber.hpp
   include/Huenicorn/ImageProcessing.hpp
-  include/Huenicorn/ImageData.hpp
   include/Huenicorn/IRestServer.hpp
   include/Huenicorn/SyncedLight.hpp
   include/Huenicorn/LightSummary.hpp
   include/Huenicorn/RequestUtils.hpp
   include/Huenicorn/SetupBackend.hpp
-  include/Huenicorn/ScreenUtils.hpp
   include/Huenicorn/TickSynchronizer.hpp
   include/Huenicorn/WebUIBackend.hpp
+  include/Huenicorn/X11Grabber.hpp
 )
 
 set_target_properties(Huenicorn PROPERTIES CXX_STANDARD 20)

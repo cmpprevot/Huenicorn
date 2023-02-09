@@ -4,9 +4,12 @@
 #include <fstream>
 #include <chrono>
 
-#include <Huenicorn/ScreenUtils.hpp>
+#include <Huenicorn/X11Grabber.hpp>
+#include <Huenicorn/ImageProcessing.hpp>
 #include <Huenicorn/RequestUtils.hpp>
 #include <Huenicorn/SetupBackend.hpp>
+#include <Huenicorn/WebUIBackend.hpp>
+
 
 using namespace nlohmann;
 using namespace std;
@@ -17,11 +20,11 @@ namespace Huenicorn
   HuenicornCore::HuenicornCore(const std::filesystem::path& configRoot):
   m_configRoot(configRoot),
   m_profileFilePath(m_configRoot / "profile.json"),
-  m_config(m_configRoot)
-  {
-  }
-  
-  
+  m_config(m_configRoot),
+  m_grabber(make_unique<X11Grabber>(&m_config))
+  {}
+
+
   const std::filesystem::path HuenicornCore::configFilePath() const
   {
     return m_config.configFilePath();
@@ -91,13 +94,13 @@ namespace Huenicorn
 
   glm::ivec2 HuenicornCore::screenResolution() const
   {
-    return ScreenUtils::getScreenResolution();
+    return m_grabber->getScreenResolution();
   }
 
 
   vector<glm::ivec2> HuenicornCore::subsampleResolutionCandidates() const
   {
-    return ScreenUtils::subsampleResolutionCandidates();
+    return m_grabber->subsampleResolutionCandidates();
   }
 
 
@@ -219,7 +222,7 @@ namespace Huenicorn
     m_bridge = make_shared<BridgeData>(m_config);
 
     if(m_config.subsampleWidth() == 0){
-      m_config.setSubsampleWidth(ScreenUtils::subsampleResolutionCandidates().back().x);
+      m_config.setSubsampleWidth(m_grabber->subsampleResolutionCandidates().back().x);
     }
 
     cout << "Configuration is ready. Feel free to modify it manually by editing " << std::quoted(m_config.configFilePath().string()) << endl;
@@ -417,24 +420,15 @@ namespace Huenicorn
 
   void HuenicornCore::_processScreenFrame()
   {
-    ScreenUtils::getScreenCapture(m_imageData);
-    int type = m_imageData.bitsPerPixel > 24 ? CV_8UC4 : CV_8UC3;
-    cv::Mat img = cv::Mat(m_imageData.height, m_imageData.width, type, m_imageData.pixels.data());
-
-    ImageProcessing::rescale(img, m_config.subsampleWidth());
-
-    cv::cvtColor(img, img, cv::COLOR_RGBA2RGB);
-
-    int imgWidth = img.cols;
-    int imgHeight = img.rows;
+    m_grabber->getScreenSubsample(m_cvImage);
 
     for(const auto& [_, light] : m_syncedLights){
       const SyncedLight::UVs& uvs = light->uvs();
-      glm::ivec2 a{uvs.min.x * imgWidth, uvs.min.y * imgHeight};
-      glm::ivec2 b{uvs.max.x * imgWidth, uvs.max.y * imgHeight};
+      glm::ivec2 a{uvs.min.x * m_cvImage.cols, uvs.min.y * m_cvImage.rows};
+      glm::ivec2 b{uvs.max.x * m_cvImage.cols, uvs.max.y * m_cvImage.rows};
 
       cv::Mat subImage;
-      ImageProcessing::getSubImage(img, a, b).copyTo(subImage);
+      ImageProcessing::getSubImage(m_cvImage, a, b).copyTo(subImage);
 
       Colors colors = ImageProcessing::getDominantColors(subImage, 1);
       light->setColor(colors.front());
