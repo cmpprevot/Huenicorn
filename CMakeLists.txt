@@ -41,7 +41,7 @@ add_executable(Huenicorn
 
 set_target_properties(Huenicorn PROPERTIES CXX_STANDARD 20)
 
-target_link_libraries(Huenicorn PUBLIC X11 ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp restbed)
+target_link_libraries(Huenicorn PUBLIC X11 Xext ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp restbed)
 
 
 target_compile_options(Huenicorn PRIVATE
