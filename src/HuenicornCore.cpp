@@ -4,6 +4,8 @@
 #include <fstream>
 #include <chrono>
 
+#include <unistd.h>
+
 #include <Huenicorn/X11Grabber.hpp>
 #include <Huenicorn/ImageProcessing.hpp>
 #include <Huenicorn/RequestUtils.hpp>
@@ -144,7 +146,10 @@ namespace Huenicorn
 
   json HuenicornCore::requestNewApiKey()
   {
-    json request = {{"devicetype", "Huenicorn"}};
+    string username = getlogin();
+    string deviceType = "huenicorn#" + username;
+
+    json request = {{"devicetype", deviceType}, {"generateclientkey", true}};
     auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api", "POST", request.dump());
 
     if(response.size() < 1){
@@ -156,7 +161,9 @@ namespace Huenicorn
     }
 
     string apiToken = response.at(0).at("success").at("username");
+    string clientKey = response.at(0).at("success").at("clientkey");
     m_config.setApiKey(apiToken);
+    m_config.setClientkey(clientKey);
 
     return {{"succeeded", true}, {"apiKey", apiToken}};
   }

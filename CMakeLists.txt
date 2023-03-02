@@ -15,8 +15,10 @@ add_executable(Huenicorn
   src/main.cpp
   src/BridgeData.cpp
   src/Config.cpp
+  src/DtlsClient.cpp
   src/HuenicornCore.cpp
   src/ImageProcessing.cpp
+  src/Streamer.cpp
   src/SyncedLight.cpp
   src/RequestUtils.cpp
   src/SetupBackend.cpp
@@ -26,14 +28,17 @@ add_executable(Huenicorn
   include/Huenicorn/BridgeData.hpp
   include/Huenicorn/Color.hpp
   include/Huenicorn/Config.hpp
+  include/Huenicorn/DtlsClient.hpp
+  include/Huenicorn/EntertainmentConfig.hpp
   include/Huenicorn/HuenicornCore.hpp
   include/Huenicorn/IGrabber.hpp
   include/Huenicorn/ImageProcessing.hpp
   include/Huenicorn/IRestServer.hpp
-  include/Huenicorn/SyncedLight.hpp
   include/Huenicorn/LightSummary.hpp
   include/Huenicorn/RequestUtils.hpp
   include/Huenicorn/SetupBackend.hpp
+  include/Huenicorn/Streamer.hpp
+  include/Huenicorn/SyncedLight.hpp
   include/Huenicorn/TickSynchronizer.hpp
   include/Huenicorn/WebUIBackend.hpp
   include/Huenicorn/X11Grabber.hpp
@@ -41,7 +46,7 @@ add_executable(Huenicorn
 
 set_target_properties(Huenicorn PROPERTIES CXX_STANDARD 20)
 
-target_link_libraries(Huenicorn PUBLIC X11 Xext ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp restbed)
+target_link_libraries(Huenicorn PUBLIC X11 Xext ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp restbed mbedtls mbedcrypto mbedx509)
 
 
 target_compile_options(Huenicorn PRIVATE

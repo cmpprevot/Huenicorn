@@ -28,7 +28,7 @@ namespace Huenicorn
 
   bool Config::initialSetupOk() const
   {
-    return m_bridgeAddress.has_value() && m_apiKey.has_value();
+    return m_bridgeAddress.has_value() && m_username.has_value() && m_clientkey.has_value();
   }
 
 
@@ -62,9 +62,22 @@ namespace Huenicorn
   }
 
 
+  // Deprecated : This just became an alias to username
   const optional<std::string>& Config::apiKey() const
   {
-    return m_apiKey;
+    return username();
+  }
+
+
+  const optional<std::string>& Config::username() const
+  {
+    return m_username;
+  }
+
+
+  const optional<std::string>& Config::clientkey() const
+  {
+    return m_clientkey;
   }
 
 
@@ -75,9 +88,23 @@ namespace Huenicorn
   }
 
 
+  // Deprecated : This became an alias to setUsername
   void Config::setApiKey(const std::string& apiKey)
   {
-    m_apiKey.emplace(apiKey);
+    setUsername(apiKey);
+  }
+
+
+  void Config::setUsername(const std::string& username)
+  {
+    m_username.emplace(username);
+    save();
+  }
+
+
+  void Config::setClientkey(const std::string& clientkey)
+  {
+    m_clientkey.emplace(clientkey);
     save();
   }
 
@@ -120,8 +147,12 @@ namespace Huenicorn
       outConfig["bridgeAddress"] = m_bridgeAddress.value();
     }
 
-    if(m_apiKey.has_value()){
-      outConfig["apiKey"] = m_apiKey.value();
+    if(m_username.has_value()){
+      outConfig["username"] = m_username.value();
+    }
+
+    if(m_clientkey.has_value()){
+      outConfig["clientkey"] = m_clientkey.value();
     }
 
     if(!filesystem::exists(m_configFilePath)){
@@ -156,12 +187,20 @@ namespace Huenicorn
       m_bridgeAddress.emplace(configRoot.at("bridgeAddress"));
     }
 
-    if(!configRoot.contains("apiKey")){
-      std::cout << "Missing 'apiKey' in config" << endl;
+    if(!configRoot.contains("username")){
+      std::cout << "Missing 'username' in config" << endl;
       ready = false;
     }
     else{
-      m_apiKey.emplace(configRoot.at("apiKey"));
+      m_username.emplace(configRoot.at("username"));
+    }
+
+    if(!configRoot.contains("clientkey")){
+      std::cout << "Missing 'clientkey' in config" << endl;
+      ready = false;
+    }
+    else{
+      m_clientkey.emplace(configRoot.at("clientkey"));
     }
 
     if(!ready){
