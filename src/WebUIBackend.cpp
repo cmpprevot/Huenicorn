@@ -19,28 +19,28 @@ namespace Huenicorn
     {
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/availableLights");
-      resource->set_method_handler("GET", [this](SharedSession session){_getAvailableLights(session);});
+      resource->set_method_handler("GET", [this](SharedSession session){_getAvailableChannels(session);});
       m_service.publish(resource);
     }
 
     {
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/syncedLights");
-      resource->set_method_handler("GET", [this](SharedSession session){_getSyncedLights(session);});
+      resource->set_method_handler("GET", [this](SharedSession session){_getSyncedChannels(session);});
       m_service.publish(resource);
     }
 
     {
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/syncedLight/{lightId: .+}");
-      resource->set_method_handler("GET", [this](SharedSession session){_getSyncedLight(session);});
+      resource->set_method_handler("GET", [this](SharedSession session){_getSyncedChannel(session);});
       m_service.publish(resource);
     }
 
     {
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/allLights");
-      resource->set_method_handler("GET", [this](SharedSession session){_getAllLights(session);});
+      resource->set_method_handler("GET", [this](SharedSession session){_getAllChannels(session);});
       m_service.publish(resource);
     }
 
@@ -61,14 +61,14 @@ namespace Huenicorn
     {
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/setLightUV/{lightId: .+}");
-      resource->set_method_handler("PUT", [this](SharedSession session){_setLightUV(session);});
+      resource->set_method_handler("PUT", [this](SharedSession session){_setChannelUV(session);});
       m_service.publish(resource);
     }
 
     {
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/setLightGammaFactor/{lightId: .+}");
-      resource->set_method_handler("PUT", [this](SharedSession session){_setLightGammaFactor(session);});
+      resource->set_method_handler("PUT", [this](SharedSession session){_setChannelGammaFactor(session);});
       m_service.publish(resource);
     }
 
@@ -96,14 +96,14 @@ namespace Huenicorn
     {
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/syncLight");
-      resource->set_method_handler("POST", [this](SharedSession session){_syncLight(session);});
+      resource->set_method_handler("POST", [this](SharedSession session){_syncChannel(session);});
       m_service.publish(resource);
     }
     
     {
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/unsyncLight");
-      resource->set_method_handler("POST", [this](SharedSession session){_unsyncLight(session);});
+      resource->set_method_handler("POST", [this](SharedSession session){_unsyncChannel(session);});
       m_service.publish(resource);
     }
 
@@ -125,28 +125,33 @@ namespace Huenicorn
   }
 
 
-  void WebUIBackend::_getAvailableLights(const SharedSession& session) const
+  void WebUIBackend::_getAvailableChannels(const SharedSession& /*session*/) const
   {
+    /*
     string response = m_huenicornCore->jsonAvailableLights().dump();
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
       {"Content-Type", "application/json"}
     });
+    */
   }
 
 
-  void WebUIBackend::_getSyncedLights(const SharedSession& session) const
+  void WebUIBackend::_getSyncedChannel(const SharedSession& /*session*/) const
   {
+    /*
     string response = m_huenicornCore->jsonSyncedLights().dump();
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
       {"Content-Type", "application/json"}
     });
+    */
   }
 
 
-  void WebUIBackend::_getSyncedLight(const SharedSession& session) const
+  void WebUIBackend::_getSyncedChannels(const SharedSession& /*session*/) const
   {
+    /*
     const auto request = session->get_request();
     string lightId = request->get_path_parameter("lightId");
     SharedSyncedLight syncedLight = m_huenicornCore->syncedLight(lightId);
@@ -158,17 +163,19 @@ namespace Huenicorn
       {"Content-Length", std::to_string(response.size())},
       {"Content-Type", "application/json"}
     });
+    */
   }
 
 
-  void WebUIBackend::_getAllLights(const SharedSession& session) const
+  void WebUIBackend::_getAllChannels(const SharedSession& /*session*/) const
   {
-    string response = m_huenicornCore->jsonAllLights().dump();
+    /*
+    string response = m_huenicornCore->jsonAllChannels().dump();
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
       {"Content-Type", "application/json"}
     });
-
+    */
   }
 
 
@@ -216,8 +223,9 @@ namespace Huenicorn
   }
 
 
-  void WebUIBackend::_setLightUV(const SharedSession& session) const
+  void WebUIBackend::_setChannelUV(const SharedSession& /*session*/) const
   {
+    /*
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
 
@@ -232,7 +240,7 @@ namespace Huenicorn
       float y = jsonUV.at("y");
       SyncedLight::UVType uvType = static_cast<SyncedLight::UVType>(jsonUV.at("type").get<int>());
 
-      const auto& clampedUVs = m_huenicornCore->setLightUV(lightId, {x, y}, uvType);
+      const auto& clampedUVs = m_huenicornCore->setChannelUV(lightId, {x, y}, uvType);
 
       json jsonResponse = {
         {"uvA", {{"x", clampedUVs.min.x}, {"y", clampedUVs.min.y}}},
@@ -246,11 +254,13 @@ namespace Huenicorn
         {"Content-Type", "application/json"}
       });
     });
+    */
   }
 
 
-  void WebUIBackend::_setLightGammaFactor(const SharedSession& session) const
+  void WebUIBackend::_setChannelGammaFactor(const SharedSession& /*session*/) const
   {
+    /*
     const auto& request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
 
@@ -284,6 +294,7 @@ namespace Huenicorn
         {"Content-Type", "application/json"}
       });
     });
+    */
   }
 
 
@@ -368,8 +379,9 @@ namespace Huenicorn
   }
 
 
-  void WebUIBackend::_syncLight(const SharedSession& session) const
+  void WebUIBackend::_syncChannel(const SharedSession& /*session*/) const
   {
+    /*
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
 
@@ -403,11 +415,13 @@ namespace Huenicorn
         {"Content-Type", "application/json"}
       });
     });
+    */
   }
 
 
-  void WebUIBackend::_unsyncLight(const SharedSession& session) const
+  void WebUIBackend::_unsyncChannel(const SharedSession& /*session*/) const
   {
+    /*
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
 
@@ -432,6 +446,7 @@ namespace Huenicorn
         {"Content-Type", "application/json"}
       });
     });
+    */
   }
 
 

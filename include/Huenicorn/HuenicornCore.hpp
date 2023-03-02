@@ -3,17 +3,18 @@
 #include <optional>
 #include <thread>
 
+#include <nlohmann/json.hpp>
+
 #include <Huenicorn/IGrabber.hpp>
 #include <Huenicorn/IRestServer.hpp>
-#include <Huenicorn/BridgeData.hpp>
 #include <Huenicorn/TickSynchronizer.hpp>
+#include <Huenicorn/Config.hpp>
+#include <Huenicorn/UV.hpp>
+#include <Huenicorn/EntertainmentConfig.hpp>
 
 
 namespace Huenicorn
 {
-  using SyncedLights = std::unordered_map<std::string, SharedSyncedLight>;
-  using SharedBridgeData = std::shared_ptr<BridgeData>;
-
   class HuenicornCore
   {
     struct ThreadedRestService
@@ -28,13 +29,13 @@ namespace Huenicorn
 
     // Getters
     const std::filesystem::path configFilePath() const;
-    const LightSummaries& availableLights() const;
-    const SyncedLights& syncedLights() const;
-    SharedSyncedLight syncedLight(const std::string& lightId) const;
-    const nlohmann::json& jsonAvailableLights() const;
-    const nlohmann::json& jsonSyncedLights() const;
-    const nlohmann::json& jsonAllLights() const;
-    bool syncedLightExists(const std::string& lightId) const;
+    //const LightSummaries& availableLights() const;
+    //const SyncedLights& syncedLights() const;
+    //SharedSyncedLight syncedLight(const std::string& lightId) const;
+    //const nlohmann::json& jsonAvailableLights() const;
+    //const nlohmann::json& jsonSyncedLights() const;
+    //const nlohmann::json& jsonAllLights() const;
+    //bool syncedLightExists(const std::string& lightId) const;
     glm::ivec2 screenResolution() const;
     std::vector<glm::ivec2> subsampleResolutionCandidates() const;
     unsigned subsampleWidth() const;
@@ -45,8 +46,8 @@ namespace Huenicorn
 
 
     // Setters
-    const SyncedLight::UVs& setLightUV(const std::string& syncedLightId, SyncedLight::UV&& uv, SyncedLight::UVType uvType);
-    void setLightGammaFactor(const std::string& syncedLightId, float gammaFactor);
+    const UVs& setChannelUV(const std::string& syncedChannelId, UV&& uv, UVType uvType);
+    void setChannelGammaFactor(const std::string& syncedChannelId, float gammaFactor);
     void setSubsampleWidth(unsigned subsampleWidth);
     void setRefreshRate(unsigned subsampleWidth);
     void setTransitionTime_c(unsigned transitionTime_c);
@@ -56,8 +57,8 @@ namespace Huenicorn
     void stop();
     bool validateBridgeAddress(const std::string& bridgeAddress);
     bool validateApiKey(const std::string& apiKey);
-    SharedSyncedLight addSyncedLight(const std::string& lightId);
-    bool removeSyncedLight(const std::string& lightId);
+    //SharedSyncedLight addSyncedLight(const std::string& lightId);
+    bool removeSyncedLight(const std::string& channelId);
     void saveProfile() const;
 
 
@@ -81,13 +82,15 @@ namespace Huenicorn
     std::unique_ptr<TickSynchronizer> m_tickSynchronizer;
 
     //  Infrastructure
-    SharedBridgeData m_bridge;
-    SyncedLights m_syncedLights;
+    //EntertainmentConfig
+
+    UVs tmpUvs; // Todo : remove
+    //SyncedLights m_syncedLights;
 
     // Cache
-    mutable std::optional<nlohmann::json> m_cachedJsonAvailableLights;
-    mutable std::optional<nlohmann::json> m_cachedJsonSyncedLights;
-    mutable std::optional<nlohmann::json> m_cachedJsonAllLights;
+    //mutable std::optional<nlohmann::json> m_cachedJsonAvailableChannels;
+    //mutable std::optional<nlohmann::json> m_cachedJsonSyncedChannels;
+    //mutable std::optional<nlohmann::json> m_cachedJsonAllChannels;
 
     // Service and flags
     bool m_openedSetup{false};

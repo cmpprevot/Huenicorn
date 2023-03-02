@@ -5,7 +5,7 @@
 
 namespace Huenicorn
 {
-  struct DummyLight
+  struct Light
   {
     std::string id;
     std::string name;
@@ -16,10 +16,10 @@ namespace Huenicorn
   class EntertainmentConfig
   {
   public:
-    using DummyLights = std::unordered_map<std::string, DummyLight>;
+    using Lights = std::unordered_map<std::string, Light>;
     using ChannelIds = std::vector<uint8_t>;
 
-    EntertainmentConfig(const std::string& id, const std::string& name, const DummyLights& lights, const ChannelIds& channelIds):
+    EntertainmentConfig(const std::string& id, const std::string& name, const Lights& lights, const ChannelIds& channelIds):
     m_id(id),
     m_name(name),
     m_lights(lights),
@@ -41,7 +41,7 @@ namespace Huenicorn
     }
 
 
-    const DummyLights& lights() const
+    const Lights& lights() const
     {
       return m_lights;
     }
@@ -55,7 +55,7 @@ namespace Huenicorn
   private:
     std::string m_id;
     std::string m_name;
-    DummyLights m_lights;
+    Lights m_lights;
     ChannelIds m_channelIds;
   };
 }

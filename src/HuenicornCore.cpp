@@ -33,6 +33,7 @@ namespace Huenicorn
   }
 
 
+  /*
   const LightSummaries& HuenicornCore::availableLights() const
   {
     return m_bridge->lightSummaries();
@@ -43,8 +44,10 @@ namespace Huenicorn
   {
     return m_syncedLights;
   }
+  */
 
 
+  /*
   const nlohmann::json& HuenicornCore::jsonAvailableLights() const
   {
     if(!m_cachedJsonAvailableLights.has_value()){
@@ -56,8 +59,10 @@ namespace Huenicorn
 
     return m_cachedJsonAvailableLights.value();
   }
+  */
 
 
+  /*
   const nlohmann::json& HuenicornCore::jsonSyncedLights() const
   {
     if(!m_cachedJsonSyncedLights.has_value()){
@@ -68,8 +73,10 @@ namespace Huenicorn
     }
     return m_cachedJsonSyncedLights.value();
   }
+  */
 
 
+  /*
   const nlohmann::json& HuenicornCore::jsonAllLights() const
   {
     if(!m_cachedJsonAllLights.has_value()){
@@ -85,13 +92,16 @@ namespace Huenicorn
 
     return m_cachedJsonAllLights.value();
   }
+  */
 
 
+  /*
   SharedSyncedLight HuenicornCore::syncedLight(const std::string& lightId) const
   {
     const auto& syncedLight = m_syncedLights.find(lightId);
     return (syncedLight != m_syncedLights.end()) ? syncedLight->second : nullptr;
   }
+  */
 
 
   glm::ivec2 HuenicornCore::screenResolution() const
@@ -169,16 +179,20 @@ namespace Huenicorn
   }
 
 
-  const SyncedLight::UVs& HuenicornCore::setLightUV(const std::string& syncedLightId, SyncedLight::UV&& uv, SyncedLight::UVType uvType)
+  const UVs& HuenicornCore::setChannelUV(const std::string& /*syncedChannelId*/, UV&& /*uv*/, UVType /*uvType*/)
   {
+  /*
     _resetJsonLightsCache();
     return syncedLights().at(syncedLightId)->setUV(std::move(uv), uvType);
+  */
+
+    return tmpUvs; // Todo : remove
   }
 
 
-  void HuenicornCore::setLightGammaFactor(const std::string& syncedLightId, float gammaExponent)
+  void HuenicornCore::setChannelGammaFactor(const std::string& /*syncedLightId*/, float /*gammaExponent*/)
   {
-    m_syncedLights.at(syncedLightId)->setGammaFactor(gammaExponent);
+    //m_syncedLights.at(syncedLightId)->setGammaFactor(gammaExponent);
   }
 
 
@@ -226,7 +240,7 @@ namespace Huenicorn
       return;
     }
 
-    m_bridge = make_shared<BridgeData>(m_config);
+    //m_bridge = make_shared<BridgeData>(m_config);
 
     if(m_config.subsampleWidth() == 0){
       m_config.setSubsampleWidth(m_grabber->subsampleResolutionCandidates().back().x);
@@ -292,6 +306,7 @@ namespace Huenicorn
   }
 
 
+  /*
   SharedSyncedLight HuenicornCore::addSyncedLight(const std::string& lightId)
   {
     const auto& lightSummary = m_bridge->lightSummaries().at(lightId);
@@ -300,20 +315,25 @@ namespace Huenicorn
     _resetJsonLightsCache();
     return ok ? it->second : nullptr;
   }
+  */
 
 
-  bool HuenicornCore::removeSyncedLight(const std::string& lightId)
+  bool HuenicornCore::removeSyncedLight(const std::string& /*lightId*/)
   {
+    /*
     SharedSyncedLight tmpLight = m_syncedLights.at(lightId);
     auto n = m_syncedLights.erase(lightId);
     _resetJsonLightsCache();
     tmpLight->setState(false);
     return n > 0;
+    */
+    return false;
   }
 
 
   void HuenicornCore::saveProfile() const
   {
+    /*
     nlohmann::json profile = json::object();
     profile["lights"] = json::array();
     for(const auto& [id, light] : m_syncedLights){
@@ -336,11 +356,13 @@ namespace Huenicorn
     ofstream profileFile(m_profileFilePath, ofstream::out);
     profileFile << profile.dump(2) << endl;
     profileFile.close();
+    */
   }
 
 
   bool HuenicornCore::_loadProfile()
   {
+    /*
     filesystem::path profilePath = m_profileFilePath;
 
     if(!filesystem::exists(profilePath) || !filesystem::is_regular_file(profilePath)){
@@ -371,6 +393,7 @@ namespace Huenicorn
         m_syncedLights.insert({lightId, newSyncedLight});
       }
     }
+    */
 
     return true;
   }
@@ -427,6 +450,7 @@ namespace Huenicorn
 
   void HuenicornCore::_processScreenFrame()
   {
+    /*
     m_grabber->getScreenSubsample(m_cvImage);
 
     for(const auto& [_, light] : m_syncedLights){
@@ -440,21 +464,24 @@ namespace Huenicorn
       Colors colors = ImageProcessing::getDominantColors(subImage, 1);
       light->setColor(colors.front());
     }
+    */
   }
 
 
   void HuenicornCore::_shutdownLights()
   {
+    /*
     for(const auto& [_, syncedLight] : m_syncedLights){
       syncedLight->setState(false);
     }
+    */
   }
 
 
   void HuenicornCore::_resetJsonLightsCache()
   {
-    m_cachedJsonAllLights.reset();
-    m_cachedJsonAvailableLights.reset();
-    m_cachedJsonSyncedLights.reset();
+    //m_cachedJsonAllChannels.reset();
+    //m_cachedJsonAvailableChannels.reset();
+    //m_cachedJsonSyncedChannels.reset();
   }
 }

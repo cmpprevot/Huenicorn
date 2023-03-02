@@ -99,7 +99,7 @@ namespace Huenicorn
 
         const json& lightServices = jsonEntertainentConfiguration.at("light_services");
 
-        unordered_map<string, DummyLight> lights;
+        unordered_map<string, Light> lights;
         
         for(const json& lightService : lightServices){
           const string& lightId = lightService.at("rid");

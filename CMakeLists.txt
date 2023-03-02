@@ -13,19 +13,17 @@ include_directories(
 
 add_executable(Huenicorn
   src/main.cpp
-  src/BridgeData.cpp
   src/Config.cpp
   src/DtlsClient.cpp
   src/HuenicornCore.cpp
   src/ImageProcessing.cpp
   src/Streamer.cpp
-  src/SyncedLight.cpp
+  #src/SyncedLight.cpp
   src/RequestUtils.cpp
   src/SetupBackend.cpp
   src/TickSynchronizer.cpp
   src/WebUIBackend.cpp
   src/X11Grabber.cpp
-  include/Huenicorn/BridgeData.hpp
   include/Huenicorn/Color.hpp
   include/Huenicorn/Config.hpp
   include/Huenicorn/DtlsClient.hpp
@@ -38,8 +36,9 @@ add_executable(Huenicorn
   include/Huenicorn/RequestUtils.hpp
   include/Huenicorn/SetupBackend.hpp
   include/Huenicorn/Streamer.hpp
-  include/Huenicorn/SyncedLight.hpp
+  #include/Huenicorn/SyncedLight.hpp
   include/Huenicorn/TickSynchronizer.hpp
+  include/Huenicorn/UV.hpp
   include/Huenicorn/WebUIBackend.hpp
   include/Huenicorn/X11Grabber.hpp
 )
