@@ -83,8 +83,10 @@ namespace Huenicorn
     Streamer(const std::string& username, const std::string& clientkey, const std::string& address, const std::string& port);
     ~Streamer();
 
-    bool start();
-    void stop();
+    //bool start();
+    //void stop();
+
+    void streamChannels(const std::vector<Channel>& channels);
 
   private:
 
@@ -97,7 +99,7 @@ namespace Huenicorn
 
 
     const std::string& _entertainmentId();
-    void _streamingLoop();
+    //void _streamingLoop();
 
     // Attributes
     std::optional<std::thread> m_streamThread;

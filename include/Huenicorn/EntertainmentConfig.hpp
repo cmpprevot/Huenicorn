@@ -13,6 +13,15 @@ namespace Huenicorn
   };
 
 
+  struct Channel
+  {
+    uint8_t id;
+    float r{1.0};
+    float g{0.0};
+    float b{0.0};
+  };
+
+
   class EntertainmentConfig
   {
   public:

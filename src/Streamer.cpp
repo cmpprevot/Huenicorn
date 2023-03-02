@@ -44,14 +44,24 @@ namespace Huenicorn
 
     _setStreamActive(m_selectedConfig.value(), false);
     _setStreamActive(m_selectedConfig.value(), true);
+  
+    try{
+      m_dtlsClient.init();
+    }
+    catch(const std::exception& e){
+      cout << e.what();
+    }
+    
   }
 
 
   Streamer::~Streamer()
   {
+    
   }
 
 
+  /*
   bool Streamer::start()
   {
     try{
@@ -77,6 +87,7 @@ namespace Huenicorn
     m_keepStreaming = false;
     _setStreamActive(m_selectedConfig.value(), false);
   }
+  */
 
 
   void Streamer::_loadEntertainmentData()
@@ -135,46 +146,24 @@ namespace Huenicorn
   }
 
 
-  void Streamer::_streamingLoop()
+  void Streamer::streamChannels(const std::vector<Channel>& channels)
   {
-    m_header.setEntertainmentConfigurationId(_entertainmentId());
+    m_header.setEntertainmentConfigurationId(_entertainmentId()); // Todo : Move this out !
 
-    float timeFactor = 1.f;
-    float pi = glm::pi<float>();
-    float thirdOfPi = pi / 3;
+    vector<char> requestBuffer;
+    requestBuffer.insert(requestBuffer.end(), (char*)&m_header, (char*)&m_header + sizeof(HuestreamHeader));
 
-    while(m_keepStreaming){
-      if(m_selectedConfig.has_value()){
-        vector<char> requestBuffer;
-        float coeff = (m_header.sequenceId / static_cast<float>(numeric_limits<uint8_t>::max()));
-        float angle = timeFactor * coeff * 2 * pi;
+    for(const auto channel : channels){
+      HuestreamPayload payload;
+      payload.channelId = channel.id;
+      payload.setR(static_cast<uint16_t>(0xffff * channel.r));
+      payload.setG(static_cast<uint16_t>(0xffff * channel.g));
+      payload.setB(static_cast<uint16_t>(0xffff * channel.b));
 
-        float rIntensity = 0.5 + 0.5 * glm::sin(angle);
-        float gIntensity = 0.5 + 0.5 * glm::sin(angle + thirdOfPi);
-        float bIntensity = 0.5 + 0.5 * glm::sin(angle - thirdOfPi);
-
-        requestBuffer.insert(requestBuffer.end(), (char*)&m_header, (char*)&m_header + sizeof(HuestreamHeader));
-
-
-        const auto& channelIds = m_selectedConfig.value().channelIds();
-
-        vector<HuestreamPayload> payloads(channelIds.size());
-        for(const auto channel : channelIds){
-          HuestreamPayload payload;
-          payload.channelId = channel;
-          payload.setR(static_cast<uint16_t>(0xffff * rIntensity));
-          payload.setG(static_cast<uint16_t>(0xffff * gIntensity));
-          payload.setB(static_cast<uint16_t>(0xffff * bIntensity));
-
-          requestBuffer.insert(requestBuffer.end(), (char*)&payload, (char*)&payload + sizeof(HuestreamPayload));
-        }
-
-        m_dtlsClient.send(requestBuffer);
-
-        m_header.sequenceId++;
-      }
-
-      this_thread::sleep_for(20ms);
+      requestBuffer.insert(requestBuffer.end(), (char*)&payload, (char*)&payload + sizeof(HuestreamPayload));
     }
+
+    m_dtlsClient.send(requestBuffer);
+    m_header.sequenceId++;
   }
 }

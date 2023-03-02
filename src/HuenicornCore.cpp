@@ -12,8 +12,10 @@
 #include <Huenicorn/SetupBackend.hpp>
 #include <Huenicorn/WebUIBackend.hpp>
 
+#include <glm/trigonometric.hpp>
 
 using namespace nlohmann;
+using namespace glm;
 using namespace std;
 
 
@@ -144,7 +146,7 @@ namespace Huenicorn
         return {{"succeeded", false}, {"error", "Could not autodetect bridge."}};
       }
 
-     bridgeAddress = detectedBridgeData.front().at("internalipaddress");
+      bridgeAddress = detectedBridgeData.front().at("internalipaddress");
     }
     catch(const json::exception& e){
       return {{"succeeded", false}, {"error", "Could not autodetect bridge."}};
@@ -427,6 +429,8 @@ namespace Huenicorn
       spawnBrowser.detach();
     }
 
+    m_streamer = make_unique<Streamer>(m_config.username().value(), m_config.clientkey().value(), m_config.bridgeAddress().value(), "2100");
+
     m_tickSynchronizer = make_unique<TickSynchronizer>(1.0f / static_cast<float>(m_config.refreshRate()));
 
     m_tickSynchronizer->start();
@@ -465,6 +469,32 @@ namespace Huenicorn
       light->setColor(colors.front());
     }
     */
+
+    
+    // Begin Todo : Understand why the color from the screen is not good
+    glm::ivec2 a{0, 0};
+    glm::ivec2 b{1, 1};
+    m_grabber->getScreenSubsample(m_cvImage);
+    cv::Mat subImage;
+    ImageProcessing::getSubImage(m_cvImage, a, b).copyTo(subImage);
+    Color color = ImageProcessing::getDominantColors(subImage, 1).front();
+
+    vector<Channel> channels;
+
+    glm::vec3 normalized = color.toNormalized(); // Main suspect is "toNormalized()"
+    // End Todo
+
+
+    float intensity = 0.5 + 0.5 * glm::sin(angle * 3.14159 / 180.0);
+    angle += 2;
+
+
+
+    normalized = vec3(intensity);
+
+    channels.push_back({0, normalized.r, normalized.g, normalized.b}); // HARDCODED CHANNEL ID
+    channels.push_back({1, normalized.r, normalized.g, normalized.b}); // HARDCODED CHANNEL ID
+    m_streamer->streamChannels(channels);
   }
 
 

@@ -11,6 +11,7 @@
 #include <Huenicorn/Config.hpp>
 #include <Huenicorn/UV.hpp>
 #include <Huenicorn/EntertainmentConfig.hpp>
+#include <Huenicorn/Streamer.hpp>
 
 
 namespace Huenicorn
@@ -84,7 +85,10 @@ namespace Huenicorn
     //  Infrastructure
     //EntertainmentConfig
 
+    std::unique_ptr<Streamer> m_streamer;
+
     UVs tmpUvs; // Todo : remove
+    float angle{0}; // Todo : remove
     //SyncedLights m_syncedLights;
 
     // Cache
