@@ -15,6 +15,7 @@ add_executable(Huenicorn
   src/main.cpp
   src/Config.cpp
   src/DtlsClient.cpp
+  src/EntertainmentConfigSelector.cpp
   src/HuenicornCore.cpp
   src/ImageProcessing.cpp
   src/Streamer.cpp
@@ -28,6 +29,7 @@ add_executable(Huenicorn
   include/Huenicorn/Config.hpp
   include/Huenicorn/DtlsClient.hpp
   include/Huenicorn/EntertainmentConfig.hpp
+  include/Huenicorn/EntertainmentConfigSelector.hpp
   include/Huenicorn/HuenicornCore.hpp
   include/Huenicorn/IGrabber.hpp
   include/Huenicorn/ImageProcessing.hpp

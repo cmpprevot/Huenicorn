@@ -11,6 +11,7 @@
 #include <Huenicorn/Config.hpp>
 #include <Huenicorn/UV.hpp>
 #include <Huenicorn/EntertainmentConfig.hpp>
+#include <Huenicorn/EntertainmentConfigSelector.hpp>
 #include <Huenicorn/Streamer.hpp>
 
 
@@ -83,7 +84,7 @@ namespace Huenicorn
     std::unique_ptr<TickSynchronizer> m_tickSynchronizer;
 
     //  Infrastructure
-    //EntertainmentConfig
+    std::unique_ptr<EntertainmentConfigSelector> m_selector;
 
     std::unique_ptr<Streamer> m_streamer;
 

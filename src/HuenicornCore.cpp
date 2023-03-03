@@ -418,10 +418,10 @@ namespace Huenicorn
 
   void HuenicornCore::_loop()
   {
-    unsigned port = m_config.restServerPort();
+    unsigned restServerPort = m_config.restServerPort();
     m_webUIService.server = make_unique<WebUIBackend>(this);
     m_webUIService.thread.emplace([&](){
-      m_webUIService.server->start(port);
+      m_webUIService.server->start(restServerPort);
     });
 
     if(!_loadProfile() && ! m_openedSetup){
@@ -429,7 +429,16 @@ namespace Huenicorn
       spawnBrowser.detach();
     }
 
-    m_streamer = make_unique<Streamer>(m_config.username().value(), m_config.clientkey().value(), m_config.bridgeAddress().value(), "2100");
+    const string& username = m_config.username().value();
+    const string& clientkey = m_config.clientkey().value();
+    const string& bridgeAddress =  m_config.bridgeAddress().value();
+
+    m_selector = make_unique<EntertainmentConfigSelector>(username, clientkey, bridgeAddress);
+
+    m_streamer = make_unique<Streamer>(m_config.username().value(), m_config.clientkey().value(), m_config.bridgeAddress().value());
+
+    // Todo : select entertainment config prior to affect it
+    m_streamer->setEntertainmentConfigId(m_selector->entertainmentConfigId());
 
     m_tickSynchronizer = make_unique<TickSynchronizer>(1.0f / static_cast<float>(m_config.refreshRate()));
 
@@ -473,7 +482,7 @@ namespace Huenicorn
     
     // Begin Todo : Understand why the color from the screen is not good
     glm::ivec2 a{0, 0};
-    glm::ivec2 b{1, 1};
+    glm::ivec2 b{m_cvImage.cols, m_cvImage.rows};
     m_grabber->getScreenSubsample(m_cvImage);
     cv::Mat subImage;
     ImageProcessing::getSubImage(m_cvImage, a, b).copyTo(subImage);
@@ -484,13 +493,6 @@ namespace Huenicorn
     glm::vec3 normalized = color.toNormalized(); // Main suspect is "toNormalized()"
     // End Todo
 
-
-    float intensity = 0.5 + 0.5 * glm::sin(angle * 3.14159 / 180.0);
-    angle += 2;
-
-
-
-    normalized = vec3(intensity);
 
     channels.push_back({0, normalized.r, normalized.g, normalized.b}); // HARDCODED CHANNEL ID
     channels.push_back({1, normalized.r, normalized.g, normalized.b}); // HARDCODED CHANNEL ID

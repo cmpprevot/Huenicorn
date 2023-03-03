@@ -15,141 +15,26 @@ using namespace std;
 
 namespace Huenicorn
 {
-  void Streamer::_setStreamActive(const EntertainmentConfig& entertainmentConfig, bool active)
-  {
-    json jsonBody = {
-      {"action", active ? "start" : "stop"},
-      {"metadata", {{"name", entertainmentConfig.name()}}}
-    };
-
-    RequestUtils::Headers headers = {
-      {"hue-application-key", m_username}
-    };
-
-
-    string url = "https://" + m_address + "/clip/v2/resource/entertainment_configuration/" + entertainmentConfig.id();
-
-    auto r = RequestUtils::sendRequest(url, "PUT", jsonBody.dump(), headers);
-  }
-
-
-  Streamer::Streamer(const std::string& username, const std::string& clientkey, const std::string& address, const std::string& port):
-    m_username(username),
-    m_clientkey(clientkey),
-    m_address(address),
-    m_dtlsClient(m_username, m_clientkey, m_address, port)
-  {
-    _loadEntertainmentData();
-    _selectEntertainementConfig();
-
-    _setStreamActive(m_selectedConfig.value(), false);
-    _setStreamActive(m_selectedConfig.value(), true);
-  
-    try{
-      m_dtlsClient.init();
-    }
-    catch(const std::exception& e){
-      cout << e.what();
-    }
-    
-  }
-
-
-  Streamer::~Streamer()
-  {
-    
-  }
-
-
-  /*
-  bool Streamer::start()
+  Streamer::Streamer(const std::string& username, const std::string& clientkey, const std::string& address):
+    m_dtlsClient(username, clientkey, address, PORT)
   {
     try{
       m_dtlsClient.init();
     }
     catch(const std::exception& e){
       cout << e.what();
-      return false;
-    }
-
-    m_keepStreaming = true;
-
-    m_streamThread.emplace([this](){this->_streamingLoop();});
-    m_streamThread.value().join();
-
-
-    return m_keepStreaming;
-  }
-
-
-  void Streamer::stop()
-  {
-    m_keepStreaming = false;
-    _setStreamActive(m_selectedConfig.value(), false);
-  }
-  */
-
-
-  void Streamer::_loadEntertainmentData()
-  {
-    RequestUtils::Headers headers = {
-      {"hue-application-key", m_username}
-    };
-
-    string entertainmentConfUrl = "https://" + m_address + "/clip/v2/resource/entertainment_configuration";
-
-
-    auto entertainmentConfResponse = RequestUtils::sendRequest(entertainmentConfUrl, "GET", "", headers);
-
-    if(entertainmentConfResponse.at("errors").size() == 0){
-      // Listing entertainment configurations
-      for(const json& jsonEntertainentConfiguration : entertainmentConfResponse.at("data")){
-        string confId = jsonEntertainentConfiguration.at("id");
-        string confName = jsonEntertainentConfiguration.at("metadata").at("name");
-
-
-        const json& lightServices = jsonEntertainentConfiguration.at("light_services");
-
-        unordered_map<string, Light> lights;
-        
-        for(const json& lightService : lightServices){
-          const string& lightId = lightService.at("rid");
-          string lightUrl = "https://" + m_address + "/clip/v2/resource/light/" + lightId;
-
-          auto jsonLightData = RequestUtils::sendRequest(lightUrl, "GET", "", headers);
-          const json& metadata = jsonLightData.at("data").at(0).at("metadata");
-
-          lights.insert({lightId, {lightId, metadata.at("name"), metadata.at("archetype")}});
-        }
-
-        vector<uint8_t> channelIds;
-        for(const auto& channel : jsonEntertainentConfiguration.at("channels")){
-          channelIds.push_back(channel.at("channel_id"));
-        }
-
-        m_entertainmentConfigs.emplace_back(confId, confName, lights, channelIds);
-      }
     }
   }
 
 
-  void Streamer::_selectEntertainementConfig()
+  void Streamer::setEntertainmentConfigId(const std::string& entertainmentConfigId)
   {
-    // Todo : proper setter
-    m_selectedConfig.emplace(m_entertainmentConfigs.front());
-  }
-
-
-  const std::string& Streamer::_entertainmentId()
-  {
-    return m_selectedConfig.value().id();
+    m_header.setEntertainmentConfigurationId(entertainmentConfigId);
   }
 
 
   void Streamer::streamChannels(const std::vector<Channel>& channels)
   {
-    m_header.setEntertainmentConfigurationId(_entertainmentId()); // Todo : Move this out !
-
     vector<char> requestBuffer;
     requestBuffer.insert(requestBuffer.end(), (char*)&m_header, (char*)&m_header + sizeof(HuestreamHeader));
 

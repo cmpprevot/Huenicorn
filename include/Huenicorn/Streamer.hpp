@@ -12,6 +12,8 @@
 
 namespace Huenicorn
 {
+  static constexpr std::string PORT = "2100";
+
   class Streamer
   {
     struct HuestreamHeader
@@ -31,9 +33,9 @@ namespace Huenicorn
       }
 
 
-      void setEntertainmentConfigurationId(const std::string& entertainmentConfiguationId_)
+      void setEntertainmentConfigurationId(const std::string& _entertainmentConfiguationId)
       {
-        for(int i = 0; const char& idChar : entertainmentConfiguationId_){
+        for(int i = 0; const char& idChar : _entertainmentConfiguationId){
           entertainmentConfiguationId[i++] = idChar;
         }
       }
@@ -80,43 +82,17 @@ namespace Huenicorn
 
 
   public:
-    Streamer(const std::string& username, const std::string& clientkey, const std::string& address, const std::string& port);
-    ~Streamer();
+    Streamer(const std::string& username, const std::string& clientkey, const std::string& address);
 
-    //bool start();
-    //void stop();
+    void setEntertainmentConfigId(const std::string& entertainmentConfigId);
 
+    // Methods
     void streamChannels(const std::vector<Channel>& channels);
 
   private:
-
-    // Private methods
-    void  _loadEntertainmentData();
-
-    void _setStreamActive(const EntertainmentConfig& entertainmentConfig, bool active);
-
-    void _selectEntertainementConfig();
-
-
-    const std::string& _entertainmentId();
-    //void _streamingLoop();
-
     // Attributes
-    std::optional<std::thread> m_streamThread;
-
-    const std::string m_username;
-    const std::string m_clientkey;
-    const std::string m_address;
-
     DtlsClient m_dtlsClient;
-
-    bool m_keepStreaming{false};
-
     HuestreamHeader m_header;
 
-
-
-    std::vector<EntertainmentConfig> m_entertainmentConfigs;
-    std::optional<EntertainmentConfig> m_selectedConfig;
   };
 }
