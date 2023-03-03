@@ -15,6 +15,7 @@ namespace Huenicorn
     EntertainmentConfigSelector(const std::string& username, const std::string& clientkey, const std::string& address);
 
     const std::string& entertainmentConfigId() const;
+    const EntertainmentConfig& selectedConfig() const;
 
     void selectEntertainementConfig(const std::string& entertainmentConfig);
 

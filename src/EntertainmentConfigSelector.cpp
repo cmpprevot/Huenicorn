@@ -24,6 +24,12 @@ namespace Huenicorn
   }
 
 
+  const EntertainmentConfig& EntertainmentConfigSelector::selectedConfig() const
+  {
+    return m_selectedConfig.value();
+  }
+
+
   void EntertainmentConfigSelector::selectEntertainementConfig(const std::string& /*entertainmentConfig*/)
   {
     // Todo : use parameter
@@ -67,12 +73,12 @@ namespace Huenicorn
           lights.insert({lightId, {lightId, metadata.at("name"), metadata.at("archetype")}});
         }
 
-        vector<uint8_t> channelIds;
+        vector<Channel> channels;
         for(const auto& channel : jsonEntertainentConfiguration.at("channels")){
-          channelIds.push_back(channel.at("channel_id"));
+          channels.emplace_back(channel.at("channel_id"));
         }
 
-        m_entertainmentConfigs.emplace_back(confId, confName, lights, channelIds);
+        m_entertainmentConfigs.emplace_back(confId, confName, lights, channels);
       }
     }
   }

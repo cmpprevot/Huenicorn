@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 
+#include <Huenicorn/UV.hpp>
 
 namespace Huenicorn
 {
@@ -17,23 +18,33 @@ namespace Huenicorn
   struct Channel
   {
     uint8_t id;
+    bool active{true};
+    float r{1.0};
+    float g{0.0};
+    float b{0.0};
+    UVs uvs;
+  };
+
+
+  struct ChannelStream
+  {
+    uint8_t id;
     float r{1.0};
     float g{0.0};
     float b{0.0};
   };
 
-
   class EntertainmentConfig
   {
   public:
     using Lights = std::unordered_map<std::string, Light>;
-    using ChannelIds = std::vector<uint8_t>;
+    using Channels = std::vector<Channel>;
 
-    EntertainmentConfig(const std::string& id, const std::string& name, const Lights& lights, const ChannelIds& channelIds):
+    EntertainmentConfig(const std::string& id, const std::string& name, const Lights& lights, const Channels& channels):
     m_id(id),
     m_name(name),
     m_lights(lights),
-    m_channelIds(channelIds)
+    m_channels(channels)
     {
 
     }
@@ -57,15 +68,15 @@ namespace Huenicorn
     }
 
 
-    const ChannelIds& channelIds() const
+    const Channels& channels() const
     {
-      return m_channelIds;
+      return m_channels;
     }
 
   private:
     std::string m_id;
     std::string m_name;
     Lights m_lights;
-    ChannelIds m_channelIds;
+    Channels m_channels;
   };
 }

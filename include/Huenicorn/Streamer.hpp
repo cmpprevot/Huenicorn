@@ -87,7 +87,7 @@ namespace Huenicorn
     void setEntertainmentConfigId(const std::string& entertainmentConfigId);
 
     // Methods
-    void streamChannels(const std::vector<Channel>& channels);
+    void streamChannels(const std::vector<ChannelStream>& channels);
 
   private:
     // Attributes

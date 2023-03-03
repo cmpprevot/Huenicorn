@@ -435,6 +435,8 @@ namespace Huenicorn
 
     m_selector = make_unique<EntertainmentConfigSelector>(username, clientkey, bridgeAddress);
 
+    m_selector->selectEntertainementConfig(""); // ToDo : Proper selection
+
     m_streamer = make_unique<Streamer>(m_config.username().value(), m_config.clientkey().value(), m_config.bridgeAddress().value());
 
     // Todo : select entertainment config prior to affect it
@@ -463,40 +465,32 @@ namespace Huenicorn
 
   void HuenicornCore::_processScreenFrame()
   {
-    /*
     m_grabber->getScreenSubsample(m_cvImage);
+    cv::Mat subImage;
 
-    for(const auto& [_, light] : m_syncedLights){
-      const SyncedLight::UVs& uvs = light->uvs();
+    vector<ChannelStream> channelStreams;
+
+    vector <UVs> channelUVs = {
+      {{0.4, 0.0}, {1.0, 1.0}},
+      {{0.0, 0.0}, {0.6, 1.0}}
+    };
+
+    for(int i = 0; const auto& channel : m_selector->selectedConfig().channels()){
+      const auto& uvs = channelUVs.at(i % channelUVs.size());
       glm::ivec2 a{uvs.min.x * m_cvImage.cols, uvs.min.y * m_cvImage.rows};
       glm::ivec2 b{uvs.max.x * m_cvImage.cols, uvs.max.y * m_cvImage.rows};
 
       cv::Mat subImage;
       ImageProcessing::getSubImage(m_cvImage, a, b).copyTo(subImage);
+      Color color = ImageProcessing::getDominantColors(subImage, 1).front();
 
-      Colors colors = ImageProcessing::getDominantColors(subImage, 1);
-      light->setColor(colors.front());
+
+      glm::vec3 normalized = color.toNormalized();
+      channelStreams.push_back({channel.id, normalized.r, normalized.g, normalized.b});
+      i++;
     }
-    */
 
-    
-    // Begin Todo : Understand why the color from the screen is not good
-    glm::ivec2 a{0, 0};
-    glm::ivec2 b{m_cvImage.cols, m_cvImage.rows};
-    m_grabber->getScreenSubsample(m_cvImage);
-    cv::Mat subImage;
-    ImageProcessing::getSubImage(m_cvImage, a, b).copyTo(subImage);
-    Color color = ImageProcessing::getDominantColors(subImage, 1).front();
-
-    vector<Channel> channels;
-
-    glm::vec3 normalized = color.toNormalized(); // Main suspect is "toNormalized()"
-    // End Todo
-
-
-    channels.push_back({0, normalized.r, normalized.g, normalized.b}); // HARDCODED CHANNEL ID
-    channels.push_back({1, normalized.r, normalized.g, normalized.b}); // HARDCODED CHANNEL ID
-    m_streamer->streamChannels(channels);
+    m_streamer->streamChannels(channelStreams);
   }
 
 
