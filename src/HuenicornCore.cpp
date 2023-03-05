@@ -346,7 +346,7 @@ namespace Huenicorn
       const auto& uvs = channel.uvs;
       profile["entertainmentConfigId"] = m_selector->selectedEntertainmentConfigId();
       profile["channels"].push_back({
-        {"channel_id", id},
+        {"channelId", id},
         {"uvs", {
             {
               "uvA", {{"x", uvs.min.x}, {"y", uvs.min.y}}
