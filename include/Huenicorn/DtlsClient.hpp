@@ -18,6 +18,7 @@ namespace Huenicorn
   class DtlsClient
   {
   static constexpr std::string Hostname = "Hue";
+  static constexpr unsigned HandhsakeAttempts = 4;
 
   public:
     DtlsClient(const std::string& username, const std::string& clientkey, const std::string& address, const std::string& port);

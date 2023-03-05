@@ -212,8 +212,8 @@ namespace Huenicorn
     cout << "Performing the DTLS handshake..." << endl;
 
     int result;
-    for(int attempt = 0; attempt < 4; ++attempt){
-      cout << "handshake attempt" << attempt << endl;
+    for(unsigned attempt = 0; attempt < HandhsakeAttempts; attempt++){
+      cout << "handshake attempt " << attempt << endl;
       mbedtls_ssl_conf_handshake_timeout(&m_conf, 400, 1000);
       do{
         result = mbedtls_ssl_handshake(&m_ssl);
