@@ -92,6 +92,8 @@ namespace Huenicorn
     float angle{0}; // Todo : remove
     //SyncedLights m_syncedLights;
 
+    Channels m_channels;
+
     // Cache
     //mutable std::optional<nlohmann::json> m_cachedJsonAvailableChannels;
     //mutable std::optional<nlohmann::json> m_cachedJsonSyncedChannels;

@@ -11,18 +11,23 @@ namespace Huenicorn
 {
   class EntertainmentConfigSelector
   {
+    using EntertainmentConfigs = std::unordered_map<std::string, EntertainmentConfig>;
+    using EntertainmentConfigsIterator = EntertainmentConfigs::iterator;
+
+
   public:
     EntertainmentConfigSelector(const std::string& username, const std::string& clientkey, const std::string& address);
 
-    const std::string& entertainmentConfigId() const;
+    const std::string& selectedEntertainmentConfigId() const;
     const EntertainmentConfig& selectedConfig() const;
+    bool validSelecion() const;
 
-    void selectEntertainementConfig(const std::string& entertainmentConfig);
+    bool selectEntertainementConfig(const std::string& entertainmentConfigId);
 
   private:
     // Private methods
     void  _loadEntertainmentData();
-    void _setStreamActive(const EntertainmentConfig& entertainmentConfig, bool active);
+    void _setSelectedConfigStreamActivity(bool active) const;
 
     void _clearConfigs();
 
@@ -31,7 +36,7 @@ namespace Huenicorn
     const std::string m_clientkey;
     const std::string m_address;
 
-    std::vector<EntertainmentConfig> m_entertainmentConfigs;
-    std::optional<EntertainmentConfig> m_selectedConfig;
+    EntertainmentConfigs m_entertainmentConfigs;
+    EntertainmentConfigsIterator m_selectedConfig{nullptr};
   };
 }

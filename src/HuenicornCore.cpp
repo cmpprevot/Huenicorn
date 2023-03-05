@@ -335,13 +335,18 @@ namespace Huenicorn
 
   void HuenicornCore::saveProfile() const
   {
-    /*
+    if(!m_selector->validSelecion()){
+      cout << "There is currently no valid entertainment configuration selected." << endl;
+      return;
+    }
+
     nlohmann::json profile = json::object();
-    profile["lights"] = json::array();
-    for(const auto& [id, light] : m_syncedLights){
-      const auto& uvs = light->uvs();
-      profile["lights"].push_back({
-        {"id", id},
+    profile["channels"] = json::array();
+    for(const auto& [id, channel] : m_channels){
+      const auto& uvs = channel.uvs;
+      profile["entertainmentConfigId"] = m_selector->selectedEntertainmentConfigId();
+      profile["channels"].push_back({
+        {"channel_id", id},
         {"uvs", {
             {
               "uvA", {{"x", uvs.min.x}, {"y", uvs.min.y}}
@@ -351,51 +356,54 @@ namespace Huenicorn
             }
           }
         },
-        {"gammaFactor", light->gammaFactor()}
+        {"gammaFactor", channel.gammaFactor}
       });
     }
 
     ofstream profileFile(m_profileFilePath, ofstream::out);
     profileFile << profile.dump(2) << endl;
     profileFile.close();
-    */
   }
 
 
   bool HuenicornCore::_loadProfile()
   {
-    /*
     filesystem::path profilePath = m_profileFilePath;
 
     if(!filesystem::exists(profilePath) || !filesystem::is_regular_file(profilePath)){
       cout << "No profile found yet." << endl;
+      m_selector->selectEntertainementConfig("");
       return false;
     }
 
     ifstream profileFile(profilePath);
     json jsonProfile = json::parse(profileFile);
 
-    // ToDo : Try/catch
-    const auto& lightSummaries = m_bridge->lightSummaries();
+    string entertainmentConfigId = "";
+    if(jsonProfile.contains("entertainmentConfigId")){
+      m_selector->selectEntertainementConfig(jsonProfile.at("entertainmentConfigId")); // ToDo : Proper selection
+    }
 
-    for(const auto& jsonLight : jsonProfile.at("lights")){
-      const string& lightId = jsonLight.at("id");
-      if(lightSummaries.find(lightId) != lightSummaries.end()){
-        SharedSyncedLight newSyncedLight = addSyncedLight(lightId);
+    m_selector->selectEntertainementConfig(entertainmentConfigId);
 
-        json jsonUVs = jsonLight.at("uvs");
-        float uvAx = jsonUVs.at("uvA").at("x");
-        float uvAy = jsonUVs.at("uvA").at("y");
-        float uvBx = jsonUVs.at("uvB").at("x");
-        float uvBy = jsonUVs.at("uvB").at("y");
+    if(jsonProfile.contains("channels")){
+      for(const auto& jsonProfileChannel : jsonProfile.at("channels")){
+        uint8_t channelId = jsonProfileChannel.at("channelId");
+        const auto& configChannels = m_selector->selectedConfig().channels();
+        if(configChannels.find(channelId) != configChannels.end()){
+          json jsonUVs = jsonProfileChannel.at("uvs");
+          float uvAx = jsonUVs.at("uvA").at("x");
+          float uvAy = jsonUVs.at("uvA").at("y");
+          float uvBx = jsonUVs.at("uvB").at("x");
+          float uvBy = jsonUVs.at("uvB").at("y");
 
-        newSyncedLight->setUV({uvAx, uvAy}, SyncedLight::UVType::TopLeft);
-        newSyncedLight->setUV({uvBx, uvBy}, SyncedLight::UVType::BottomRight);
-        newSyncedLight->setGammaFactor(jsonLight.at("gammaFactor"));
-        m_syncedLights.insert({lightId, newSyncedLight});
+          UVs uvs{{uvAx, uvAy}, {uvBx, uvBy}};
+          float gammaFactor = jsonProfileChannel.at("gammaFactor");
+
+          m_channels.insert({channelId, {uvs, gammaFactor, true}});
+        }
       }
     }
-    */
 
     return true;
   }
@@ -424,23 +432,25 @@ namespace Huenicorn
       m_webUIService.server->start(restServerPort);
     });
 
+    const string& username = m_config.username().value();
+    const string& clientkey = m_config.clientkey().value();
+    const string& bridgeAddress =  m_config.bridgeAddress().value();
+    m_selector = make_unique<EntertainmentConfigSelector>(username, clientkey, bridgeAddress);
+
     if(!_loadProfile() && ! m_openedSetup){
       thread spawnBrowser([this](){_spawnBrowser();});
       spawnBrowser.detach();
     }
 
-    const string& username = m_config.username().value();
-    const string& clientkey = m_config.clientkey().value();
-    const string& bridgeAddress =  m_config.bridgeAddress().value();
-
-    m_selector = make_unique<EntertainmentConfigSelector>(username, clientkey, bridgeAddress);
-
-    m_selector->selectEntertainementConfig(""); // ToDo : Proper selection
+    if(!m_selector->validSelecion()){
+      cout << "No entertainment configuration was found" << endl;
+      return;
+    }
 
     m_streamer = make_unique<Streamer>(m_config.username().value(), m_config.clientkey().value(), m_config.bridgeAddress().value());
 
-    // Todo : select entertainment config prior to affect it
-    m_streamer->setEntertainmentConfigId(m_selector->entertainmentConfigId());
+    m_streamer->setEntertainmentConfigId(m_selector->selectedEntertainmentConfigId());
+    // Todo : Check if handshake went well before proceding
 
     m_tickSynchronizer = make_unique<TickSynchronizer>(1.0f / static_cast<float>(m_config.refreshRate()));
 
@@ -467,27 +477,19 @@ namespace Huenicorn
   {
     m_grabber->getScreenSubsample(m_cvImage);
     cv::Mat subImage;
-
     vector<ChannelStream> channelStreams;
 
-    vector <UVs> channelUVs = {
-      {{0.4, 0.0}, {1.0, 1.0}},
-      {{0.0, 0.0}, {0.6, 1.0}}
-    };
+    for(const auto& [channelId, channel] : m_channels){
+      const auto& uvs = channel.uvs;
 
-    for(int i = 0; const auto& channel : m_selector->selectedConfig().channels()){
-      const auto& uvs = channelUVs.at(i % channelUVs.size());
       glm::ivec2 a{uvs.min.x * m_cvImage.cols, uvs.min.y * m_cvImage.rows};
       glm::ivec2 b{uvs.max.x * m_cvImage.cols, uvs.max.y * m_cvImage.rows};
 
-      cv::Mat subImage;
       ImageProcessing::getSubImage(m_cvImage, a, b).copyTo(subImage);
       Color color = ImageProcessing::getDominantColors(subImage, 1).front();
 
-
       glm::vec3 normalized = color.toNormalized();
-      channelStreams.push_back({channel.id, normalized.r, normalized.g, normalized.b});
-      i++;
+      channelStreams.push_back({channelId, normalized.r, normalized.g, normalized.b});
     }
 
     m_streamer->streamChannels(channelStreams);

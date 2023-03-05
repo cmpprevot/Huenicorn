@@ -17,14 +17,15 @@ namespace Huenicorn
 
   struct Channel
   {
-    uint8_t id;
+    UVs uvs;
+    float gammaFactor;
     bool active{true};
-    float r{1.0};
+    float r{0.0};
     float g{0.0};
     float b{0.0};
-    UVs uvs;
   };
 
+  using Channels = std::unordered_map<uint8_t, Channel>;
 
   struct ChannelStream
   {
@@ -38,21 +39,13 @@ namespace Huenicorn
   {
   public:
     using Lights = std::unordered_map<std::string, Light>;
-    using Channels = std::vector<Channel>;
 
-    EntertainmentConfig(const std::string& id, const std::string& name, const Lights& lights, const Channels& channels):
-    m_id(id),
+    EntertainmentConfig(const std::string& name, const Lights& lights, const Channels& channels):
     m_name(name),
     m_lights(lights),
     m_channels(channels)
     {
 
-    }
-
-
-    const std::string& id() const
-    {
-      return m_id;
     }
 
 
@@ -74,7 +67,6 @@ namespace Huenicorn
     }
 
   private:
-    std::string m_id;
     std::string m_name;
     Lights m_lights;
     Channels m_channels;

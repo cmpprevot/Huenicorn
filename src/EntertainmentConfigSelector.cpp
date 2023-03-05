@@ -1,5 +1,7 @@
 #include <Huenicorn/EntertainmentConfigSelector.hpp>
 
+#include <iostream>
+
 #include <json/json.h>
 
 #include <Huenicorn/RequestUtils.hpp>
@@ -18,23 +20,47 @@ namespace Huenicorn
   }
 
 
-  const std::string& EntertainmentConfigSelector::entertainmentConfigId() const
+  const std::string& EntertainmentConfigSelector::selectedEntertainmentConfigId() const
   {
-    return m_selectedConfig.value().id();
+    return m_selectedConfig->first;
   }
 
 
   const EntertainmentConfig& EntertainmentConfigSelector::selectedConfig() const
   {
-    return m_selectedConfig.value();
+    return m_selectedConfig->second;
+  }
+
+  
+  bool EntertainmentConfigSelector::validSelecion() const
+  {
+    return m_selectedConfig != m_entertainmentConfigs.end();
   }
 
 
-  void EntertainmentConfigSelector::selectEntertainementConfig(const std::string& /*entertainmentConfig*/)
+  bool EntertainmentConfigSelector::selectEntertainementConfig(const std::string& entertainmentConfigId)
   {
-    // Todo : use parameter
-    m_selectedConfig.emplace(m_entertainmentConfigs.front());
-    _setStreamActive(m_selectedConfig.value(), true);
+    if(m_entertainmentConfigs.size() == 0){
+      return false;
+    }
+
+    if(entertainmentConfigId == ""){
+      cout << "Fallback selection" << endl;
+      m_selectedConfig = m_entertainmentConfigs.begin();
+    }
+    else{
+      m_selectedConfig = m_entertainmentConfigs.find(entertainmentConfigId);
+      cout << "Selected : " << entertainmentConfigId << endl;
+
+      if(m_selectedConfig == m_entertainmentConfigs.end()){
+        cout << "Invalid selection : " << entertainmentConfigId << endl;
+        return false;
+      }
+    }
+    
+    _setSelectedConfigStreamActivity(true);
+
+    return true;
   }
 
 
@@ -73,21 +99,22 @@ namespace Huenicorn
           lights.insert({lightId, {lightId, metadata.at("name"), metadata.at("archetype")}});
         }
 
-        vector<Channel> channels;
+        Channels channels;
         for(const auto& channel : jsonEntertainentConfiguration.at("channels")){
-          channels.emplace_back(channel.at("channel_id"));
+          channels.insert({channel.at("channel_id").get<uint8_t>(), {}});
         }
 
-        m_entertainmentConfigs.emplace_back(confId, confName, lights, channels);
+        m_entertainmentConfigs.insert({confId, {confName, lights, channels}});
       }
     }
   }
 
-  void EntertainmentConfigSelector::_setStreamActive(const EntertainmentConfig& entertainmentConfig, bool active)
+
+  void EntertainmentConfigSelector::_setSelectedConfigStreamActivity(bool active) const
   {
     json jsonBody = {
       {"action", active ? "start" : "stop"},
-      {"metadata", {{"name", entertainmentConfig.name()}}}
+      {"metadata", {{"name", m_selectedConfig->second.name()}}}
     };
 
     RequestUtils::Headers headers = {
@@ -95,7 +122,7 @@ namespace Huenicorn
     };
 
 
-    string url = "https://" + m_address + "/clip/v2/resource/entertainment_configuration/" + entertainmentConfig.id();
+    string url = "https://" + m_address + "/clip/v2/resource/entertainment_configuration/" + m_selectedConfig->first;
 
     auto r = RequestUtils::sendRequest(url, "PUT", jsonBody.dump(), headers);
   }
@@ -104,7 +131,6 @@ namespace Huenicorn
   void EntertainmentConfigSelector::_clearConfigs()
   {
     m_entertainmentConfigs.clear();
-    m_selectedConfig.reset();
+    m_selectedConfig = m_entertainmentConfigs.end();
   }
-
 }
