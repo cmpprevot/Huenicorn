@@ -6,13 +6,15 @@
 
 #include <unistd.h>
 
+#include <glm/trigonometric.hpp>
+
 #include <Huenicorn/X11Grabber.hpp>
 #include <Huenicorn/ImageProcessing.hpp>
 #include <Huenicorn/RequestUtils.hpp>
 #include <Huenicorn/SetupBackend.hpp>
 #include <Huenicorn/WebUIBackend.hpp>
+#include <Huenicorn/JsonCast.hpp>
 
-#include <glm/trigonometric.hpp>
 
 using namespace nlohmann;
 using namespace glm;
@@ -34,6 +36,10 @@ namespace Huenicorn
     return m_config.configFilePath();
   }
 
+  const Channels& HuenicornCore::channels() const
+  {
+    return m_channels;
+  }
 
   /*
   const LightSummaries& HuenicornCore::availableLights() const
@@ -308,28 +314,14 @@ namespace Huenicorn
   }
 
 
-  /*
-  SharedSyncedLight HuenicornCore::addSyncedLight(const std::string& lightId)
+  bool HuenicornCore::setChannelActivity(uint8_t channelId, bool active)
   {
-    const auto& lightSummary = m_bridge->lightSummaries().at(lightId);
-    auto [it, ok] = m_syncedLights.insert({lightId, make_shared<SyncedLight>(m_bridge, lightSummary)});
+    if(m_channels.find(channelId) == m_channels.end()){
+      return false;
+    }
 
-    _resetJsonLightsCache();
-    return ok ? it->second : nullptr;
-  }
-  */
-
-
-  bool HuenicornCore::removeSyncedLight(const std::string& /*lightId*/)
-  {
-    /*
-    SharedSyncedLight tmpLight = m_syncedLights.at(lightId);
-    auto n = m_syncedLights.erase(lightId);
-    _resetJsonLightsCache();
-    tmpLight->setState(false);
-    return n > 0;
-    */
-    return false;
+    m_channels.at(channelId).active = active;
+    return true;
   }
 
 
@@ -340,25 +332,10 @@ namespace Huenicorn
       return;
     }
 
-    nlohmann::json profile = json::object();
-    profile["channels"] = json::array();
-    for(const auto& [id, channel] : m_channels){
-      const auto& uvs = channel.uvs;
-      profile["entertainmentConfigId"] = m_selector->selectedEntertainmentConfigId();
-      profile["channels"].push_back({
-        {"channelId", id},
-        {"uvs", {
-            {
-              "uvA", {{"x", uvs.min.x}, {"y", uvs.min.y}}
-            },
-            {
-              "uvB", {{"x", uvs.max.x}, {"y", uvs.max.y}}
-            }
-          }
-        },
-        {"gammaFactor", channel.gammaFactor}
-      });
-    }
+    nlohmann::json profile = json{
+      {"entertainmentConfigId", m_selector->selectedEntertainmentConfigId()},
+      {"channels", JsonCast::serialize(m_selector->selectedConfig().channels())}
+    };
 
     ofstream profileFile(m_profileFilePath, ofstream::out);
     profileFile << profile.dump(2) << endl;
@@ -384,24 +361,31 @@ namespace Huenicorn
       m_selector->selectEntertainementConfig(jsonProfile.at("entertainmentConfigId")); // ToDo : Proper selection
     }
 
-    m_selector->selectEntertainementConfig(entertainmentConfigId);
+    if(!m_selector->selectEntertainementConfig(entertainmentConfigId)){
+      cout << "Invalid entertaintment config selection" << endl;
+      return false;
+    }
 
-    if(jsonProfile.contains("channels")){
+    for(const auto& [id, channel] : m_selector->selectedConfig().channels()){
+      bool found = false;
       for(const auto& jsonProfileChannel : jsonProfile.at("channels")){
-        uint8_t channelId = jsonProfileChannel.at("channelId");
-        const auto& configChannels = m_selector->selectedConfig().channels();
-        if(configChannels.find(channelId) != configChannels.end()){
+        if(jsonProfileChannel.at("channelId") == id){
           json jsonUVs = jsonProfileChannel.at("uvs");
           float uvAx = jsonUVs.at("uvA").at("x");
           float uvAy = jsonUVs.at("uvA").at("y");
           float uvBx = jsonUVs.at("uvB").at("x");
           float uvBy = jsonUVs.at("uvB").at("y");
 
-          UVs uvs{{uvAx, uvAy}, {uvBx, uvBy}};
+          UVs uvs = {{uvAx, uvAy}, {uvBx, uvBy}};
           float gammaFactor = jsonProfileChannel.at("gammaFactor");
-
-          m_channels.insert({channelId, {uvs, gammaFactor, true}});
+          m_channels.insert({id, {true, uvs, gammaFactor}});
+          found = true;
+          break;
         }
+      }
+
+      if(!found){
+        m_channels.insert({id, {false}});
       }
     }
 
@@ -441,6 +425,8 @@ namespace Huenicorn
       thread spawnBrowser([this](){_spawnBrowser();});
       spawnBrowser.detach();
     }
+
+    saveProfile();
 
     if(!m_selector->validSelecion()){
       cout << "No entertainment configuration was found" << endl;

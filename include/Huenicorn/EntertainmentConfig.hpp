@@ -3,43 +3,15 @@
 #include <vector>
 #include <unordered_map>
 
+#include <Huenicorn/Channel.hpp>
+#include <Huenicorn/Light.hpp>
 #include <Huenicorn/UV.hpp>
 
 namespace Huenicorn
 {
-  struct Light
-  {
-    std::string id;
-    std::string name;
-    std::string type;
-  };
-
-
-  struct Channel
-  {
-    UVs uvs;
-    float gammaFactor;
-    bool active{true};
-    float r{0.0};
-    float g{0.0};
-    float b{0.0};
-  };
-
-  using Channels = std::unordered_map<uint8_t, Channel>;
-
-  struct ChannelStream
-  {
-    uint8_t id;
-    float r{1.0};
-    float g{0.0};
-    float b{0.0};
-  };
-
   class EntertainmentConfig
   {
   public:
-    using Lights = std::unordered_map<std::string, Light>;
-
     EntertainmentConfig(const std::string& name, const Lights& lights, const Channels& channels):
     m_name(name),
     m_lights(lights),

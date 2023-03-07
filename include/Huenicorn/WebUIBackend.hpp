@@ -31,8 +31,7 @@ namespace Huenicorn
     void _setSubsampleWidth(const SharedSession& session) const;
     void _setRefreshRate(const SharedSession& session) const;
     void _setTransitionTime_c(const SharedSession& session) const;
-    void _syncChannel(const SharedSession& session) const;
-    void _unsyncChannel(const SharedSession& session) const;
+    void _setChannelActivity(const SharedSession& session) const;
     void _saveProfile(const SharedSession& session) const;
     void _stop(const SharedSession& session) const;
 

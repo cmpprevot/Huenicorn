@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 
 #include <Huenicorn/HuenicornCore.hpp>
+#include <Huenicorn/JsonCast.hpp>
 
 using namespace nlohmann;
 using namespace std;
@@ -95,15 +96,8 @@ namespace Huenicorn
 
     {
       auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/syncLight");
-      resource->set_method_handler("POST", [this](SharedSession session){_syncChannel(session);});
-      m_service.publish(resource);
-    }
-    
-    {
-      auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/unsyncLight");
-      resource->set_method_handler("POST", [this](SharedSession session){_unsyncChannel(session);});
+      resource->set_path("/setChannelActivity");
+      resource->set_method_handler("POST", [this](SharedSession session){_setChannelActivity(session);});
       m_service.publish(resource);
     }
 
@@ -379,74 +373,38 @@ namespace Huenicorn
   }
 
 
-  void WebUIBackend::_syncChannel(const SharedSession& /*session*/) const
+  void WebUIBackend::_setChannelActivity(const SharedSession& session) const
   {
-    /*
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       string data(reinterpret_cast<const char*>(body.data()), body.size());
-      json jsonLightData = json::parse(data);
+      json jsonChannelData = json::parse(data);
 
-      string lightId = jsonLightData.at("id");
-      const auto& availableLights = m_huenicornCore->availableLights();
-      if(availableLights.find(lightId) == availableLights.end()){
+      uint8_t channelId = jsonChannelData.at("channelId");
+      bool activity = jsonChannelData.at("activity");
+
+      bool succeeded = m_huenicornCore->setChannelActivity(channelId, activity);
+      if(!succeeded){
         string response = json{
           {"succeeded", false},
-          {"error", "key not found"}
+          {"error", "invalid channel id"}
         }.dump();
         session->close(restbed::OK, response, {{"Content-Length", std::to_string(response.size())}});
         return;
       }
 
-      json jsonResponse = json::object();
-      bool succeeded = m_huenicornCore->addSyncedLight(lightId) != nullptr;
-      if(succeeded){
-        jsonResponse["newSyncedLightId"] = lightId;
-      }
+      string response = json{
+        {"succeeded", succeeded},
+        {"channels", JsonCast::serialize(m_huenicornCore->channels())}
+      }.dump();
 
-      jsonResponse["succeeded"] = succeeded;
-      jsonResponse["lights"] = m_huenicornCore->jsonAllLights();
-
-      string response = jsonResponse.dump();
       session->close(restbed::OK, response, {
         {"Content-Length", std::to_string(response.size())},
         {"Content-Type", "application/json"}
       });
     });
-    */
-  }
-
-
-  void WebUIBackend::_unsyncChannel(const SharedSession& /*session*/) const
-  {
-    /*
-    const auto request = session->get_request();
-    int contentLength = request->get_header("Content-Length", 0);
-
-    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      string data(reinterpret_cast<const char*>(body.data()), body.size());
-      json jsonLightData = json::parse(data);
-
-      string lightId = jsonLightData.at("id");
-
-      json jsonResponse = json::object();
-      bool succeeded = m_huenicornCore->removeSyncedLight(lightId);
-      if(succeeded){
-        jsonResponse["unsyncedLightId"] = lightId;
-      }
-
-      jsonResponse["succeeded"] = succeeded;
-      jsonResponse["lights"] = m_huenicornCore->jsonAllLights();
-
-      string response = jsonResponse.dump();
-      session->close(restbed::OK, response, {
-        {"Content-Length", std::to_string(response.size())},
-        {"Content-Type", "application/json"}
-      });
-    });
-    */
   }
 
 

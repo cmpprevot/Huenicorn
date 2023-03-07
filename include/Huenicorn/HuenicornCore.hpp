@@ -31,6 +31,7 @@ namespace Huenicorn
 
     // Getters
     const std::filesystem::path configFilePath() const;
+    const Channels& channels() const;
     //const LightSummaries& availableLights() const;
     //const SyncedLights& syncedLights() const;
     //SharedSyncedLight syncedLight(const std::string& lightId) const;
@@ -59,8 +60,7 @@ namespace Huenicorn
     void stop();
     bool validateBridgeAddress(const std::string& bridgeAddress);
     bool validateApiKey(const std::string& apiKey);
-    //SharedSyncedLight addSyncedLight(const std::string& lightId);
-    bool removeSyncedLight(const std::string& channelId);
+    bool setChannelActivity(uint8_t channelId, bool active);
     void saveProfile() const;
 
 
