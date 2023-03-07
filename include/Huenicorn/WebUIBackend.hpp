@@ -20,10 +20,8 @@ namespace Huenicorn
   private:
 
     // Handlers
-    void _getAvailableChannels(const SharedSession& session) const;
-    void _getSyncedChannels(const SharedSession& session) const;
-    void _getSyncedChannel(const SharedSession& session) const;
-    void _getAllChannels(const SharedSession& session) const;
+    void _getChannel(const SharedSession& session) const;
+    void _getChannels(const SharedSession& session) const;
     void _getDisplayInfo(const SharedSession& session) const;
     void _getTransitionTime_c(const SharedSession& session) const;
     void _setChannelUV(const SharedSession& session) const;

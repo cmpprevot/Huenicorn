@@ -19,29 +19,15 @@ namespace Huenicorn
   {
     {
       auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/availableLights");
-      resource->set_method_handler("GET", [this](SharedSession session){_getAvailableChannels(session);});
+      resource->set_path("/channel/{channelId: .+}");
+      resource->set_method_handler("GET", [this](SharedSession session){_getChannel(session);});
       m_service.publish(resource);
     }
 
     {
       auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/syncedLights");
-      resource->set_method_handler("GET", [this](SharedSession session){_getSyncedChannels(session);});
-      m_service.publish(resource);
-    }
-
-    {
-      auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/syncedLight/{lightId: .+}");
-      resource->set_method_handler("GET", [this](SharedSession session){_getSyncedChannel(session);});
-      m_service.publish(resource);
-    }
-
-    {
-      auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/allLights");
-      resource->set_method_handler("GET", [this](SharedSession session){_getAllChannels(session);});
+      resource->set_path("/channels");
+      resource->set_method_handler("GET", [this](SharedSession session){_getChannels(session);});
       m_service.publish(resource);
     }
 
@@ -86,7 +72,7 @@ namespace Huenicorn
       resource->set_method_handler("PUT", [this](SharedSession session){_setRefreshRate(session);});
       m_service.publish(resource);
     }
-    
+
     {
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/setTransitionTime_c");
@@ -119,57 +105,33 @@ namespace Huenicorn
   }
 
 
-  void WebUIBackend::_getAvailableChannels(const SharedSession& /*session*/) const
+  void WebUIBackend::_getChannel(const SharedSession& session) const
   {
-    /*
-    string response = m_huenicornCore->jsonAvailableLights().dump();
-    session->close(restbed::OK, response, {
-      {"Content-Length", std::to_string(response.size())},
-      {"Content-Type", "application/json"}
-    });
-    */
-  }
-
-
-  void WebUIBackend::_getSyncedChannel(const SharedSession& /*session*/) const
-  {
-    /*
-    string response = m_huenicornCore->jsonSyncedLights().dump();
-    session->close(restbed::OK, response, {
-      {"Content-Length", std::to_string(response.size())},
-      {"Content-Type", "application/json"}
-    });
-    */
-  }
-
-
-  void WebUIBackend::_getSyncedChannels(const SharedSession& /*session*/) const
-  {
-    /*
     const auto request = session->get_request();
-    string lightId = request->get_path_parameter("lightId");
-    SharedSyncedLight syncedLight = m_huenicornCore->syncedLight(lightId);
+    int contentLength = request->get_header("Content-Length", 0);
 
-    json jsonLight = syncedLight ? syncedLight->serialize() : json::object();
-    string response = jsonLight.dump();
+    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+      string data(reinterpret_cast<const char*>(body.data()), body.size());
+      json jsonGammaFactorData = json::parse(data);
+      const auto& request = session->get_request();
 
-    session->close(restbed::OK, response, {
-      {"Content-Length", std::to_string(response.size())},
-      {"Content-Type", "application/json"}
+      uint8_t channelId = stoi(request->get_path_parameter("channelId"));
+      string response = JsonCast::serialize(m_huenicornCore->channels().at(channelId)).dump();
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
-    */
   }
 
 
-  void WebUIBackend::_getAllChannels(const SharedSession& /*session*/) const
+  void WebUIBackend::_getChannels(const SharedSession& session) const
   {
-    /*
-    string response = m_huenicornCore->jsonAllChannels().dump();
+    string response = JsonCast::serialize(m_huenicornCore->channels()).dump();
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
       {"Content-Type", "application/json"}
     });
-    */
   }
 
 
