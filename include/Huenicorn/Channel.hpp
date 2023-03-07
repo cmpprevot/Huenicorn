@@ -14,6 +14,8 @@ namespace Huenicorn
     float r{0.0};
     float g{0.0};
     float b{0.0};
+
+    UVs& setUV(UV&& uv, UVType uvType);
   };
 
   using Channels = std::unordered_map<uint8_t, Channel>;

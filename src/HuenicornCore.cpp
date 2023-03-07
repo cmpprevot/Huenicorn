@@ -187,14 +187,9 @@ namespace Huenicorn
   }
 
 
-  const UVs& HuenicornCore::setChannelUV(const std::string& /*syncedChannelId*/, UV&& /*uv*/, UVType /*uvType*/)
+  const UVs& HuenicornCore::setChannelUV(uint8_t channelId, UV&& uv, UVType uvType)
   {
-  /*
-    _resetJsonLightsCache();
-    return syncedLights().at(syncedLightId)->setUV(std::move(uv), uvType);
-  */
-
-    return tmpUvs; // Todo : remove
+    return m_channels.at(channelId).setUV(std::move(uv), uvType);
   }
 
 

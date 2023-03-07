@@ -32,13 +32,6 @@ namespace Huenicorn
     // Getters
     const std::filesystem::path configFilePath() const;
     const Channels& channels() const;
-    //const LightSummaries& availableLights() const;
-    //const SyncedLights& syncedLights() const;
-    //SharedSyncedLight syncedLight(const std::string& lightId) const;
-    //const nlohmann::json& jsonAvailableLights() const;
-    //const nlohmann::json& jsonSyncedLights() const;
-    //const nlohmann::json& jsonAllLights() const;
-    //bool syncedLightExists(const std::string& lightId) const;
     glm::ivec2 screenResolution() const;
     std::vector<glm::ivec2> subsampleResolutionCandidates() const;
     unsigned subsampleWidth() const;
@@ -49,7 +42,7 @@ namespace Huenicorn
 
 
     // Setters
-    const UVs& setChannelUV(const std::string& syncedChannelId, UV&& uv, UVType uvType);
+    const UVs& setChannelUV(uint8_t channelId, UV&& uv, UVType uvType);
     void setChannelGammaFactor(const std::string& syncedChannelId, float gammaFactor);
     void setSubsampleWidth(unsigned subsampleWidth);
     void setRefreshRate(unsigned subsampleWidth);
@@ -88,16 +81,7 @@ namespace Huenicorn
 
     std::unique_ptr<Streamer> m_streamer;
 
-    UVs tmpUvs; // Todo : remove
-    float angle{0}; // Todo : remove
-    //SyncedLights m_syncedLights;
-
     Channels m_channels;
-
-    // Cache
-    //mutable std::optional<nlohmann::json> m_cachedJsonAvailableChannels;
-    //mutable std::optional<nlohmann::json> m_cachedJsonSyncedChannels;
-    //mutable std::optional<nlohmann::json> m_cachedJsonAllChannels;
 
     // Service and flags
     bool m_openedSetup{false};

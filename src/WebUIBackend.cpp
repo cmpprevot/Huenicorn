@@ -61,7 +61,7 @@ namespace Huenicorn
 
     {
       auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/setLightUV/{lightId: .+}");
+      resource->set_path("/setChannelUV/{lightId: .+}");
       resource->set_method_handler("PUT", [this](SharedSession session){_setChannelUV(session);});
       m_service.publish(resource);
     }
@@ -217,24 +217,23 @@ namespace Huenicorn
   }
 
 
-  void WebUIBackend::_setChannelUV(const SharedSession& /*session*/) const
+  void WebUIBackend::_setChannelUV(const SharedSession& session) const
   {
-    /*
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       string data(reinterpret_cast<const char*>(body.data()), body.size());
       const auto& request = session->get_request();
-      string lightId = request->get_path_parameter("lightId");
+      uint8_t channelId = stoi(request->get_path_parameter("channelId"));
 
       json jsonUV = json::parse(data);
 
       float x = jsonUV.at("x");
       float y = jsonUV.at("y");
-      SyncedLight::UVType uvType = static_cast<SyncedLight::UVType>(jsonUV.at("type").get<int>());
+      UVType uvType = static_cast<UVType>(jsonUV.at("type").get<int>());
 
-      const auto& clampedUVs = m_huenicornCore->setChannelUV(lightId, {x, y}, uvType);
+      const auto& clampedUVs = m_huenicornCore->setChannelUV(channelId, {x, y}, uvType);
 
       json jsonResponse = {
         {"uvA", {{"x", clampedUVs.min.x}, {"y", clampedUVs.min.y}}},
@@ -248,7 +247,6 @@ namespace Huenicorn
         {"Content-Type", "application/json"}
       });
     });
-    */
   }
 
 

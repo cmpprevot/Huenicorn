@@ -13,6 +13,7 @@ include_directories(
 
 add_executable(Huenicorn
   src/main.cpp
+  src/Channel.cpp
   src/Config.cpp
   src/DtlsClient.cpp
   src/EntertainmentConfigSelector.cpp
