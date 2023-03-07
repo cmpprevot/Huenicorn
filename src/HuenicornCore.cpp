@@ -193,9 +193,14 @@ namespace Huenicorn
   }
 
 
-  void HuenicornCore::setChannelGammaFactor(const std::string& /*syncedLightId*/, float /*gammaExponent*/)
+  bool HuenicornCore::setChannelGammaFactor(uint8_t channelId, float gammaExponent)
   {
-    //m_syncedLights.at(syncedLightId)->setGammaFactor(gammaExponent);
+    if(m_channels.find(channelId) == m_channels.end()){
+      return false;
+    }
+
+    m_channels.at(channelId).setGammaFactor(gammaExponent);
+    return true;
   }
 
 
@@ -315,7 +320,7 @@ namespace Huenicorn
       return false;
     }
 
-    m_channels.at(channelId).active = active;
+    m_channels.at(channelId).setActive(active);
     return true;
   }
 
@@ -461,7 +466,7 @@ namespace Huenicorn
     vector<ChannelStream> channelStreams;
 
     for(const auto& [channelId, channel] : m_channels){
-      const auto& uvs = channel.uvs;
+      const auto& uvs = channel.uvs();
 
       glm::ivec2 a{uvs.min.x * m_cvImage.cols, uvs.min.y * m_cvImage.rows};
       glm::ivec2 b{uvs.max.x * m_cvImage.cols, uvs.max.y * m_cvImage.rows};

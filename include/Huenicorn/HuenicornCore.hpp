@@ -43,7 +43,7 @@ namespace Huenicorn
 
     // Setters
     const UVs& setChannelUV(uint8_t channelId, UV&& uv, UVType uvType);
-    void setChannelGammaFactor(const std::string& syncedChannelId, float gammaFactor);
+    bool setChannelGammaFactor(uint8_t syncedChannelId, float gammaFactor);
     void setSubsampleWidth(unsigned subsampleWidth);
     void setRefreshRate(unsigned subsampleWidth);
     void setTransitionTime_c(unsigned transitionTime_c);

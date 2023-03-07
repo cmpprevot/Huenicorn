@@ -4,9 +4,42 @@
 
 namespace Huenicorn
 {
+  Channel::Channel(bool active, const UVs& uvs, float gammaFactor):
+  m_active(active),
+  m_uvs(uvs),
+  m_gammaFactor(gammaFactor)
+  {
+
+  }
+
+
+  bool Channel::active() const
+  {
+    return m_active;
+  }
+
+
+  const UVs& Channel::uvs() const
+  {
+    return m_uvs;
+  }
+  
+  
+  float Channel::gammaFactor() const
+  {
+    return m_gammaFactor;
+  }
+
+
+  void Channel::setActive(bool active)
+  {
+    m_active = active;
+  }
+
+
   UVs& Channel::setUV(UV&& uv, UVType uvType)
   {
-    UVs newUVs = this->uvs;
+    UVs newUVs = m_uvs;
     uv.x = glm::clamp(uv.x, 0.f, 1.f);
     uv.y = glm::clamp(uv.y, 0.f, 1.f);
 
@@ -52,8 +85,14 @@ namespace Huenicorn
         break;
     }
 
-    std::swap(this->uvs, newUVs);
+    std::swap(m_uvs, newUVs);
 
-    return this->uvs;
+    return m_uvs;
+  }
+
+
+  void Channel::setGammaFactor(float gammaFactor)
+  {
+    m_gammaFactor = gammaFactor;
   }
 }
