@@ -9,7 +9,7 @@ namespace Huenicorn
   class Channel
   {
   public:
-    Channel(bool active = false, const UVs& uvs = {}, float gammaFactor = 0.f);
+    Channel(bool active = false, const UVs& uvs = {}, float gammaFactor = 1.f);
 
     // Getters
     bool active() const;

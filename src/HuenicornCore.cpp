@@ -334,7 +334,7 @@ namespace Huenicorn
 
     nlohmann::json profile = json{
       {"entertainmentConfigId", m_selector->selectedEntertainmentConfigId()},
-      {"channels", JsonCast::serialize(m_selector->selectedConfig().channels())}
+      {"channels", JsonCast::serialize(m_channels)}
     };
 
     ofstream profileFile(m_profileFilePath, ofstream::out);
@@ -425,8 +425,6 @@ namespace Huenicorn
       thread spawnBrowser([this](){_spawnBrowser();});
       spawnBrowser.detach();
     }
-
-    saveProfile();
 
     if(!m_selector->validSelecion()){
       cout << "No entertainment configuration was found" << endl;
