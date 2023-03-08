@@ -2,19 +2,19 @@ class WebUI
 {
   constructor()
   {
-    this.syncedLightsNode = document.getElementById("syncedLightsList");
-    this.syncedLightsNode.addEventListener("drop", (event) => {
-      this._syncLight(JSON.parse(event.dataTransfer.getData("lightData")).id);
+    this.activeChannelsNode = document.getElementById("activeChannelsList");
+    this.activeChannelsNode.addEventListener("drop", (event) => {
+      this._setChannelActivity(JSON.parse(event.dataTransfer.getData("channelData")).channelId, true);
     });
 
-    this.availableLightsNode = document.getElementById("availableLightsList");
-    this.availableLightsNode.addEventListener("drop", (event) => {
-      this._unsyncLight(JSON.parse(event.dataTransfer.getData("lightData")).id);
+    this.inactiveChannelsNode = document.getElementById("inactiveChannelsList");
+    this.inactiveChannelsNode.addEventListener("drop", (event) => {
+      this._setChannelActivity(JSON.parse(event.dataTransfer.getData("channelData")).channelId, false);
     });
 
     document.addEventListener("dragover", (event) => {event.preventDefault();});
 
-    this.syncedLights = {};
+    this.activeChannels = {};
 
     this.screenWidget = new ScreenWidget(this);
 
@@ -46,7 +46,7 @@ class WebUI
 
   initUI()
   {
-    RequestUtils.get("/allLights", (data) => this._refreshLightLists(JSON.parse(data)));
+    RequestUtils.get("/channels", (data) => this._refreshChannelsLists(JSON.parse(data)));
     RequestUtils.get("/displayInfo", (data) => this._displayInfoCallback(JSON.parse(data)));
     RequestUtils.get("/transitionTime_c", (data) => this._setTransitionTimeCallback(JSON.parse(data).transitionTime));
   }
@@ -56,7 +56,7 @@ class WebUI
   {
     RequestUtils.put(`/setLightUV/${this.screenWidget.currentLight.id}`, JSON.stringify(uvData), (jsonCheckedUVs) => {
       let checkedUVs = JSON.parse(jsonCheckedUVs);
-      this.syncedLights[this.screenWidget.currentLight.id].uvs = checkedUVs;
+      this.activeChannels[this.screenWidget.currentLight.id].uvs = checkedUVs;
       this.screenWidget.uvCallback(checkedUVs);
     });
   }
@@ -118,40 +118,32 @@ class WebUI
   }
 
 
-  _syncLight(lightId)
+  _setChannelActivity(channelId, active)
   {
-    RequestUtils.post("/syncLight", JSON.stringify({id : lightId}), (jsonData) => {
+    RequestUtils.post("/setChannelActivity", JSON.stringify({channelId : channelId, active : active}), (jsonData) => {
       let data = JSON.parse(jsonData);
-      this._refreshLightLists(data.lights);
+      this._refreshChannelsLists(data.channels);
       
-      if("newSyncedLightId" in data){
-        this._manageLight(data["newSyncedLightId"]);
+      if("newActiveChannelId" in data){
+        this._manageChannel(data.newActiveChannelId);
       }
     });
   }
 
 
-  _unsyncLight(lightId)
+  _refreshChannelsLists(channels)
   {
-    RequestUtils.post("/unsyncLight", JSON.stringify({id : lightId}), (jsonData) => {
-      let data = JSON.parse(jsonData);
-      this._refreshLightLists(data.lights);
-      this.screenWidget.showWidgets(false);
-      this.screenWidget.showPreview();
-    });
-  }
+    const activeChannels = channels.filter(channel => channel.active);
+    const inactiveChannels = channels.filter(channel => !channel.active);
 
+    this.activeChannels = {};
+    this._refreshActiveChannels(activeChannels);
+    this._refreshInactiveChannels(inactiveChannels);
 
-  _refreshLightLists(lights)
-  {
-    this.syncedLights = {};
-    this._refreshSyncedLights(lights.synced);
-    this._refreshAvailableLights(lights.available);
-
-    if(lights.available.length == 0){
+    if(inactiveChannels.length == 0){
       this.screenWidget.setLegend(ScreenWidget.Legends.noLight);
     }
-    else if(Object.keys(this.syncedLights).length == 0){
+    else if(Object.keys(this.activeChannels).length == 0){
       this.screenWidget.setLegend(ScreenWidget.Legends.pleaseDrag);
       this.screenWidget.showWidgets(false);
     }
@@ -163,28 +155,28 @@ class WebUI
   }
 
 
-  _refreshSyncedLights(syncedLights)
+  _refreshActiveChannels(channels)
   {
-    this.syncedLightsNode.innerHTML = "";
-    for(let lightData of syncedLights){
-      let newLightEntryNode = document.createElement("p");
-      newLightEntryNode.draggable = true;
-      newLightEntryNode.selected = false;
+    this.activeChannelsNode.innerHTML = "";
+    for(let channelData of channels){
+      let newChannelEntryNode = document.createElement("p");
+      newChannelEntryNode.draggable = true;
+      newChannelEntryNode.selected = false;
 
-      let newLight = new Light(lightData, newLightEntryNode)
-      newLightEntryNode.addEventListener("dragstart", (event) => {
-        event.dataTransfer.setData("lightData", JSON.stringify(newLight));
+      let newChannel = new Channel(channelData, newChannelEntryNode)
+      newChannelEntryNode.addEventListener("dragstart", (event) => {
+        event.dataTransfer.setData("channelData", JSON.stringify(newChannel));
       });
 
-      newLightEntryNode.addEventListener("click", (event) => {
-        this._manageLight(lightData.id);
+      newChannelEntryNode.addEventListener("click", (event) => {
+        this._manageChannel(channelData.channelId);
       });
 
-      //newLightEntryNode.innerHTML = `${newLight.name} - ${newLight.productName}`;
-      newLightEntryNode.innerHTML = newLight.name;
+      //newChannelEntryNode.innerHTML = `${newChannel.name} - ${newChannel.productName}`;
+      newChannelEntryNode.innerHTML = newChannel.channelId; // Todo : get lights names
 
-      this.syncedLightsNode.appendChild(newLightEntryNode);
-      this.syncedLights[newLight.id] = newLight;
+      this.activeChannelsNode.appendChild(newChannelEntryNode);
+      this.activeChannels[newChannel.channelId] = newChannel;
     }
   }
 
@@ -202,33 +194,29 @@ class WebUI
   }
 
 
-  _toggleClicked(lightNode)
+  _toggleClicked(channelNode)
   {
-    this._setItemSelected(lightNode, !lightNode.selected);
+    this._setItemSelected(channelNode, !channelNode.selected);
   }
 
 
-  _refreshAvailableLights(availableLights)
+  _refreshInactiveChannels(channels)
   {
-    this.availableLightsNode.innerHTML = "";
+    this.inactiveChannelsNode.innerHTML = "";
 
-    for(let lightData of availableLights){
-      if(lightData.id in this.syncedLights){
-        continue;
-      }
+    for(let channelData of channels){
+      let newChannelEntryNode = document.createElement("p");
+      newChannelEntryNode.draggable = true;
 
-      let newLightEntryNode = document.createElement("p");
-      newLightEntryNode.draggable = true;
-
-      let newLight = new Light(lightData)
-      newLightEntryNode.addEventListener("dragstart", (event) => {
-        event.dataTransfer.setData("lightData", JSON.stringify(newLight));
+      let newChannel = new Channel(channelData)
+      newChannelEntryNode.addEventListener("dragstart", (event) => {
+        event.dataTransfer.setData("channelData", JSON.stringify(newChannel));
       });
 
-      //newLightEntryNode.innerHTML = `${newLight.name} - ${newLight.productName}`;
-      newLightEntryNode.innerHTML = newLight.name;
+      //newChannelEntryNode.innerHTML = `${newChannel.name} - ${newChannel.productName}`;
+      newChannelEntryNode.innerHTML = newChannel.channelId; // Todo : Get lights names
 
-      this.availableLightsNode.appendChild(newLightEntryNode);
+      this.inactiveChannelsNode.appendChild(newChannelEntryNode);
     }
   }
 
@@ -247,19 +235,19 @@ class WebUI
   }
 
 
-  _manageLight(lightId)
+  _manageChannel(channelId)
   {
-    for(let loopLightId of Object.keys(this.syncedLights)){
-      let lightNode = this.syncedLights[loopLightId].node;
-      if(loopLightId != lightId){
-        this._setItemSelected(lightNode, false);
+    for(let loopChannelId of Object.keys(this.activeChannels)){
+      let channelNode = this.activeChannels[loopChannelId].node;
+      if(loopChannelId != channelId){
+        this._setItemSelected(channelNode, false);
       }
       else{
-        this._toggleClicked(lightNode);
+        this._toggleClicked(channelNode);
       }
     }
 
-    if(!this.syncedLights[lightId].node.selected){
+    if(!this.activeChannels[channelId].node.selected){
       this.screenWidget.setLegend(ScreenWidget.Legends.pleaseSelect);
       this.screenWidget.showWidgets(false);
       this.screenWidget.showPreview();
@@ -268,15 +256,15 @@ class WebUI
       return;
     }
     else{
-      this.screenWidget.showPreview(lightId);
+      this.screenWidget.showPreview(channelId);
     }
 
     this.screenWidget.setLegend(ScreenWidget.Legends.none);
 
-    RequestUtils.get(`/syncedLight/${lightId}`, (jsonSyncedLight) => {
-      let syncedLightData = JSON.parse(jsonSyncedLight);
-      this.syncedLights[lightId].uvs = syncedLightData.uvs;
-      this.screenWidget.initLightRegion(this.syncedLights[lightId]);
+    RequestUtils.get(`/channel/${channelId}`, (jsonChannel) => {
+      let channelData = JSON.parse(jsonChannel);
+      this.activeChannels[channelId].uvs = channelData.uvs;
+      this.screenWidget.initLightRegion(this.activeChannels[channelId]);
     });
   }
 

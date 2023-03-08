@@ -108,19 +108,12 @@ namespace Huenicorn
   void WebUIBackend::_getChannel(const SharedSession& session) const
   {
     const auto request = session->get_request();
-    int contentLength = request->get_header("Content-Length", 0);
 
-    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      string data(reinterpret_cast<const char*>(body.data()), body.size());
-      json jsonGammaFactorData = json::parse(data);
-      const auto& request = session->get_request();
-
-      uint8_t channelId = stoi(request->get_path_parameter("channelId"));
-      string response = JsonCast::serialize(m_huenicornCore->channels().at(channelId)).dump();
-      session->close(restbed::OK, response, {
-        {"Content-Length", std::to_string(response.size())},
-        {"Content-Type", "application/json"}
-      });
+    uint8_t channelId = stoi(request->get_path_parameter("channelId"));
+    string response = JsonCast::serialize(m_huenicornCore->channels().at(channelId)).dump();
+    session->close(restbed::OK, response, {
+      {"Content-Length", std::to_string(response.size())},
+      {"Content-Type", "application/json"}
     });
   }
 
@@ -340,9 +333,9 @@ namespace Huenicorn
       json jsonChannelData = json::parse(data);
 
       uint8_t channelId = jsonChannelData.at("channelId");
-      bool activity = jsonChannelData.at("activity");
+      bool active = jsonChannelData.at("active");
 
-      if(!m_huenicornCore->setChannelActivity(channelId, activity)){
+      if(!m_huenicornCore->setChannelActivity(channelId, active)){
         string response = json{
           {"succeeded", false},
           {"error", "invalid channel id"}
@@ -351,10 +344,16 @@ namespace Huenicorn
         return;
       }
 
-      string response = json{
+      json jsonResponse = json{
         {"succeeded", true},
-        {"channels", JsonCast::serialize(m_huenicornCore->channels())}
-      }.dump();
+        {"channels", JsonCast::serialize(m_huenicornCore->channels())},
+      };
+      
+      if(active){
+        jsonResponse["newActiveChannelId"] = channelId;
+      }
+      
+      string response = jsonResponse.dump();
 
       session->close(restbed::OK, response, {
         {"Content-Length", std::to_string(response.size())},

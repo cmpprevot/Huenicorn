@@ -86,7 +86,7 @@ input[type=text]
 }
 
 
-#lightLists
+#channelLists
 {
   width: 800px;
   display: inline-block;
@@ -99,7 +99,7 @@ input[type=text]
 
 }
 
-.lightList
+.channelList
 {
   height: 120px;
   width: 300px;
@@ -132,7 +132,7 @@ input[type=text]
 }
 
 
-.lightList>p
+.channelList>p
 {
   margin: 0px;
   padding: 10px;
@@ -141,13 +141,13 @@ input[type=text]
 }
 
 
-.lightList>p:hover
+.channelList>p:hover
 {
   cursor: grab;
   box-shadow: inset var(--shadow);
 }
 
-.lightList>p.selected
+.channelList>p.selected
 {
   box-shadow: inset var(--highlightedShadow);
 }

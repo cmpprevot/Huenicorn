@@ -370,6 +370,7 @@ namespace Huenicorn
       bool found = false;
       for(const auto& jsonProfileChannel : jsonProfile.at("channels")){
         if(jsonProfileChannel.at("channelId") == id){
+          bool active = jsonProfileChannel.at("active");
           json jsonUVs = jsonProfileChannel.at("uvs");
           float uvAx = jsonUVs.at("uvA").at("x");
           float uvAy = jsonUVs.at("uvA").at("y");
@@ -378,7 +379,7 @@ namespace Huenicorn
 
           UVs uvs = {{uvAx, uvAy}, {uvBx, uvBy}};
           float gammaFactor = jsonProfileChannel.at("gammaFactor");
-          m_channels.insert({id, {true, uvs, gammaFactor}});
+          m_channels.insert({id, {active, uvs, gammaFactor}});
           found = true;
           break;
         }
