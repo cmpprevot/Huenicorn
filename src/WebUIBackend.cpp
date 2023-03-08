@@ -47,14 +47,14 @@ namespace Huenicorn
 
     {
       auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/setChannelUV/{lightId: .+}");
+      resource->set_path("/setChannelUV/{channelId: .+}");
       resource->set_method_handler("PUT", [this](SharedSession session){_setChannelUV(session);});
       m_service.publish(resource);
     }
 
     {
       auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/setLightGammaFactor/{lightId: .+}");
+      resource->set_path("/setChannelGammaFactor/{channelId: .+}");
       resource->set_method_handler("PUT", [this](SharedSession session){_setChannelGammaFactor(session);});
       m_service.publish(resource);
     }

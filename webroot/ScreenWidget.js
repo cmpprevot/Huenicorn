@@ -169,9 +169,9 @@ class ScreenWidget
 {
   static Legends = {
     none : "",
-    noLight : "There are currently no available lights. Please register them through official application.",
-    pleaseDrag : "Drag and and drop light from 'available' to 'synced' box to manage it.",
-    pleaseSelect : "Select a synced light to manage"
+    noChannel : "There are currently no available channels. Please register them through official application.",
+    pleaseDrag : "Drag and and drop channel from 'inactive' to 'active' box to manage it.",
+    pleaseSelect : "Select an active to manage"
   };
 
 
@@ -182,8 +182,8 @@ class ScreenWidget
     this.screenAreaNode = document.getElementById("screenArea");
     this.gammaAreaNode = document.getElementById("gammaArea");
     this.uvRectangle = new Rectangle(document.getElementById("uvArea"));
-    this.svgLightNameNode = document.getElementById("svgLightName");
-    this.svgLightUVSizeNode = document.getElementById("svgLightUVSize");
+    this.svgChannelNameNode = document.getElementById("svgChannelName");
+    this.svgChannelUVSizeNode = document.getElementById("svgChannelUVSize");
     this.previewArea = document.getElementById("previewRectangles");
     this.legendText = document.getElementById("legendText");
     this.gridAreaNode = document.getElementById("gridArea");
@@ -202,7 +202,7 @@ class ScreenWidget
     this.svgAreaNode.addEventListener("mouseup", () => {this.drop();});
 
     this.draggedHandle = null;
-    this.currentLight = null;
+    this.currentChannel = null;
   }
 
 
@@ -220,12 +220,12 @@ class ScreenWidget
   }
 
 
-  initLightRegion(light)
+  initChannelRegion(channel)
   {
-    this.currentLight = light;
-    this._updateShape(light.uvs);
+    this.currentChannel = channel;
+    this._updateShape(channel.uvs);
     this.showWidgets(true);
-    this.svgLightNameNode.innerHTML = light.name;
+    this.svgChannelNameNode.innerHTML = channel.channelId; // Todo : name
   }
 
 
@@ -294,37 +294,38 @@ class ScreenWidget
 
     this.gammaAreaNode.style.display = display;
     if(show){
-      this.gammaCursor.affectFactor(this.currentLight.gammaFactor);
+      this.gammaCursor.affectFactor(this.currentChannel.gammaFactor);
     }
   }
 
 
-  showPreview(exceptedLightId = null)
+  showPreview(exceptedChannelId = null)
   {
     this.previewArea.innerHTML = "";
 
-    let syncedLights = this.webApp.syncedLights;
+    let activeChannels = this.webApp.activeChannels;
     let screenWidgetResolution = this.screenWidgetResolution();
 
-    if(!syncedLights){
+    if(!activeChannels){
       return;
     }
 
-    for(let syncedLightId of Object.keys(syncedLights)){
-      if(syncedLightId == exceptedLightId){
+    for(let activeChannelId of Object.keys(activeChannels)){
+      if(activeChannelId == exceptedChannelId){
         continue;
       }
 
-      let syncedLight = syncedLights[syncedLightId];
+      let activeChannel = activeChannels[activeChannelId];
 
       var rectNode = document.createElementNS("http://www.w3.org/2000/svg", "rect");
       var textNode = document.createElementNS("http://www.w3.org/2000/svg", "text");
 
-      textNode.innerHTML = syncedLight.name;
+      //textNode.innerHTML = activeChannel.name; // Todo
+      textNode.innerHTML = activeChannel.channelId;
       textNode.setAttribute("fill", "rgba(255, 255, 255, 0.2)");
       textNode.setAttribute("text-anchor", "middle");
 
-      let uvs = syncedLight.uvs;
+      let uvs = activeChannel.uvs;
       let ax = uvs.uvA.x * screenWidgetResolution.x;
       let ay = uvs.uvA.y * screenWidgetResolution.y;
       let bx = uvs.uvB.x * screenWidgetResolution.x;
@@ -382,7 +383,7 @@ class ScreenWidget
     let propWidth = Utils.truncate((uvs.uvB.x - uvs.uvA.x) * 100, 2);
     let propHeight = Utils.truncate((uvs.uvB.y - uvs.uvA.y) * 100, 2);
 
-    this.svgLightUVSizeNode.innerHTML = `${propWidth}% x ${propHeight}%`;
+    this.svgChannelUVSizeNode.innerHTML = `${propWidth}% x ${propHeight}%`;
   }
 
 

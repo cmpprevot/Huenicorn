@@ -54,9 +54,9 @@ class WebUI
 
   notifyUV(uvData)
   {
-    RequestUtils.put(`/setLightUV/${this.screenWidget.currentLight.id}`, JSON.stringify(uvData), (jsonCheckedUVs) => {
+    RequestUtils.put(`/setChannelUV/${this.screenWidget.currentChannel.channelId}`, JSON.stringify(uvData), (jsonCheckedUVs) => {
       let checkedUVs = JSON.parse(jsonCheckedUVs);
-      this.activeChannels[this.screenWidget.currentLight.id].uvs = checkedUVs;
+      this.activeChannels[this.screenWidget.currentChannel.channelId].uvs = checkedUVs;
       this.screenWidget.uvCallback(checkedUVs);
     });
   }
@@ -64,20 +64,20 @@ class WebUI
 
   updateGammaFactor(gammaFactor)
   {
-    if(!this.screenWidget.currentLight){
+    if(!this.screenWidget.currentChannel){
       return;
     }
 
-    if(gammaFactor == this.screenWidget.currentLight.gammaFactor){
+    if(gammaFactor == this.screenWidget.currentChannel.gammaFactor){
       return;
     }
 
-    this.screenWidget.currentLight.gammaFactor = gammaFactor;
+    this.screenWidget.currentChannel.gammaFactor = gammaFactor;
 
-    RequestUtils.put(`/setLightGammaFactor/${this.screenWidget.currentLight.id}`, JSON.stringify({gammaFactor : gammaFactor}), (jsonGammaFactorData) => {
+    RequestUtils.put(`/setChannelGammaFactor/${this.screenWidget.currentChannel.channelId}`, JSON.stringify({gammaFactor : gammaFactor}), (jsonGammaFactorData) => {
       let gammaFactorData = JSON.parse(jsonGammaFactorData);
       let gammaFactor = gammaFactorData.gammaFactor;
-      this.screenWidget.currentLight.gammaFactor = Utils.truncate(gammaFactor, 2);
+      this.screenWidget.currentChannel.gammaFactor = Utils.truncate(gammaFactor, 2);
     });
   }
 
@@ -140,8 +140,8 @@ class WebUI
     this._refreshActiveChannels(activeChannels);
     this._refreshInactiveChannels(inactiveChannels);
 
-    if(inactiveChannels.length == 0){
-      this.screenWidget.setLegend(ScreenWidget.Legends.noLight);
+    if(channels.length == 0){
+      this.screenWidget.setLegend(ScreenWidget.Legends.noChannel);
     }
     else if(Object.keys(this.activeChannels).length == 0){
       this.screenWidget.setLegend(ScreenWidget.Legends.pleaseDrag);
@@ -181,15 +181,15 @@ class WebUI
   }
 
 
-  _setItemSelected(lightNode, selected)
+  _setItemSelected(channelNode, selected)
   {
-    lightNode.selected = selected;
+    channelNode.selected = selected;
 
-    if(lightNode.selected){
-      lightNode.classList.add("selected");
+    if(channelNode.selected){
+      channelNode.classList.add("selected");
     }
     else{
-      lightNode.classList.remove("selected");
+      channelNode.classList.remove("selected");
     }
   }
 
@@ -251,7 +251,7 @@ class WebUI
       this.screenWidget.setLegend(ScreenWidget.Legends.pleaseSelect);
       this.screenWidget.showWidgets(false);
       this.screenWidget.showPreview();
-      this.screenWidget.currentLight = null;
+      this.screenWidget.currentChannel = null;
 
       return;
     }
@@ -264,7 +264,7 @@ class WebUI
     RequestUtils.get(`/channel/${channelId}`, (jsonChannel) => {
       let channelData = JSON.parse(jsonChannel);
       this.activeChannels[channelId].uvs = channelData.uvs;
-      this.screenWidget.initLightRegion(this.activeChannels[channelId]);
+      this.screenWidget.initChannelRegion(this.activeChannels[channelId]);
     });
   }
 
