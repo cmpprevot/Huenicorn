@@ -9,7 +9,7 @@ namespace Huenicorn
   class Channel
   {
   public:
-    Channel(bool active = false, const UVs& uvs = {}, float gammaFactor = 1.f);
+    Channel(bool active = false, const UVs& uvs = {{0, 0}, {1, 1}}, float gammaFactor = 1.f);
 
     // Getters
     bool active() const;
@@ -23,8 +23,8 @@ namespace Huenicorn
 
   private:
     bool m_active{false};
-    UVs m_uvs{{0, 0}, {0, 0}};
-    float m_gammaFactor{1.0};
+    UVs m_uvs{};
+    float m_gammaFactor{0.0};
     float m_r{0.0};
     float m_g{0.0};
     float m_b{0.0};
@@ -35,7 +35,7 @@ namespace Huenicorn
   struct ChannelStream
   {
     uint8_t id;
-    float r{1.0};
+    float r{0.0};
     float g{0.0};
     float b{0.0};
   };

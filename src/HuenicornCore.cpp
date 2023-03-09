@@ -407,12 +407,4 @@ namespace Huenicorn
     }
     */
   }
-
-
-  void HuenicornCore::_resetJsonLightsCache()
-  {
-    //m_cachedJsonAllChannels.reset();
-    //m_cachedJsonAvailableChannels.reset();
-    //m_cachedJsonSyncedChannels.reset();
-  }
 }

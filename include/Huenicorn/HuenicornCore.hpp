@@ -64,7 +64,6 @@ namespace Huenicorn
     void _loop();
     void _processScreenFrame();
     void _shutdownLights();
-    void _resetJsonLightsCache();
 
 
     // Attributes
