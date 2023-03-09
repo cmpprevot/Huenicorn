@@ -56,15 +56,15 @@ namespace Huenicorn
 
     {
       auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/validateApiKey");
-      resource->set_method_handler("PUT", [this](SharedSession session){_validateApiKey(session);});
+      resource->set_path("/validateCredentials");
+      resource->set_method_handler("PUT", [this](SharedSession session){_validateCredentials(session);});
       m_service.publish(resource);
     }
 
     {
       auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/requestNewApiKey");
-      resource->set_method_handler("PUT", [this](SharedSession session){_requestNewApiKey(session);});
+      resource->set_path("/registerNewUser");
+      resource->set_method_handler("PUT", [this](SharedSession session){_registerNewUser(session);});
       m_service.publish(resource);
     }
 
@@ -178,18 +178,19 @@ namespace Huenicorn
   }
 
 
-  void SetupBackend::_validateApiKey(const SharedSession& session)
+  void SetupBackend::_validateCredentials(const SharedSession& session)
   {
     const auto request = session->get_request();
     int contentLength = request->get_header("Content-Length", 0);
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
       string data(reinterpret_cast<const char*>(body.data()), body.size());
-      json jsonApiKeyData = json::parse(data);
+      json jsonCredentials = json::parse(data);
 
-      string apiKey = jsonApiKeyData.at("apiKey");
+      string username = jsonCredentials.at("username");
+      string clientkey = jsonCredentials.at("clientkey");
 
-      json jsonResponse = {{"succeeded", m_core->validateApiKey(apiKey)}};
+      json jsonResponse = {{"succeeded", m_core->validateCredentials(username, clientkey)}};
 
       string response = jsonResponse.dump();
       session->close(restbed::OK, response, {
@@ -200,9 +201,9 @@ namespace Huenicorn
   }
 
 
-  void SetupBackend::_requestNewApiKey(const SharedSession& session)
+  void SetupBackend::_registerNewUser(const SharedSession& session)
   {
-    json jsonResponse = m_core->requestNewApiKey();
+    json jsonResponse = m_core->registerNewUser();
     string response = jsonResponse.dump();
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},

@@ -38,7 +38,7 @@ namespace Huenicorn
     unsigned refreshRate() const;
     unsigned transitionTime_c() const;
     nlohmann::json autoDetectedBridge() const;
-    nlohmann::json requestNewApiKey();
+    nlohmann::json registerNewUser();
 
 
     // Setters
@@ -52,7 +52,7 @@ namespace Huenicorn
     void start();
     void stop();
     bool validateBridgeAddress(const std::string& bridgeAddress);
-    bool validateApiKey(const std::string& apiKey);
+    bool validateCredentials(const std::string& username, const std::string& clientkey);
     bool setChannelActivity(uint8_t channelId, bool active);
     void saveProfile() const;
 

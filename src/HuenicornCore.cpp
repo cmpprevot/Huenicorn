@@ -41,76 +41,6 @@ namespace Huenicorn
     return m_channels;
   }
 
-  /*
-  const LightSummaries& HuenicornCore::availableLights() const
-  {
-    return m_bridge->lightSummaries();
-  }
-
-
-  const SyncedLights& HuenicornCore::syncedLights() const
-  {
-    return m_syncedLights;
-  }
-  */
-
-
-  /*
-  const nlohmann::json& HuenicornCore::jsonAvailableLights() const
-  {
-    if(!m_cachedJsonAvailableLights.has_value()){
-      m_cachedJsonAvailableLights.emplace(json::array());
-      for(const auto& [key, light] : m_bridge->lightSummaries()){
-        m_cachedJsonAvailableLights->push_back(light.serialize());
-      }
-    }
-
-    return m_cachedJsonAvailableLights.value();
-  }
-  */
-
-
-  /*
-  const nlohmann::json& HuenicornCore::jsonSyncedLights() const
-  {
-    if(!m_cachedJsonSyncedLights.has_value()){
-      m_cachedJsonSyncedLights.emplace(json::array());
-      for(const auto& [key, light] : m_syncedLights){
-        m_cachedJsonSyncedLights->push_back(light->serialize());
-      }
-    }
-    return m_cachedJsonSyncedLights.value();
-  }
-  */
-
-
-  /*
-  const nlohmann::json& HuenicornCore::jsonAllLights() const
-  {
-    if(!m_cachedJsonAllLights.has_value()){
-      m_cachedJsonAllLights.emplace(
-        json::object(
-          {
-            {"synced", jsonSyncedLights()},
-            {"available", jsonAvailableLights()}
-          }
-        )
-      );
-    }
-
-    return m_cachedJsonAllLights.value();
-  }
-  */
-
-
-  /*
-  SharedSyncedLight HuenicornCore::syncedLight(const std::string& lightId) const
-  {
-    const auto& syncedLight = m_syncedLights.find(lightId);
-    return (syncedLight != m_syncedLights.end()) ? syncedLight->second : nullptr;
-  }
-  */
-
 
   glm::ivec2 HuenicornCore::screenResolution() const
   {
@@ -162,10 +92,10 @@ namespace Huenicorn
   }
 
 
-  json HuenicornCore::requestNewApiKey()
+  json HuenicornCore::registerNewUser()
   {
-    string username = getlogin();
-    string deviceType = "huenicorn#" + username;
+    string login = getlogin();
+    string deviceType = "huenicorn#" + login;
 
     json request = {{"devicetype", deviceType}, {"generateclientkey", true}};
     auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api", "POST", request.dump());
@@ -178,12 +108,12 @@ namespace Huenicorn
       return {{"succeeded", false}, {"error", response.at(0).at("error").at("description")}};
     }
 
-    string apiToken = response.at(0).at("success").at("username");
-    string clientKey = response.at(0).at("success").at("clientkey");
-    m_config.setApiKey(apiToken);
-    m_config.setClientkey(clientKey);
+    string username = response.at(0).at("success").at("username");
+    string clientkey = response.at(0).at("success").at("clientkey");
+    m_config.setUsername(username);
+    m_config.setClientkey(clientkey);
 
-    return {{"succeeded", true}, {"apiKey", apiToken}};
+    return {{"succeeded", true}, {"username", username}, {"clientkey", clientkey}};
   }
 
 
@@ -248,8 +178,6 @@ namespace Huenicorn
       return;
     }
 
-    //m_bridge = make_shared<BridgeData>(m_config);
-
     if(m_config.subsampleWidth() == 0){
       m_config.setSubsampleWidth(m_grabber->subsampleResolutionCandidates().back().x);
     }
@@ -290,10 +218,10 @@ namespace Huenicorn
   }
 
 
-  bool HuenicornCore::validateApiKey(const std::string& apiKey)
+  bool HuenicornCore::validateCredentials(const std::string& username, const std::string& clientkey)
   {
     try{
-      auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api/" + apiKey, "GET", "");
+      auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api/" + username, "GET", "");
       if(response.size() == 0){
         return false;
       }
@@ -302,8 +230,10 @@ namespace Huenicorn
         return false;
       }
 
-      m_config.setApiKey(apiKey);
-      cout << "Successfully registered API key" << endl;
+      m_config.setUsername(username);
+      m_config.setClientkey(clientkey);
+
+      cout << "Successfully registered credentials" << endl;
     }
     catch(const json::exception& exception){
       cout << exception.what() << endl;

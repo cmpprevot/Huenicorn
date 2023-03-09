@@ -30,8 +30,8 @@ namespace Huenicorn
     void _autoDetectBridge(const SharedSession& session);
     void _configFilePath(const SharedSession& session);
     void _validateBridgeAddress(const SharedSession& session);
-    void _validateApiKey(const SharedSession& session);
-    void _requestNewApiKey(const SharedSession& session);
+    void _validateCredentials(const SharedSession& session);
+    void _registerNewUser(const SharedSession& session);
 
     // Attributes
     HuenicornCore* m_core;

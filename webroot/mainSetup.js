@@ -97,23 +97,24 @@ class SetupUI
   }
 
 
-  // API key step
-  validateApiKey()
+  // Credentials validation step
+  validateCredentials()
   {
-    let apiKey = document.getElementById("apiKey").value;
+    let username = document.getElementById("username").value;
+    let clientkey = document.getElementById("clientkey").value;
 
-    if(apiKey != ""){
-      RequestUtils.put("/validateApiKey", JSON.stringify({apiKey: apiKey}), (data) => {this.validateApiKeyCallback(data);});
+    if(username != "" && clientkey != ""){
+      RequestUtils.put("/validateCredentials", JSON.stringify({username : username, clientkey : clientkey}), (data) => {this.validateCredentialsCallback(data);});
     }
     else{
-      let errorMessageNode = document.getElementById("apiKeyErrorMessage");
+      let errorMessageNode = document.getElementById("userErrorMessage");
       errorMessageNode.style.visibility = "visible";
-      errorMessageNode.innerHTML = "Please provide a valid API key";
+      errorMessageNode.innerHTML = "Please provide valid credentials or generate a new one";
     }
   }
 
 
-  validateApiKeyCallback(jsonData)
+  validateCredentialsCallback(jsonData)
   {
     let data = JSON.parse(jsonData);
 
@@ -121,21 +122,21 @@ class SetupUI
       this._finish();
     }
     else{
-      let errorMessageNode = document.getElementById("apiKeyErrorMessage");
+      let errorMessageNode = document.getElementById("credentialsErrorMessage");
       errorMessageNode.style.visibility = "visible";
       errorMessageNode.innerHTML = "The provided key was denied";
     }
   }
 
 
-  // API key generation step
-  requestNewApiKey()
+  // Credentials generation step
+  registerNewUser()
   {
-    RequestUtils.put("/requestNewApiKey", null, (data) => {this.requestNewApiKeyCallback(data);});
+    RequestUtils.put("/registerNewUser", null, (data) => {this.registerNewUserCallback(data);});
   }
 
 
-  requestNewApiKeyCallback(jsonData)
+  registerNewUserCallback(jsonData)
   {
     let data = JSON.parse(jsonData);
 
@@ -143,7 +144,7 @@ class SetupUI
       this._finish();
     }
     else{
-      let errorMessageNode = document.getElementById("newApiKeyErrorMessage");
+      let errorMessageNode = document.getElementById("newUserErrorMessage");
       errorMessageNode.style.visibility = "visible";
       errorMessageNode.innerHTML = "Please press the central button on the bridge and try again";
     }

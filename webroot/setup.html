@@ -32,32 +32,33 @@
       <div class="step">
         <h1>API key</h1>
         <p>
-          An API key is required to manage the bridge.
+          A couple of username and clientkey is required to manage the bridge.
         </p>
         <p>
           If you already have one and know it, you can provide it in the field below
         </p>
-        <p><label>API key:</label><input type="text" id="apiKey"/></p>
-        <p id="apiKeyErrorMessage" class="errorMessage"></p>
+        <p><label>Username:</label><input type="text" id="username"/></p>
+        <p><label>Clientkey:</label><input type="text" id="clientkey"/></p>
+        <p id="credentialsErrorMessage" class="errorMessage"></p>
         
         <p>
-          <button onclick="setupUI.validateApiKey()" style="width: 200px">Validate</button>
+          <button onclick="setupUI.validateCredentials()" style="width: 200px">Validate</button>
           <button onclick="setupUI.incStep()" style="width: 200px">I don't have a key yet</button>
         </p>
         <button onclick="setupUI.abort()">Abort</button>
       </div>
 
       <div class="step">
-        <h1>Generate a new API key</h1>
+        <h1>Register a new user</h1>
         <p>
-          In order to request a new API key, you now need to press the central button on your Hue bridge.
+          In order to register a new user, you now need to press the central button on your Hue bridge.
         </p>
         <p>
-          Once this is done, you have one minute to press the request button below.
+          Once this is done, you have one minute to press the registration button below.
         </p>
-        <p id="newApiKeyErrorMessage" class="errorMessage"></p>
+        <p id="newUserErrorMessage" class="errorMessage"></p>
         <p>
-          <button onclick="setupUI.requestNewApiKey()" style="width: 200px">Request new API key</button>
+          <button onclick="setupUI.registerNewUser()" style="width: 200px">Register new user</button>
         </p>
         <button onclick="setupUI.abort()">Abort</button>
       </div>
