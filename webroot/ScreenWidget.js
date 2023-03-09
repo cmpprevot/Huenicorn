@@ -171,7 +171,7 @@ class ScreenWidget
     none : "",
     noChannel : "There are currently no available channels. Please register them through official application.",
     pleaseDrag : "Drag and and drop channel from 'inactive' to 'active' box to manage it.",
-    pleaseSelect : "Select an active to manage"
+    pleaseSelect : "Select an active channel to manage"
   };
 
 
