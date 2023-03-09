@@ -100,17 +100,24 @@ class SetupUI
   // Credentials validation step
   validateCredentials()
   {
-    let username = document.getElementById("username").value;
-    let clientkey = document.getElementById("clientkey").value;
+    const username = document.getElementById("username").value;
+    const clientkey = document.getElementById("clientkey").value;
+    let errorMessageNode = document.getElementById("credentialsErrorMessage");
 
-    if(username != "" && clientkey != ""){
-      RequestUtils.put("/validateCredentials", JSON.stringify({username : username, clientkey : clientkey}), (data) => {this.validateCredentialsCallback(data);});
-    }
-    else{
-      let errorMessageNode = document.getElementById("userErrorMessage");
+    if(username == "" || clientkey == ""){
       errorMessageNode.style.visibility = "visible";
-      errorMessageNode.innerHTML = "Please provide valid credentials or generate a new one";
+      errorMessageNode.innerHTML = "Please provide valid credentials (or quickly generate new ones)";
+      return;
     }
+
+    const regex = new RegExp(/^[A-F0-9]{32}$/);
+    if(!regex.test(clientkey)){
+      errorMessageNode.style.visibility = "visible";
+      errorMessageNode.innerHTML = "The clientkey doesn't match the format of 32 hexadecimal characters";
+      return;
+    }
+
+    RequestUtils.put("/validateCredentials", JSON.stringify({username : username, clientkey : clientkey}), (data) => {this.validateCredentialsCallback(data);});
   }
 
 
@@ -124,7 +131,7 @@ class SetupUI
     else{
       let errorMessageNode = document.getElementById("credentialsErrorMessage");
       errorMessageNode.style.visibility = "visible";
-      errorMessageNode.innerHTML = "The provided key was denied";
+      errorMessageNode.innerHTML = "The provided username was denied";
     }
   }
 

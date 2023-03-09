@@ -32,10 +32,10 @@
       <div class="step">
         <h1>API key</h1>
         <p>
-          A couple of username and clientkey is required to manage the bridge.
+          Some credentials are required to manage the Hue bridge.
         </p>
         <p>
-          If you already have one and know it, you can provide it in the field below
+          If you already have and can retrieve these, you can provide them in the field below
         </p>
         <p><label>Username:</label><input type="text" id="username"/></p>
         <p><label>Clientkey:</label><input type="text" id="clientkey"/></p>
@@ -43,7 +43,7 @@
         
         <p>
           <button onclick="setupUI.validateCredentials()" style="width: 200px">Validate</button>
-          <button onclick="setupUI.incStep()" style="width: 200px">I don't have a key yet</button>
+          <button onclick="setupUI.incStep()" style="width: 200px">I don't have credentials yet</button>
         </p>
         <button onclick="setupUI.abort()">Abort</button>
       </div>
