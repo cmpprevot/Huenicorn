@@ -25,7 +25,6 @@ namespace Huenicorn
     const std::optional<std::string>& clientkey() const;
     unsigned refreshRate() const;
     unsigned subsampleWidth() const;
-    unsigned transitionTime_c() const;
 
   // Setters
     void setBridgeAddress(const std::string& bridgeAddress);
@@ -35,7 +34,6 @@ namespace Huenicorn
     void setClientkey(const std::string& clientKey);
     void setSubsampleWidth(unsigned subsampleWidth);
     void setRefreshRate(unsigned refreshRate);
-    void setTransitionTime_c(unsigned transitionTime_c);
 
   // Methods
   void save() const;
@@ -53,6 +51,5 @@ namespace Huenicorn
     std::optional<std::string> m_clientkey;
     unsigned m_refreshRate{10};
     unsigned m_subsampleWidth{0};
-    unsigned m_transitionTime_c{1};
   };
 }

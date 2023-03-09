@@ -38,12 +38,6 @@ namespace Huenicorn
       m_service.publish(resource);
     }
 
-    {
-      auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/transitionTime_c");
-      resource->set_method_handler("GET", [this](SharedSession session){_getTransitionTime_c(session);});
-      m_service.publish(resource);
-    }
 
     {
       auto resource = make_shared<restbed::Resource>();
@@ -70,13 +64,6 @@ namespace Huenicorn
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/setRefreshRate");
       resource->set_method_handler("PUT", [this](SharedSession session){_setRefreshRate(session);});
-      m_service.publish(resource);
-    }
-
-    {
-      auto resource = make_shared<restbed::Resource>();
-      resource->set_path("/setTransitionTime_c");
-      resource->set_method_handler("PUT", [this](SharedSession session){_setTransitionTime_c(session);});
       m_service.publish(resource);
     }
 
@@ -149,21 +136,6 @@ namespace Huenicorn
     };
 
     string response = jsonDisplayInfo.dump();
-
-    session->close(restbed::OK, response, {
-      {"Content-Length", std::to_string(response.size())},
-      {"Content-Type", "application/json"}
-    });
-  }
-
-
-  void WebUIBackend::_getTransitionTime_c(const SharedSession& session) const
-  {
-    json jsonTransitionTime{
-      {"transitionTime", this->m_huenicornCore->transitionTime_c()},
-    };
-
-    string response = jsonTransitionTime.dump();
 
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
@@ -288,32 +260,6 @@ namespace Huenicorn
       };
 
       string response = jsonRefreshRate.dump();
-
-      session->close(restbed::OK, response, {
-        {"Content-Length", std::to_string(response.size())},
-        {"Content-Type", "application/json"}
-      });
-    });
-  }
-
-
-  void WebUIBackend::_setTransitionTime_c(const SharedSession& session) const
-  {
-    const auto request = session->get_request();
-    int contentLength = request->get_header("Content-Length", 0);
-
-    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      string data(reinterpret_cast<const char*>(body.data()), body.size());
-
-      unsigned refreshRate = json::parse(data).get<unsigned>();
-
-      m_huenicornCore->setTransitionTime_c(refreshRate);
-
-      json jsonTransitionTime{
-        {"transitionTime_c", m_huenicornCore->transitionTime_c()}
-      };
-
-      string response = jsonTransitionTime.dump();
 
       session->close(restbed::OK, response, {
         {"Content-Length", std::to_string(response.size())},

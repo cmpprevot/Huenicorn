@@ -25,8 +25,6 @@ class WebUI
     this.availableSubsamplesNode.addEventListener("change", (event) => {this._setSubsampleWidth(parseInt(event.target.value));});
     this.refreshRateInputNode = document.getElementById("refreshRate");
     this.refreshRateInputNode.addEventListener("change", (event) => {this._setRefreshRate(event.target.valueAsNumber);});
-    this.transitionTimeInputNode = document.getElementById("transitionTime");
-    this.transitionTimeInputNode.addEventListener("change", (event) => {this._setTransitionTime(event.target.valueAsNumber);});
 
     this.saveProfileButton = document.getElementById("saveProfileButton");
     this.saveProfileButton.addEventListener("click", () => {this._saveProfile();});
@@ -48,7 +46,6 @@ class WebUI
   {
     RequestUtils.get("/channels", (data) => this._refreshChannelsLists(JSON.parse(data)));
     RequestUtils.get("/displayInfo", (data) => this._displayInfoCallback(JSON.parse(data)));
-    RequestUtils.get("/transitionTime_c", (data) => this._setTransitionTimeCallback(JSON.parse(data).transitionTime));
   }
 
 
@@ -288,24 +285,12 @@ class WebUI
   }
 
 
-  _setTransitionTime(transitionTime)
-  {
-    RequestUtils.put("/setTransitionTime_c", JSON.stringify(transitionTime), (data) => {this._setTransitionTimeCallback(JSON.parse(data).transitionTime_c);});
-  }
-
-
   _setRefreshRateCallback(refreshRate)
   {
     this.refreshRateInputNode.value = refreshRate;
     if(refreshRate.value > 10){
       this.refreshRateInputNode.style.color = "#ff0000";
     }
-  }
-
-
-  _setTransitionTimeCallback(transitionTime)
-  {
-    this.transitionTimeInputNode.value = transitionTime;
   }
 
 

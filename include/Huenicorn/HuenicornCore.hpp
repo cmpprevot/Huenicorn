@@ -36,7 +36,6 @@ namespace Huenicorn
     std::vector<glm::ivec2> subsampleResolutionCandidates() const;
     unsigned subsampleWidth() const;
     unsigned refreshRate() const;
-    unsigned transitionTime_c() const;
     nlohmann::json autoDetectedBridge() const;
     nlohmann::json registerNewUser();
 
@@ -46,7 +45,7 @@ namespace Huenicorn
     bool setChannelGammaFactor(uint8_t syncedChannelId, float gammaFactor);
     void setSubsampleWidth(unsigned subsampleWidth);
     void setRefreshRate(unsigned subsampleWidth);
-    void setTransitionTime_c(unsigned transitionTime_c);
+
 
     // Methods
     void start();

@@ -50,12 +50,6 @@ namespace Huenicorn
   }
 
 
-  unsigned Config::transitionTime_c() const
-  {
-    return m_transitionTime_c;
-  }
-
-
   const optional<std::string>& Config::bridgeAddress() const
   {
     return m_bridgeAddress;
@@ -127,19 +121,11 @@ namespace Huenicorn
   }
 
 
-  void Config::setTransitionTime_c(unsigned transitionTime_c)
-  {
-    m_transitionTime_c = std::clamp(transitionTime_c, 0u, 10u);
-    save();
-  }
-
-
   void Config::save() const
   {
     json outConfig = {
       {"subsampleWidth", m_subsampleWidth},
       {"refreshRate", m_refreshRate},
-      {"transitionTime_c", m_transitionTime_c},
       {"restServerPort", m_restServerPort},
     };
 

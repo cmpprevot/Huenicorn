@@ -66,12 +66,6 @@ namespace Huenicorn
   }
 
 
-  unsigned HuenicornCore::transitionTime_c() const
-  {
-    return m_config.transitionTime_c();
-  }
-
-
   json HuenicornCore::autoDetectedBridge() const
   {
     string bridgeAddress;
@@ -145,12 +139,6 @@ namespace Huenicorn
     m_config.setRefreshRate(refreshRate);
     refreshRate = m_config.refreshRate();
     m_tickSynchronizer->setTickInterval(1.0f / refreshRate);
-  }
-
-
-  void HuenicornCore::setTransitionTime_c(unsigned transitionTime_c)
-  {
-    m_config.setTransitionTime_c(transitionTime_c);
   }
 
 
