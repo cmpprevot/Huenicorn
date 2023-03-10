@@ -124,6 +124,9 @@ class WebUI
       if("newActiveChannelId" in data){
         this._manageChannel(data.newActiveChannelId);
       }
+      else{
+        this.screenWidget.showWidgets(false);
+      }
     });
   }
 
