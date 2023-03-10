@@ -2,6 +2,8 @@
 
 #include <unordered_map>
 
+#include <glm/exponential.hpp>
+
 #include <Huenicorn/UV.hpp>
 
 namespace Huenicorn
@@ -14,6 +16,14 @@ namespace Huenicorn
     // Getters
     bool active() const;
     const UVs& uvs() const;
+
+    inline float gammaExponent() const
+    {
+      float factor = 2.f;
+      float exponent = glm::pow(2, -m_gammaFactor * factor);
+      return exponent;
+    }
+
 
     // Setters
     void setActive(bool active);

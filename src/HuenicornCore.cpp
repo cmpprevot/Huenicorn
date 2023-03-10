@@ -7,6 +7,8 @@
 #include <unistd.h>
 
 #include <glm/trigonometric.hpp>
+#include <glm/exponential.hpp>
+#include <glm/geometric.hpp>
 
 #include <Huenicorn/X11Grabber.hpp>
 #include <Huenicorn/ImageProcessing.hpp>
@@ -401,7 +403,11 @@ namespace Huenicorn
       Color color = ImageProcessing::getDominantColors(subframeImage, 1).front();
 
       glm::vec3 normalized = color.toNormalized();
-      channelStreams.push_back({channelId, normalized.r, normalized.g, normalized.b});
+      float brightness = 0.3 * normalized.r  + 0.59 * normalized.g + 0.11 * normalized.b;
+      float correctedBrightness = glm::pow(brightness, channel.gammaExponent());
+      vec3 correctedColor = normalized * correctedBrightness;
+
+      channelStreams.push_back({channelId, correctedColor.r, correctedColor.g, correctedColor.b});
     }
 
     m_streamer->streamChannels(channelStreams);
