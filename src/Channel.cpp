@@ -15,7 +15,13 @@ namespace Huenicorn
 
   bool Channel::active() const
   {
-    return m_active;
+    return m_active || m_pendingShutdown;
+  }
+
+
+  bool Channel::pendingShutdown() const
+  {
+    return m_pendingShutdown;
   }
 
 
@@ -34,6 +40,10 @@ namespace Huenicorn
   void Channel::setActive(bool active)
   {
     m_active = active;
+
+    if(!active){
+      m_pendingShutdown = true;
+    }
   }
 
 

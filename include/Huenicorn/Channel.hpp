@@ -15,6 +15,7 @@ namespace Huenicorn
 
     // Getters
     bool active() const;
+    bool pendingShutdown() const;
     const UVs& uvs() const;
 
     inline float gammaExponent() const
@@ -31,6 +32,14 @@ namespace Huenicorn
     void setGammaFactor(float gammaFactor);
     float gammaFactor() const;
 
+
+    // Methods
+    void acknowledgeShutdown()
+    {
+      m_pendingShutdown = false;
+    }
+
+
   private:
     bool m_active{false};
     UVs m_uvs{};
@@ -38,6 +47,8 @@ namespace Huenicorn
     float m_r{0.0};
     float m_g{0.0};
     float m_b{0.0};
+
+    bool m_pendingShutdown{false};
   };
 
   using Channels = std::unordered_map<uint8_t, Channel>;

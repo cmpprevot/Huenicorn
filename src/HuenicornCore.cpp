@@ -393,21 +393,30 @@ namespace Huenicorn
     cv::Mat subframeImage;
     vector<ChannelStream> channelStreams;
 
-    for(const auto& [channelId, channel] : m_channels){
-      const auto& uvs = channel.uvs();
+    for(auto& [channelId, channel] : m_channels){
+      if(!channel.active()){
+        continue;
+      }
 
-      glm::ivec2 a{uvs.min.x * m_cvImage.cols, uvs.min.y * m_cvImage.rows};
-      glm::ivec2 b{uvs.max.x * m_cvImage.cols, uvs.max.y * m_cvImage.rows};
+      if(channel.pendingShutdown()){
+        channelStreams.push_back({channelId, 0, 0, 0});
+        channel.acknowledgeShutdown();
+      }
+      else{
+        const auto& uvs = channel.uvs();
 
-      ImageProcessing::getSubImage(m_cvImage, a, b).copyTo(subframeImage);
-      Color color = ImageProcessing::getDominantColors(subframeImage, 1).front();
+        glm::ivec2 a{uvs.min.x * m_cvImage.cols, uvs.min.y * m_cvImage.rows};
+        glm::ivec2 b{uvs.max.x * m_cvImage.cols, uvs.max.y * m_cvImage.rows};
 
-      glm::vec3 normalized = color.toNormalized();
-      float brightness = 0.3 * normalized.r  + 0.59 * normalized.g + 0.11 * normalized.b;
-      float correctedBrightness = glm::pow(brightness, channel.gammaExponent());
-      vec3 correctedColor = normalized * correctedBrightness;
+        ImageProcessing::getSubImage(m_cvImage, a, b).copyTo(subframeImage);
+        Color color = ImageProcessing::getDominantColors(subframeImage, 1).front();
 
-      channelStreams.push_back({channelId, correctedColor.r, correctedColor.g, correctedColor.b});
+        glm::vec3 normalized = color.toNormalized();
+        float brightness = 0.3 * normalized.r  + 0.59 * normalized.g + 0.11 * normalized.b;
+        float correctedBrightness = glm::pow(brightness, channel.gammaExponent());
+        vec3 correctedColor = normalized * correctedBrightness;
+        channelStreams.push_back({channelId, correctedColor.r, correctedColor.g, correctedColor.b});
+      }
     }
 
     m_streamer->streamChannels(channelStreams);
