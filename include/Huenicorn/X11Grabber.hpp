@@ -27,8 +27,12 @@ namespace Huenicorn
     X11Grabber(Config* config);
     virtual ~X11Grabber();
 
-    virtual void getScreenSubsample(cv::Mat& cvImage) override;
-    virtual glm::ivec2 getScreenResolution() const override;
+    // Getters
+    virtual glm::ivec2 displayResolution() const override;
+    virtual RefreshRate displayRefreshRate() const override;
+
+    // Methods
+    virtual void grabFrameSubsample(cv::Mat& cvImage) override;
 
   private:
     std::optional<ImageData> m_imageData;

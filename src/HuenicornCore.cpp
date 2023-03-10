@@ -43,9 +43,9 @@ namespace Huenicorn
   }
 
 
-  glm::ivec2 HuenicornCore::screenResolution() const
+  glm::ivec2 HuenicornCore::displayResolution() const
   {
-    return m_grabber->getScreenResolution();
+    return m_grabber->displayResolution();
   }
 
 
@@ -137,6 +137,8 @@ namespace Huenicorn
 
   void HuenicornCore::setRefreshRate(unsigned refreshRate)
   {
+    refreshRate = std::min(refreshRate, m_grabber->displayRefreshRate());
+
     m_config.setRefreshRate(refreshRate);
     refreshRate = m_config.refreshRate();
     m_tickSynchronizer->setTickInterval(1.0f / refreshRate);
@@ -165,6 +167,10 @@ namespace Huenicorn
     if(!m_config.initialSetupOk()){
       cout << "There are errors in the config file" << endl;
       return;
+    }
+
+    if(m_config.refreshRate() == 0){
+      m_config.setRefreshRate(m_grabber->displayRefreshRate());
     }
 
     if(m_config.subsampleWidth() == 0){
@@ -364,7 +370,7 @@ namespace Huenicorn
 
     m_keepLooping = true;
     while(m_keepLooping){
-      _processScreenFrame();
+      _processFrame();
 
       if(!m_tickSynchronizer->sync()){
         cout << "Scheduled interval has been exceeded of " << m_tickSynchronizer->lastExcess().extra << " (" << m_tickSynchronizer->lastExcess().rate * 100 << "%)." << endl;
@@ -379,10 +385,10 @@ namespace Huenicorn
   }
 
 
-  void HuenicornCore::_processScreenFrame()
+  void HuenicornCore::_processFrame()
   {
-    m_grabber->getScreenSubsample(m_cvImage);
-    cv::Mat subImage;
+    m_grabber->grabFrameSubsample(m_cvImage);
+    cv::Mat subframeImage;
     vector<ChannelStream> channelStreams;
 
     for(const auto& [channelId, channel] : m_channels){
@@ -391,8 +397,8 @@ namespace Huenicorn
       glm::ivec2 a{uvs.min.x * m_cvImage.cols, uvs.min.y * m_cvImage.rows};
       glm::ivec2 b{uvs.max.x * m_cvImage.cols, uvs.max.y * m_cvImage.rows};
 
-      ImageProcessing::getSubImage(m_cvImage, a, b).copyTo(subImage);
-      Color color = ImageProcessing::getDominantColors(subImage, 1).front();
+      ImageProcessing::getSubImage(m_cvImage, a, b).copyTo(subframeImage);
+      Color color = ImageProcessing::getDominantColors(subframeImage, 1).front();
 
       glm::vec3 normalized = color.toNormalized();
       channelStreams.push_back({channelId, normalized.r, normalized.g, normalized.b});

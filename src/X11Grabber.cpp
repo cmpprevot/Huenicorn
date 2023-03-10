@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include <X11/Xutil.h>
+#include <X11/extensions/Xrandr.h>
 #include <sys/shm.h>
 
 #include <Huenicorn/Config.hpp>
@@ -20,15 +21,15 @@ namespace Huenicorn
       errx(1, "cannot open display '%s'", XDisplayName(0));
     }
 
-    int scr = XDefaultScreen(m_display);
+    int screenId = XDefaultScreen(m_display);
 
     m_shmInfo = std::make_unique<XShmSegmentInfo>();
 
     Screen* screen = ScreenOfDisplay(m_display, 0);
 
     m_ximg = XShmCreateImage(m_display,
-      DefaultVisual(m_display, scr),
-      DefaultDepth(m_display, scr),
+      DefaultVisual(m_display, screenId),
+      DefaultDepth(m_display, screenId),
       ZPixmap,
       NULL,
       m_shmInfo.get(),
@@ -66,9 +67,24 @@ namespace Huenicorn
   }
 
 
-  void X11Grabber::getScreenSubsample(cv::Mat& cvImage)
+  glm::ivec2 X11Grabber::displayResolution() const
+  {
+    int width = 0;
+    int height = 0;
+    int screenId = 0;
+
+    screenId = DefaultScreen(m_display);
+    width = DisplayWidth(m_display, screenId);
+    height = DisplayHeight(m_display, screenId);
+
+    return {width, height};
+  }
+
+
+  void X11Grabber::grabFrameSubsample(cv::Mat& cvImage)
   {
     Window root = DefaultRootWindow(m_display);
+    int screenId = XDefaultScreen(m_display);
 
     if(!m_imageData.has_value()){
       XWindowAttributes attributes = XWindowAttributes();
@@ -79,7 +95,7 @@ namespace Huenicorn
       m_imageData->pixels.resize(m_imageData->width * m_imageData->height * 4);
     }
 
-    XShmGetImage(m_display, RootWindow(m_display, DefaultScreen(m_display)), m_ximg, 0, 0, AllPlanes);
+    XShmGetImage(m_display, RootWindow(m_display, screenId), m_ximg, 0, 0, AllPlanes);
 
     m_imageData->bitsPerPixel = m_ximg->bits_per_pixel;
 
@@ -100,16 +116,13 @@ namespace Huenicorn
   }
 
 
-  glm::ivec2 X11Grabber::getScreenResolution() const
+  IGrabber::RefreshRate X11Grabber::displayRefreshRate() const
   {
-    int width = 0;
-    int height = 0;
-    int screenId = 0;
+    int screenId = XDefaultScreen(m_display);
+    Window root = RootWindow(m_display, screenId);
+    XRRScreenConfiguration* displayConfig = XRRGetScreenInfo(m_display, root);
+    RefreshRate currentRate = XRRConfigCurrentRate(displayConfig);
 
-    screenId = DefaultScreen(m_display);
-    width = DisplayWidth(m_display, screenId);
-    height = DisplayHeight(m_display, screenId);
-
-    return {width, height};
+    return currentRate;
   }
 }

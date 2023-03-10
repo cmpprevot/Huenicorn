@@ -117,7 +117,7 @@ namespace Huenicorn
 
   void WebUIBackend::_getDisplayInfo(const SharedSession& session) const
   {
-    glm::ivec2 screenResolution = m_huenicornCore->screenResolution();
+    auto displayResolution = m_huenicornCore->displayResolution();
     auto subsampleResolutionCandidates = m_huenicornCore->subsampleResolutionCandidates();
 
     json jsonSubsampleCandidates = json::array();
@@ -129,10 +129,11 @@ namespace Huenicorn
     }
 
     json jsonDisplayInfo{
-      {"x", screenResolution.x},
-      {"y", screenResolution.y},
-      {"subsampleWidth", this->m_huenicornCore->subsampleWidth()},
-      {"subsampleResolutionCandidates", jsonSubsampleCandidates}
+      {"x", displayResolution.x},
+      {"y", displayResolution.y},
+      {"subsampleWidth", m_huenicornCore->subsampleWidth()},
+      {"subsampleResolutionCandidates", jsonSubsampleCandidates},
+      {"selectedRefreshRate", m_huenicornCore->refreshRate()}
     };
 
     string response = jsonDisplayInfo.dump();
@@ -226,14 +227,14 @@ namespace Huenicorn
 
       m_huenicornCore->setSubsampleWidth(subsampleWidth);
 
-      glm::ivec2 screenResolution = m_huenicornCore->screenResolution();
-      json jsonScreen{
-        {"x", screenResolution.x},
-        {"y", screenResolution.y},
+      glm::ivec2 displayResolution = m_huenicornCore->displayResolution();
+      json jsonDisplay{
+        {"x", displayResolution.x},
+        {"y", displayResolution.y},
         {"subsampleWidth", m_huenicornCore->subsampleWidth()}
       };
 
-      string response = jsonScreen.dump();
+      string response = jsonDisplay.dump();
 
       session->close(restbed::OK, response, {
         {"Content-Length", std::to_string(response.size())},

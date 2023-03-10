@@ -16,6 +16,13 @@ namespace Huenicorn
     using Divisors = std::vector<int>;
     using Resolution = glm::ivec2;
     using Resolutions = std::vector<Resolution>;
+    using RefreshRate = unsigned;
+
+    struct DisplayInfo
+    {
+      Resolution resolution;
+      RefreshRate refreshRate;
+    };
 
     IGrabber(Config* config):
     m_config(config)
@@ -23,21 +30,24 @@ namespace Huenicorn
 
     virtual ~IGrabber(){}
 
-    virtual void getScreenSubsample(cv::Mat& imageData) = 0;
-    virtual Resolution getScreenResolution() const = 0;
+    // Getters
+    virtual Resolution displayResolution() const = 0;
+    virtual RefreshRate displayRefreshRate() const = 0;
 
+    // Methods
+    virtual void grabFrameSubsample(cv::Mat& imageData) = 0;
 
     Resolutions subsampleResolutionCandidates()
     {
-      auto screenResolution = getScreenResolution();
-      auto wDivisors = _divisors(screenResolution.x);
-      auto validDivisors = _selectValidDivisors(screenResolution.x, screenResolution.y, wDivisors);
+      auto resolution = displayResolution();
+      auto wDivisors = _divisors(resolution.x);
+      auto validDivisors = _selectValidDivisors(resolution.x, resolution.y, wDivisors);
 
       Resolutions subsampleResolutionCandidates;
 
       for(const auto& validDivisor : validDivisors){
-        int width = screenResolution.x / validDivisor;
-        int height = (screenResolution.y * width) / screenResolution.x;
+        int width = resolution.x / validDivisor;
+        int height = (resolution.y * width) / resolution.x;
         subsampleResolutionCandidates.emplace_back(width, height);
       }
 

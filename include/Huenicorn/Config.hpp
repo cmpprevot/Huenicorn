@@ -49,7 +49,7 @@ namespace Huenicorn
     std::optional<std::string> m_bridgeAddress;
     std::optional<std::string> m_username;
     std::optional<std::string> m_clientkey;
-    unsigned m_refreshRate{10};
+    unsigned m_refreshRate{0};
     unsigned m_subsampleWidth{0};
   };
 }

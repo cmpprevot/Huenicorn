@@ -223,6 +223,7 @@ class WebUI
     let x = displayInfo.x;
     let y = displayInfo.y;
     let subsampleWidth = displayInfo.subsampleWidth;
+    this.refreshRateInputNode.value = displayInfo.selectedRefreshRate;
 
     this.screenWidget.setDimensions(x, y, subsampleWidth);
     this.screenWidget.setSubsampleCandidates(displayInfo.subsampleResolutionCandidates);
@@ -288,9 +289,6 @@ class WebUI
   _setRefreshRateCallback(refreshRate)
   {
     this.refreshRateInputNode.value = refreshRate;
-    if(refreshRate.value > 10){
-      this.refreshRateInputNode.style.color = "#ff0000";
-    }
   }
 
 

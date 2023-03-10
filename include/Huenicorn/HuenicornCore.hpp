@@ -29,10 +29,11 @@ namespace Huenicorn
     // Constructor
     HuenicornCore(const std::filesystem::path& configRoot);
 
+
     // Getters
     const std::filesystem::path configFilePath() const;
     const Channels& channels() const;
-    glm::ivec2 screenResolution() const;
+    glm::ivec2 displayResolution() const;
     std::vector<glm::ivec2> subsampleResolutionCandidates() const;
     unsigned subsampleWidth() const;
     unsigned refreshRate() const;
@@ -62,7 +63,7 @@ namespace Huenicorn
     bool _loadProfile();
     void _spawnBrowser();
     void _loop();
-    void _processScreenFrame();
+    void _processFrame();
     void _shutdownLights();
 
 
