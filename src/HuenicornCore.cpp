@@ -36,6 +36,7 @@ namespace Huenicorn
     return m_config.configFilePath();
   }
 
+
   const Channels& HuenicornCore::channels() const
   {
     return m_channels;
@@ -264,19 +265,19 @@ namespace Huenicorn
   bool HuenicornCore::_loadProfile()
   {
     filesystem::path profilePath = m_profileFilePath;
+    json jsonProfile = json::object();
 
-    if(!filesystem::exists(profilePath) || !filesystem::is_regular_file(profilePath)){
-      cout << "No profile found yet." << endl;
-      m_selector->selectEntertainementConfig("");
-      return false;
+    if(filesystem::exists(profilePath) && filesystem::is_regular_file(profilePath)){
+      ifstream profileFile(profilePath);
+      jsonProfile = json::parse(profileFile);
     }
-
-    ifstream profileFile(profilePath);
-    json jsonProfile = json::parse(profileFile);
+    else{
+      cout << "No profile found yet." << endl;
+    }
 
     string entertainmentConfigId = "";
     if(jsonProfile.contains("entertainmentConfigId")){
-      m_selector->selectEntertainementConfig(jsonProfile.at("entertainmentConfigId")); // ToDo : Proper selection
+      entertainmentConfigId = jsonProfile.at("entertainmentConfigId");
     }
 
     if(!m_selector->selectEntertainementConfig(entertainmentConfigId)){
@@ -286,20 +287,22 @@ namespace Huenicorn
 
     for(const auto& [id, channel] : m_selector->selectedConfig().channels()){
       bool found = false;
-      for(const auto& jsonProfileChannel : jsonProfile.at("channels")){
-        if(jsonProfileChannel.at("channelId") == id){
-          bool active = jsonProfileChannel.at("active");
-          json jsonUVs = jsonProfileChannel.at("uvs");
-          float uvAx = jsonUVs.at("uvA").at("x");
-          float uvAy = jsonUVs.at("uvA").at("y");
-          float uvBx = jsonUVs.at("uvB").at("x");
-          float uvBy = jsonUVs.at("uvB").at("y");
+      if(jsonProfile.contains("channels")){
+        for(const auto& jsonProfileChannel : jsonProfile.at("channels")){
+          if(jsonProfileChannel.at("channelId") == id){
+            bool active = jsonProfileChannel.at("active");
+            json jsonUVs = jsonProfileChannel.at("uvs");
+            float uvAx = jsonUVs.at("uvA").at("x");
+            float uvAy = jsonUVs.at("uvA").at("y");
+            float uvBx = jsonUVs.at("uvB").at("x");
+            float uvBy = jsonUVs.at("uvB").at("y");
 
-          UVs uvs = {{uvAx, uvAy}, {uvBx, uvBy}};
-          float gammaFactor = jsonProfileChannel.at("gammaFactor");
-          m_channels.insert({id, {active, uvs, gammaFactor}});
-          found = true;
-          break;
+            UVs uvs = {{uvAx, uvAy}, {uvBx, uvBy}};
+            float gammaFactor = jsonProfileChannel.at("gammaFactor");
+            m_channels.insert({id, {active, uvs, gammaFactor}});
+            found = true;
+            break;
+          }
         }
       }
 
