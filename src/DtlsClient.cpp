@@ -122,8 +122,6 @@ namespace Huenicorn
 
   void DtlsClient::_initConnection()
   {
-    cout << "Connecting to udp " << m_address << ":" << m_port << endl;
-
     int result = mbedtls_net_connect(
       &m_serverFd,
       m_address.c_str(),
@@ -139,10 +137,6 @@ namespace Huenicorn
 
   void DtlsClient::_initSSL()
   {
-    cout << "Setting up the DTLS structure..." << endl;
-    cout << "username: " << m_username << endl;
-    cout << "clientkey: " << m_clientkey << endl;
-
     std::vector pskRawArray = fromHex(m_clientkey);
     std::vector pskIdRawArray = stringToBytes(m_username);
 
@@ -209,23 +203,24 @@ namespace Huenicorn
 
   void DtlsClient::_handshake()
   {
-    cout << "Performing the DTLS handshake..." << endl;
-
     int result;
     for(unsigned attempt = 0; attempt < HandhsakeAttempts; attempt++){
-      cout << "handshake attempt " << attempt << endl;
       mbedtls_ssl_conf_handshake_timeout(&m_conf, 400, 1000);
       do{
         result = mbedtls_ssl_handshake(&m_ssl);
       }
       while(result == MBEDTLS_ERR_SSL_WANT_READ || result == MBEDTLS_ERR_SSL_WANT_WRITE);
+
+      if(result == 0){
+        break;
+      }
     }
 
     if(result != 0){
       throw runtime_error("mbedtls_ssl_handshake failed with code: " +  result);
     }
 
-    cout << "Handshake successful. Connected!" << endl;
+    cout << "Dtls handshake successful" << endl;
   }
 
 
