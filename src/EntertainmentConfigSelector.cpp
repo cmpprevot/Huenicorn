@@ -50,19 +50,27 @@ namespace Huenicorn
     }
     else{
       m_selectedConfig = m_entertainmentConfigs.find(entertainmentConfigId);
-      cout << "Selected : " << entertainmentConfigId << endl;
 
       if(m_selectedConfig == m_entertainmentConfigs.end()){
         cout << "Invalid selection : " << entertainmentConfigId << endl;
         return false;
       }
     }
-    
+
+    if(_selectedStreamIsActive()){
+      _setSelectedConfigStreamActivity(false);
+    }
+
     _setSelectedConfigStreamActivity(true);
 
     return true;
   }
 
+
+  void EntertainmentConfigSelector::disableStreaming() const
+  {
+    _setSelectedConfigStreamActivity(false);
+  }
 
 
   void EntertainmentConfigSelector::_loadEntertainmentData()
@@ -74,8 +82,6 @@ namespace Huenicorn
     };
 
     string entertainmentConfUrl = "https://" + m_address + "/clip/v2/resource/entertainment_configuration";
-
-
     auto entertainmentConfResponse = RequestUtils::sendRequest(entertainmentConfUrl, "GET", "", headers);
 
     if(entertainmentConfResponse.at("errors").size() == 0){
@@ -84,7 +90,6 @@ namespace Huenicorn
         string confId = jsonEntertainentConfiguration.at("id");
         string confName = jsonEntertainentConfiguration.at("metadata").at("name");
 
-
         const json& lightServices = jsonEntertainentConfiguration.at("light_services");
 
         unordered_map<string, Light> lights;
@@ -92,7 +97,6 @@ namespace Huenicorn
         for(const json& lightService : lightServices){
           const string& lightId = lightService.at("rid");
           string lightUrl = "https://" + m_address + "/clip/v2/resource/light/" + lightId;
-
           auto jsonLightData = RequestUtils::sendRequest(lightUrl, "GET", "", headers);
           const json& metadata = jsonLightData.at("data").at(0).at("metadata");
 
@@ -117,14 +121,24 @@ namespace Huenicorn
       {"metadata", {{"name", m_selectedConfig->second.name()}}}
     };
 
-    RequestUtils::Headers headers = {
-      {"hue-application-key", m_username}
-    };
-
+    RequestUtils::Headers headers = {{"hue-application-key", m_username}};
 
     string url = "https://" + m_address + "/clip/v2/resource/entertainment_configuration/" + m_selectedConfig->first;
 
-    auto r = RequestUtils::sendRequest(url, "PUT", jsonBody.dump(), headers);
+    RequestUtils::sendRequest(url, "PUT", jsonBody.dump(), headers);
+  }
+
+
+  bool EntertainmentConfigSelector::_selectedStreamIsActive() const
+  {
+    RequestUtils::Headers headers = {{"hue-application-key", m_username}};
+
+    string url = "https://" + m_address + "/clip/v2/resource/entertainment_configuration/" + m_selectedConfig->first;
+
+    auto response = RequestUtils::sendRequest(url, "GET", "", headers);
+    string status = response.at("data").front().at("status");
+
+    return status == "active";
   }
 
 

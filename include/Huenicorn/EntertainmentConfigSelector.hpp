@@ -18,15 +18,19 @@ namespace Huenicorn
   public:
     EntertainmentConfigSelector(const std::string& username, const std::string& clientkey, const std::string& address);
 
+    // Getters
     const std::string& selectedEntertainmentConfigId() const;
     const EntertainmentConfig& selectedConfig() const;
     bool validSelecion() const;
 
+    // Methods
     bool selectEntertainementConfig(const std::string& entertainmentConfigId);
+    void disableStreaming() const;
 
   private:
     // Private methods
     void  _loadEntertainmentData();
+    bool _selectedStreamIsActive() const;
     void _setSelectedConfigStreamActivity(bool active) const;
 
     void _clearConfigs();

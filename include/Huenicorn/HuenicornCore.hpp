@@ -64,7 +64,7 @@ namespace Huenicorn
     void _spawnBrowser();
     void _loop();
     void _processFrame();
-    void _shutdownLights();
+    void _shutdown();
 
 
     // Attributes

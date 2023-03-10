@@ -378,7 +378,7 @@ namespace Huenicorn
       }
     }
 
-    _shutdownLights();
+    _shutdown();
 
     m_webUIService.server->stop();
     m_webUIService.thread.value().join();
@@ -408,12 +408,8 @@ namespace Huenicorn
   }
 
 
-  void HuenicornCore::_shutdownLights()
+  void HuenicornCore::_shutdown()
   {
-    /*
-    for(const auto& [_, syncedLight] : m_syncedLights){
-      syncedLight->setState(false);
-    }
-    */
+    m_selector->disableStreaming();
   }
 }
