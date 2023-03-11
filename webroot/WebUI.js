@@ -44,18 +44,24 @@ class WebUI
 
   initUI()
   {
-    RequestUtils.get("/channels", (data) => this._refreshChannelsLists(JSON.parse(data)));
-    RequestUtils.get("/displayInfo", (data) => this._displayInfoCallback(JSON.parse(data)));
+    let channelsPromise = RequestUtils.get("/channels");
+    channelsPromise.then((data) => {this._refreshChannelsLists(data);});
+    channelsPromise.catch((error) => {log(error);});
+
+    let displayInfoPromise = RequestUtils.get("/displayInfo");
+    displayInfoPromise.then((data) => {this._displayInfoCallback(data);});
+    displayInfoPromise.catch((error) => {log(error);});
   }
 
 
   notifyUV(uvData)
   {
-    RequestUtils.put(`/setChannelUV/${this.screenWidget.currentChannel.channelId}`, JSON.stringify(uvData), (jsonCheckedUVs) => {
-      let checkedUVs = JSON.parse(jsonCheckedUVs);
+    let uvPromise = RequestUtils.put(`/setChannelUV/${this.screenWidget.currentChannel.channelId}`, JSON.stringify(uvData));
+    uvPromise.then((checkedUVs) => {
       this.activeChannels[this.screenWidget.currentChannel.channelId].uvs = checkedUVs;
       this.screenWidget.uvCallback(checkedUVs);
     });
+    uvPromise.catch((error) => {log(error);});
   }
 
 
@@ -71,11 +77,12 @@ class WebUI
 
     this.screenWidget.currentChannel.gammaFactor = gammaFactor;
 
-    RequestUtils.put(`/setChannelGammaFactor/${this.screenWidget.currentChannel.channelId}`, JSON.stringify({gammaFactor : gammaFactor}), (jsonGammaFactorData) => {
-      let gammaFactorData = JSON.parse(jsonGammaFactorData);
+    let promise = RequestUtils.put(`/setChannelGammaFactor/${this.screenWidget.currentChannel.channelId}`, JSON.stringify({gammaFactor : gammaFactor}));
+    promise.then((gammaFactorData) => {
       let gammaFactor = gammaFactorData.gammaFactor;
       this.screenWidget.currentChannel.gammaFactor = Utils.truncate(gammaFactor, 2);
     });
+    promise.catch((error) => {log(error);});
   }
 
 
@@ -117,8 +124,8 @@ class WebUI
 
   _setChannelActivity(channelId, active)
   {
-    RequestUtils.post("/setChannelActivity", JSON.stringify({channelId : channelId, active : active}), (jsonData) => {
-      let data = JSON.parse(jsonData);
+    let promise = RequestUtils.post("/setChannelActivity", JSON.stringify({channelId : channelId, active : active}));
+    promise.then((data) => {
       this._refreshChannelsLists(data.channels);
       
       if("newActiveChannelId" in data){
@@ -128,6 +135,7 @@ class WebUI
         this.screenWidget.showWidgets(false);
       }
     });
+    promise.catch((error) => {log(error);});
   }
 
 
@@ -262,18 +270,19 @@ class WebUI
 
     this.screenWidget.setLegend(ScreenWidget.Legends.none);
 
-    RequestUtils.get(`/channel/${channelId}`, (jsonChannel) => {
-      let channelData = JSON.parse(jsonChannel);
+    let channelPromise = RequestUtils.get(`/channel/${channelId}`);
+    channelPromise.then((channelData) => {
       this.activeChannels[channelId].uvs = channelData.uvs;
       this.screenWidget.initChannelRegion(this.activeChannels[channelId]);
     });
+    channelPromise.catch((error) => {log(error);});
   }
 
 
   _setSubsampleWidth(subsampleWidth)
   {
-    RequestUtils.put("/setSubsampleWidth", JSON.stringify(subsampleWidth), (jsonDisplayInfo) => {
-      let displayInfo = JSON.parse(jsonDisplayInfo);
+    let promise = RequestUtils.put("/setSubsampleWidth", JSON.stringify(subsampleWidth));
+    promise.then((displayInfo) => {
       this.screenWidget.setDimensions(displayInfo.x, displayInfo.y, displayInfo.subsampleWidth);
 
       let proportion = subsampleWidth / this.screenWidget.width;
@@ -281,11 +290,14 @@ class WebUI
       let gradientColor = StyleUtils.greenRedGradient(proportion);
       this.availableSubsamplesNode.style.color = gradientColor;
     });
+    promise.catch((error) => {log(error);});
   }
 
 
   _setRefreshRate(refreshRate){
-    RequestUtils.put("/setRefreshRate", JSON.stringify(refreshRate), (data) => {this._setRefreshRateCallback(JSON.parse(data).refreshRate);});
+    let promise = RequestUtils.put("/setRefreshRate", JSON.stringify(refreshRate));
+    promise.then((data) => {this._setRefreshRateCallback(JSON.parse(data).refreshRate);});
+    promise.catch((error) => {log(error);});
   }
 
 
@@ -310,8 +322,8 @@ class WebUI
 
   _stop()
   {
-    RequestUtils.post("/stop", JSON.stringify(null), (jsonData) => {
-      let data = JSON.parse(jsonData);
+    let promise = RequestUtils.post("/stop", JSON.stringify(null));
+    promise.then((data) => {
       if(data.succeeded){
         document.getElementById("confirmStopSection").style.display = "none";
         document.getElementById("stoppedInfoSection").style.display = "block";
