@@ -5,7 +5,7 @@
 namespace Huenicorn
 {
   Channel::Channel(bool active, const UVs& uvs, float gammaFactor):
-  m_active(active),
+  m_state(active ? State::Active : State::Inactive),
   m_uvs(uvs),
   m_gammaFactor(gammaFactor)
   {
@@ -13,15 +13,9 @@ namespace Huenicorn
   }
 
 
-  bool Channel::active() const
+  Channel::State Channel::state() const
   {
-    return m_active || m_pendingShutdown;
-  }
-
-
-  bool Channel::pendingShutdown() const
-  {
-    return m_pendingShutdown;
+    return m_state;
   }
 
 
@@ -39,10 +33,11 @@ namespace Huenicorn
 
   void Channel::setActive(bool active)
   {
-    m_active = active;
-
-    if(!active){
-      m_pendingShutdown = true;
+    if(active){
+      m_state = State::Active;
+    }
+    else{
+      m_state = State::PendingShutdown;
     }
   }
 
@@ -104,5 +99,11 @@ namespace Huenicorn
   void Channel::setGammaFactor(float gammaFactor)
   {
     m_gammaFactor = gammaFactor;
+  }
+
+
+  void Channel::acknowledgeShutdown()
+  {
+    m_state = State::Inactive;
   }
 }

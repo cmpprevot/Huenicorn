@@ -18,7 +18,7 @@ namespace Huenicorn
     nlohmann::json serialize(const Channel& channel)
     {
       return {
-        {"active", channel.active()},
+        {"active", channel.state() == Channel::State::Active},
         {"uvs", serialize(channel.uvs())},
         {"gammaFactor", channel.gammaFactor()}
       };

@@ -10,6 +10,7 @@
 #include <Huenicorn/TickSynchronizer.hpp>
 #include <Huenicorn/Config.hpp>
 #include <Huenicorn/UV.hpp>
+#include <Huenicorn/Channel.hpp>
 #include <Huenicorn/EntertainmentConfig.hpp>
 #include <Huenicorn/EntertainmentConfigSelector.hpp>
 #include <Huenicorn/Streamer.hpp>

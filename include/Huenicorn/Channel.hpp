@@ -11,11 +11,17 @@ namespace Huenicorn
   class Channel
   {
   public:
+    enum class State
+    {
+      Inactive,
+      Active,
+      PendingShutdown
+    };
+
     Channel(bool active = false, const UVs& uvs = {{0, 0}, {1, 1}}, float gammaFactor = 1.f);
 
     // Getters
-    bool active() const;
-    bool pendingShutdown() const;
+    State state() const;
     const UVs& uvs() const;
 
     inline float gammaExponent() const
@@ -34,21 +40,16 @@ namespace Huenicorn
 
 
     // Methods
-    void acknowledgeShutdown()
-    {
-      m_pendingShutdown = false;
-    }
+    void acknowledgeShutdown();
 
 
   private:
-    bool m_active{false};
+    State m_state{State::Inactive};
     UVs m_uvs{};
     float m_gammaFactor{0.0};
     float m_r{0.0};
     float m_g{0.0};
     float m_b{0.0};
-
-    bool m_pendingShutdown{false};
   };
 
   using Channels = std::unordered_map<uint8_t, Channel>;

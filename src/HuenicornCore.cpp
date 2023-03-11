@@ -394,11 +394,11 @@ namespace Huenicorn
     vector<ChannelStream> channelStreams;
 
     for(auto& [channelId, channel] : m_channels){
-      if(!channel.active()){
+      if(channel.state() == Channel::State::Inactive){
         continue;
       }
 
-      if(channel.pendingShutdown()){
+      if(channel.state() == Channel::State::PendingShutdown){
         channelStreams.push_back({channelId, 0, 0, 0});
         channel.acknowledgeShutdown();
       }
