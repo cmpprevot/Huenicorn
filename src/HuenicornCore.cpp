@@ -45,6 +45,31 @@ namespace Huenicorn
   }
 
 
+  ChannelsMembers HuenicornCore::channelsMembers() const
+  {
+    const auto& username = m_config.username().value();
+    const auto& bridgeAddress = m_config.bridgeAddress().value();
+    Devices devices = ApiTools::loadDevices(username, bridgeAddress);
+    ConfigurationsChannels configurationsChannels = ApiTools::loadConfigurationsChannels(username, bridgeAddress);
+
+
+    ChannelsMembers channelsMembers;
+
+    for(const auto& [confId, conf] : configurationsChannels){
+      for(const auto& [channelId, channel] : conf){
+        const auto& deviceList = ApiTools::channelDevices(channel, devices);
+
+        ApiTools::channelDevices(channel, devices);
+        for(const auto& device : deviceList){
+          channelsMembers[channelId].push_back(device);
+        }
+      }
+    }
+
+    return channelsMembers;
+  }
+
+
   glm::ivec2 HuenicornCore::displayResolution() const
   {
     return m_grabber->displayResolution();
@@ -307,7 +332,10 @@ namespace Huenicorn
 
             UVs uvs = {{uvAx, uvAy}, {uvBx, uvBy}};
             float gammaFactor = jsonProfileChannel.at("gammaFactor");
-            m_channels.insert({id, {active, uvs, gammaFactor}});
+            auto channelIt = m_channels.emplace(id, Channel{active, uvs, gammaFactor});
+
+            channelIt.first->second.setDevices(m_selector->selectedConfig().devices());
+
             found = true;
             break;
           }
@@ -315,7 +343,8 @@ namespace Huenicorn
       }
 
       if(!found){
-        m_channels.insert({id, {false}});
+        auto channelIt = m_channels.emplace(id, Channel{false});
+        channelIt.first->second.setDevices(m_selector->selectedConfig().devices());
       }
     }
 

@@ -1,16 +1,19 @@
 #pragma once
 
 #include <unordered_map>
+#include <vector>
 
 #include <glm/exponential.hpp>
 
 #include <Huenicorn/UV.hpp>
+#include <Huenicorn/Device.hpp>
 
 namespace Huenicorn
 {
   class Channel
   {
   public:
+
     enum class State
     {
       Inactive,
@@ -31,12 +34,21 @@ namespace Huenicorn
       return exponent;
     }
 
+    const Devices& devices() const
+    {
+      return m_devices;
+    }
+
 
     // Setters
     void setActive(bool active);
     UVs& setUV(UV&& uv, UVType uvType);
     void setGammaFactor(float gammaFactor);
     float gammaFactor() const;
+    void setDevices(const Devices& devices)
+    {
+      m_devices = devices;
+    }
 
 
     // Methods
@@ -47,6 +59,7 @@ namespace Huenicorn
     State m_state{State::Inactive};
     UVs m_uvs{};
     float m_gammaFactor{0.0};
+    Devices m_devices;
     float m_r{0.0};
     float m_g{0.0};
     float m_b{0.0};

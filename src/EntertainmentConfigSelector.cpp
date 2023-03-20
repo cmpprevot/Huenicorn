@@ -2,11 +2,8 @@
 
 #include <iostream>
 
-#include <json/json.h>
+#include <Huenicorn/ApiTools.hpp>
 
-#include <Huenicorn/RequestUtils.hpp>
-
-using namespace nlohmann;
 using namespace std;
 
 namespace Huenicorn
@@ -16,7 +13,7 @@ namespace Huenicorn
   m_clientkey(clientkey),
   m_address(address)
   {
-    _loadEntertainmentData();
+    m_entertainmentConfigs = ApiTools::loadEntertainmentConfigurations(m_username, address);
   }
 
 
@@ -31,7 +28,7 @@ namespace Huenicorn
     return m_selectedConfig->second;
   }
 
-  
+
   bool EntertainmentConfigSelector::validSelecion() const
   {
     return m_selectedConfig != m_entertainmentConfigs.end();
@@ -57,11 +54,11 @@ namespace Huenicorn
       }
     }
 
-    if(_selectedStreamIsActive()){
-      _setSelectedConfigStreamActivity(false);
+    if(ApiTools::streamingActive(*m_selectedConfig, m_username, m_address)){
+      disableStreaming();
     }
 
-    _setSelectedConfigStreamActivity(true);
+    ApiTools::setSelectedConfigStreamActivity(true, *m_selectedConfig, m_username, m_address);
 
     return true;
   }
@@ -69,76 +66,7 @@ namespace Huenicorn
 
   void EntertainmentConfigSelector::disableStreaming() const
   {
-    _setSelectedConfigStreamActivity(false);
-  }
-
-
-  void EntertainmentConfigSelector::_loadEntertainmentData()
-  {
-    _clearConfigs();
-
-    RequestUtils::Headers headers = {
-      {"hue-application-key", m_username}
-    };
-
-    string entertainmentConfUrl = "https://" + m_address + "/clip/v2/resource/entertainment_configuration";
-    auto entertainmentConfResponse = RequestUtils::sendRequest(entertainmentConfUrl, "GET", "", headers);
-
-    if(entertainmentConfResponse.at("errors").size() == 0){
-      // Listing entertainment configurations
-      for(const json& jsonEntertainentConfiguration : entertainmentConfResponse.at("data")){
-        string confId = jsonEntertainentConfiguration.at("id");
-        string confName = jsonEntertainentConfiguration.at("metadata").at("name");
-
-        const json& lightServices = jsonEntertainentConfiguration.at("light_services");
-
-        unordered_map<string, Light> lights;
-        
-        for(const json& lightService : lightServices){
-          const string& lightId = lightService.at("rid");
-          string lightUrl = "https://" + m_address + "/clip/v2/resource/light/" + lightId;
-          auto jsonLightData = RequestUtils::sendRequest(lightUrl, "GET", "", headers);
-          const json& metadata = jsonLightData.at("data").at(0).at("metadata");
-
-          lights.insert({lightId, {lightId, metadata.at("name"), metadata.at("archetype")}});
-        }
-
-        Channels channels;
-        for(const auto& channel : jsonEntertainentConfiguration.at("channels")){
-          channels.insert({channel.at("channel_id").get<uint8_t>(), {}});
-        }
-
-        m_entertainmentConfigs.insert({confId, {confName, lights, channels}});
-      }
-    }
-  }
-
-
-  void EntertainmentConfigSelector::_setSelectedConfigStreamActivity(bool active) const
-  {
-    json jsonBody = {
-      {"action", active ? "start" : "stop"},
-      {"metadata", {{"name", m_selectedConfig->second.name()}}}
-    };
-
-    RequestUtils::Headers headers = {{"hue-application-key", m_username}};
-
-    string url = "https://" + m_address + "/clip/v2/resource/entertainment_configuration/" + m_selectedConfig->first;
-
-    RequestUtils::sendRequest(url, "PUT", jsonBody.dump(), headers);
-  }
-
-
-  bool EntertainmentConfigSelector::_selectedStreamIsActive() const
-  {
-    RequestUtils::Headers headers = {{"hue-application-key", m_username}};
-
-    string url = "https://" + m_address + "/clip/v2/resource/entertainment_configuration/" + m_selectedConfig->first;
-
-    auto response = RequestUtils::sendRequest(url, "GET", "", headers);
-    string status = response.at("data").front().at("status");
-
-    return status == "active";
+    ApiTools::setSelectedConfigStreamActivity(false, *m_selectedConfig, m_username, m_address);
   }
 
 

@@ -1,15 +1,16 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 namespace Huenicorn
 {
-  struct Light
+  struct Device
   {
     std::string id;
     std::string name;
     std::string type;
   };
 
-  using Lights = std::unordered_map<std::string, Light>;
+  using Devices = std::unordered_map<std::string, Device>;
 }

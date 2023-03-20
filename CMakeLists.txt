@@ -13,6 +13,7 @@ include_directories(
 
 add_executable(Huenicorn
   src/main.cpp
+  src/ApiTools.cpp
   src/Channel.cpp
   src/Config.cpp
   src/DtlsClient.cpp
@@ -26,9 +27,11 @@ add_executable(Huenicorn
   src/TickSynchronizer.cpp
   src/WebUIBackend.cpp
   src/X11Grabber.cpp
+  include/Huenicorn/ApiTools.hpp
   include/Huenicorn/Channel.hpp
   include/Huenicorn/Color.hpp
   include/Huenicorn/Config.hpp
+  include/Huenicorn/Device.hpp
   include/Huenicorn/DtlsClient.hpp
   include/Huenicorn/EntertainmentConfig.hpp
   include/Huenicorn/EntertainmentConfigSelector.hpp
@@ -37,7 +40,6 @@ add_executable(Huenicorn
   include/Huenicorn/ImageProcessing.hpp
   include/Huenicorn/IRestServer.hpp
   include/Huenicorn/JsonCast.hpp
-  include/Huenicorn/Light.hpp
   include/Huenicorn/RequestUtils.hpp
   include/Huenicorn/SetupBackend.hpp
   include/Huenicorn/Streamer.hpp

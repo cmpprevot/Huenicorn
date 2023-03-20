@@ -13,6 +13,7 @@
 #include <Huenicorn/Channel.hpp>
 #include <Huenicorn/EntertainmentConfig.hpp>
 #include <Huenicorn/EntertainmentConfigSelector.hpp>
+#include <Huenicorn/ApiTools.hpp>
 #include <Huenicorn/Streamer.hpp>
 
 
@@ -34,6 +35,7 @@ namespace Huenicorn
     // Getters
     const std::filesystem::path configFilePath() const;
     const Channels& channels() const;
+    ChannelsMembers channelsMembers() const;
     glm::ivec2 displayResolution() const;
     std::vector<glm::ivec2> subsampleResolutionCandidates() const;
     unsigned subsampleWidth() const;

@@ -22,6 +22,7 @@ namespace Huenicorn
     // Handlers
     void _getChannel(const SharedSession& session) const;
     void _getChannels(const SharedSession& session) const;
+    void _getChannelsMembers(const SharedSession& session) const;
     void _getDisplayInfo(const SharedSession& session) const;
     void _setChannelUV(const SharedSession& session) const;
     void _setChannelGammaFactor(const SharedSession& session) const;
