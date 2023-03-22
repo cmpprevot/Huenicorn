@@ -7,9 +7,9 @@
   --border: 1px solid var(--borderColor);
 
   --shadowRadius: 25px;
-  --shadowColor: 0, 100%, 100%;
-  --shadow: 0px 0px var(--shadowRadius) hsla(var(--shadowColor), 0.8);
-  --highlightedShadow: 0px 0px var(--shadowRadius) hsla(var(--shadowColor), 0.5);
+  --rainbowColor: 0, 100%, 100%;
+  --shadow: 0px 0px var(--shadowRadius) hsla(var(--rainbowColor), 0.8);
+  --highlightedShadow: 0px 0px var(--shadowRadius) hsla(var(--rainbowColor), 0.5);
   --border: 1px solid rgba(255, 255, 255, 0.5);
   --borderRadius: 10px;
 }
@@ -34,7 +34,7 @@ h2
 
 h1, h2{
   margin-top: 0px;
-  text-shadow: 0px 0px 50px hsla(var(--shadowColor), 1.0);
+  text-shadow: 0px 0px 50px hsla(var(--rainbowColor), 1.0);
 }
 
 
@@ -155,14 +155,14 @@ input[type=text]
 
 .handler
 {
-  fill: hsla(var(--shadowColor), 0.5);
+  fill: hsla(var(--rainbowColor), 0.5);
   stroke:rgba(255, 255, 255, 1.0);
 }
 
 
 .handler:hover
 {
-  fill: hsla(var(--shadowColor), 1.0);
+  fill: hsla(var(--rainbowColor), 1.0);
   cursor: grab;
 }
 
@@ -182,7 +182,7 @@ input[type=text]
 
 #svgArea
 {
-  fill: hsla(var(--shadowColor), 0.025);
+  fill: hsla(var(--rainbowColor), 0.025);
   border: var(--border);
   box-shadow: var(--shadow);
   border-radius: var(--borderRadius);
@@ -191,7 +191,7 @@ input[type=text]
 
 #screenArea, #uvArea
 {
-  fill: hsla(var(--shadowColor), 0.25);
+  fill: hsla(var(--rainbowColor), 0.25);
 }
 
 

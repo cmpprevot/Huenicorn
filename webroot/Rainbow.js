@@ -10,7 +10,7 @@ class Rainbow
   {
     document.documentElement.style.setProperty("--shadowRadius", "60px");
     this.rainbowInterval = setInterval(() => {
-      document.documentElement.style.setProperty("--shadowColor", `${this.hueIncrement}, 100%, 50%`);
+      document.documentElement.style.setProperty("--rainbowColor", `${this.hueIncrement}, 100%, 50%`);
       this.hueIncrement = (this.hueIncrement + 1) % 360;
     }, 50);
   }
