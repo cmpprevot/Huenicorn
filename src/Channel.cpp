@@ -4,10 +4,11 @@
 
 namespace Huenicorn
 {
-  Channel::Channel(bool active, const UVs& uvs, float gammaFactor):
+  Channel::Channel(bool active, const UVs& uvs, float gammaFactor, const std::vector<Device>& devices):
   m_state(active ? State::Active : State::Inactive),
   m_uvs(uvs),
-  m_gammaFactor(gammaFactor)
+  m_gammaFactor(gammaFactor),
+  m_devices(devices)
   {
 
   }
@@ -28,6 +29,12 @@ namespace Huenicorn
   float Channel::gammaFactor() const
   {
     return m_gammaFactor;
+  }
+
+
+  const std::vector<Device>& Channel::devices() const
+  {
+    return m_devices;
   }
 
 

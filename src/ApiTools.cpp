@@ -61,8 +61,6 @@ namespace Huenicorn
       string resourceUrl = "https://" + address + "/clip/v2/resource";
       auto jsonResource = RequestUtils::sendRequest(resourceUrl, "GET", "", headers);
 
-      std::cout << resourceUrl << std::endl;
-
       Devices devices;
 
       for(const auto& jsonData : jsonResource.at("data")){
@@ -109,15 +107,15 @@ namespace Huenicorn
     }
 
 
-    vector<Device> channelDevices(const MembersIds& channel, const Devices& devices)
+    vector<Device> matchDevices(const MembersIds& membersIds, const Devices& devices)
     {
-      vector<Device> channelDevices;
-      for(const auto& memberId : channel){
+      vector<Device> matchedDevices;
+      for(const auto& memberId : membersIds){
         const auto& it = devices.find(memberId);
-        channelDevices.push_back(it->second);
+        matchedDevices.push_back(it->second);
       }
 
-      return channelDevices;
+      return matchedDevices;
     }
 
 

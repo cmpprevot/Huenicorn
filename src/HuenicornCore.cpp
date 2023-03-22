@@ -45,31 +45,6 @@ namespace Huenicorn
   }
 
 
-  ChannelsMembers HuenicornCore::channelsMembers() const
-  {
-    const auto& username = m_config.username().value();
-    const auto& bridgeAddress = m_config.bridgeAddress().value();
-    Devices devices = ApiTools::loadDevices(username, bridgeAddress);
-    ConfigurationsChannels configurationsChannels = ApiTools::loadConfigurationsChannels(username, bridgeAddress);
-
-
-    ChannelsMembers channelsMembers;
-
-    for(const auto& [confId, conf] : configurationsChannels){
-      for(const auto& [channelId, channel] : conf){
-        const auto& deviceList = ApiTools::channelDevices(channel, devices);
-
-        ApiTools::channelDevices(channel, devices);
-        for(const auto& device : deviceList){
-          channelsMembers[channelId].push_back(device);
-        }
-      }
-    }
-
-    return channelsMembers;
-  }
-
-
   glm::ivec2 HuenicornCore::displayResolution() const
   {
     return m_grabber->displayResolution();
@@ -318,8 +293,14 @@ namespace Huenicorn
       return false;
     }
 
+    const string& username = m_config.username().value();
+    const string& bridgeAddress =  m_config.bridgeAddress().value();
+    Devices devices = ApiTools::loadDevices(username, bridgeAddress);
+    ConfigurationsChannels configurationsChannels = ApiTools::loadConfigurationsChannels(username, bridgeAddress);
+
     for(const auto& [id, channel] : m_selector->selectedConfig().channels()){
       bool found = false;
+      const auto& members = ApiTools::matchDevices(configurationsChannels.at(m_selector->selectedEntertainmentConfigId()).at(id), devices);
       if(jsonProfile.contains("channels")){
         for(const auto& jsonProfileChannel : jsonProfile.at("channels")){
           if(jsonProfileChannel.at("channelId") == id){
@@ -332,9 +313,7 @@ namespace Huenicorn
 
             UVs uvs = {{uvAx, uvAy}, {uvBx, uvBy}};
             float gammaFactor = jsonProfileChannel.at("gammaFactor");
-            auto channelIt = m_channels.emplace(id, Channel{active, uvs, gammaFactor});
-
-            channelIt.first->second.setDevices(m_selector->selectedConfig().devices());
+            m_channels.emplace(id, Channel{active, uvs, gammaFactor, members});
 
             found = true;
             break;
@@ -343,8 +322,7 @@ namespace Huenicorn
       }
 
       if(!found){
-        auto channelIt = m_channels.emplace(id, Channel{false});
-        channelIt.first->second.setDevices(m_selector->selectedConfig().devices());
+        m_channels.emplace(id, Channel{false, {}, 0.0f, members});
       }
     }
 

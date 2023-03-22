@@ -20,7 +20,7 @@ namespace Huenicorn
     EntertainmentConfigs loadEntertainmentConfigurations(const std::string& username, const std::string& address);
     Devices loadDevices(const std::string& username, const std::string& address);
     ConfigurationsChannels loadConfigurationsChannels(const std::string& username, const std::string& address);
-    std::vector<Device> channelDevices(const MembersIds& channel, const Devices& devices);
+    std::vector<Device> matchDevices(const MembersIds& membersIds, const Devices& devices);
     void setSelectedConfigStreamActivity(bool active, const EntertainmentConfigEntry& entertainmentConfigurationEntry, const std::string& username, const std::string& address);
     bool streamingActive(const EntertainmentConfigEntry& entertainmentConfigurationEntry, const std::string& username, const std::string& address);
   }

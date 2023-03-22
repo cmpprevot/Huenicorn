@@ -18,6 +18,7 @@ namespace Huenicorn
     nlohmann::json serialize(const Channel& channel);
     nlohmann::json serialize(const Channels& channels);
     nlohmann::json serialize(const MembersIds& membersIds);
+    nlohmann::json serialize(const std::vector<Device>& devices);
     nlohmann::json serialize(const ChannelsMembers& channelsMembers);
   }
 }
