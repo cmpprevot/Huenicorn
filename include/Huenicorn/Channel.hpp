@@ -21,7 +21,7 @@ namespace Huenicorn
       PendingShutdown
     };
 
-    Channel(bool active = false, const UVs& uvs = {{0, 0}, {1, 1}}, float gammaFactor = 1.f, const std::vector<Device>& devices = {});
+    Channel(bool active, const std::vector<Device>& devices, float gammaFactor, const UVs& uvs = {{0, 0}, {1, 1}});
 
     // Getters
     State state() const;
@@ -36,8 +36,6 @@ namespace Huenicorn
     }
 
 
-
-
     // Setters
     void setActive(bool active);
     UVs& setUV(UV&& uv, UVType uvType);
@@ -50,9 +48,9 @@ namespace Huenicorn
 
   private:
     State m_state{State::Inactive};
-    UVs m_uvs{};
-    float m_gammaFactor{0.0};
     std::vector<Device> m_devices;
+    float m_gammaFactor{0.0};
+    UVs m_uvs{};
     float m_r{0.0};
     float m_g{0.0};
     float m_b{0.0};

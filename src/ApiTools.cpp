@@ -43,8 +43,8 @@ namespace Huenicorn
           }
 
           Channels channels;
-          for(const auto& channel : jsonEntertainentConfiguration.at("channels")){
-            channels.insert({channel.at("channel_id").get<uint8_t>(), {}});
+          for(const auto& jsonChannel : jsonEntertainentConfiguration.at("channels")){
+            channels.insert({jsonChannel.at("channel_id").get<uint8_t>(), {false, {}, 0.f}});
           }
 
           entertainmentConfigs.insert({confId, {confName, lights, channels}});

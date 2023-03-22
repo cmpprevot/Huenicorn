@@ -313,7 +313,7 @@ namespace Huenicorn
 
             UVs uvs = {{uvAx, uvAy}, {uvBx, uvBy}};
             float gammaFactor = jsonProfileChannel.at("gammaFactor");
-            m_channels.emplace(id, Channel{active, uvs, gammaFactor, members});
+            m_channels.emplace(id, Channel{active, members, gammaFactor, uvs});
 
             found = true;
             break;
@@ -322,7 +322,7 @@ namespace Huenicorn
       }
 
       if(!found){
-        m_channels.emplace(id, Channel{false, {}, 0.0f, members});
+        m_channels.emplace(id, Channel{false, members, 0.0f, {}});
       }
     }
 
