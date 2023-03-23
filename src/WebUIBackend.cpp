@@ -38,7 +38,6 @@ namespace Huenicorn
       m_service.publish(resource);
     }
 
-
     {
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/setChannelUV/{channelId: .+}");

@@ -2,14 +2,7 @@
 
 #include <iostream>
 
-#include <glm/trigonometric.hpp>
-#include <glm/gtc/constants.hpp>
-
-#include <Huenicorn/RequestUtils.hpp>
-
-
 using namespace glm;
-using namespace nlohmann;
 using namespace std;
 
 
