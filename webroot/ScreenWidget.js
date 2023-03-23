@@ -112,11 +112,11 @@ class GammaHandle
     factor /= 2
     factor *= this.screenWidget.gammaAreaDimensions().x;
 
-    this.setPosition({x : factor}, false);
+    this.setPosition({x : factor});
   }
 
 
-  setPosition(position, notify = false)
+  setPosition(position)
   {
     let areaDimensions = this.screenWidget.gammaAreaDimensions();
     let gammaFactor =  Utils.clamp(position.x / areaDimensions.x, 0, 1);
@@ -182,7 +182,7 @@ class ScreenWidget
     this.screenAreaNode = document.getElementById("screenArea");
     this.gammaAreaNode = document.getElementById("gammaArea");
     this.uvRectangle = new Rectangle(document.getElementById("uvArea"));
-    this.svgChannelNameNode = document.getElementById("svgChannelName");
+    this.svgChannelMembersNamesNode = document.getElementById("svgChannelName");
     this.svgChannelUVSizeNode = document.getElementById("svgChannelUVSize");
     this.previewArea = document.getElementById("previewRectangles");
     this.legendText = document.getElementById("legendText");
@@ -225,7 +225,8 @@ class ScreenWidget
     this.currentChannel = channel;
     this._updateShape(channel.uvs);
     this.showWidgets(true);
-    this.svgChannelNameNode.innerHTML = channel.channelId; // Todo : name
+
+    this.svgChannelMembersNamesNode.innerHTML = channel.formatMembers();
   }
 
 
@@ -321,7 +322,7 @@ class ScreenWidget
       var textNode = document.createElementNS("http://www.w3.org/2000/svg", "text");
 
       //textNode.innerHTML = activeChannel.name; // Todo
-      textNode.innerHTML = activeChannel.channelId;
+      textNode.innerHTML = activeChannel.formatMembers();
       textNode.setAttribute("fill", "rgba(255, 255, 255, 0.2)");
       textNode.setAttribute("text-anchor", "middle");
 

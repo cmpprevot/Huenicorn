@@ -180,8 +180,7 @@ class WebUI
         this._manageChannel(channelData.channelId);
       });
 
-      //newChannelEntryNode.innerHTML = `${newChannel.name} - ${newChannel.productName}`;
-      newChannelEntryNode.innerHTML = newChannel.channelId; // Todo : get lights names
+      newChannelEntryNode.innerHTML = newChannel.formatMembers();
 
       this.activeChannelsNode.appendChild(newChannelEntryNode);
       this.activeChannels[newChannel.channelId] = newChannel;
@@ -221,8 +220,7 @@ class WebUI
         event.dataTransfer.setData("channelData", JSON.stringify(newChannel));
       });
 
-      //newChannelEntryNode.innerHTML = `${newChannel.name} - ${newChannel.productName}`;
-      newChannelEntryNode.innerHTML = newChannel.channelId; // Todo : Get lights names
+      newChannelEntryNode.innerHTML = newChannel.formatMembers();
 
       this.inactiveChannelsNode.appendChild(newChannelEntryNode);
     }
