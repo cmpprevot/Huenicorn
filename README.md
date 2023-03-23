@@ -71,3 +71,4 @@ This project is licensed under the GNU GPLv3 License - see the LICENSE.txt file 
 
 ## Acknowledgments
 * https://gist.github.com/popcorn245/30afa0f98eea1c2fd34d
+* https://github.com/BradyBrenot/huestacean
