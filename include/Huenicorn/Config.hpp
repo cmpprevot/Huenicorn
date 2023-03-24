@@ -19,8 +19,6 @@ namespace Huenicorn
     bool initialSetupOk() const;
     int restServerPort() const;
     const std::optional<std::string>& bridgeAddress() const;
-    [[deprecated("V2 API refers this field as 'username'. Use username() instead")]]
-    const std::optional<std::string>& apiKey() const;
     const std::optional<std::string>& username() const;
     const std::optional<std::string>& clientkey() const;
     unsigned refreshRate() const;
@@ -28,8 +26,6 @@ namespace Huenicorn
 
   // Setters
     void setBridgeAddress(const std::string& bridgeAddress);
-    [[deprecated("V2 API refers this field as 'username'. Use setUsername() instead")]]
-    void setApiKey(const std::string& apiKey);
     void setUsername(const std::string& username);
     void setClientkey(const std::string& clientKey);
     void setSubsampleWidth(unsigned subsampleWidth);

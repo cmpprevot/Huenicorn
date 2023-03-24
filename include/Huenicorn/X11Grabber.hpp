@@ -5,8 +5,6 @@
 
 #include <Huenicorn/IGrabber.hpp>
 
-#include <glm/vec2.hpp>
-
 #include <X11/Xlib.h>
 #include <X11/extensions/XShm.h>
 
@@ -35,10 +33,11 @@ namespace Huenicorn
     virtual void grabFrameSubsample(cv::Mat& cvImage) override;
 
   private:
+    // Attributes
     std::optional<ImageData> m_imageData;
     std::unique_ptr<XShmSegmentInfo> m_shmInfo;
 
-    XImage* m_ximg{nullptr};
+    XImage* m_ximage{nullptr};
     Display* m_display{nullptr};
   };
 }

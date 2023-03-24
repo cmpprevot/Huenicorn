@@ -2,6 +2,7 @@
 
 #include <glm/common.hpp>
 
+
 namespace Huenicorn
 {
   Channel::Channel(bool active, const std::vector<Device>& devices, float gammaFactor, const UVs& uvs):
@@ -9,9 +10,7 @@ namespace Huenicorn
   m_devices(devices),
   m_gammaFactor(gammaFactor),
   m_uvs(uvs)
-  {
-
-  }
+  {}
 
 
   Channel::State Channel::state() const

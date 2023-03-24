@@ -13,10 +13,10 @@ namespace Huenicorn
 
   namespace ImageProcessing
   {
-    void rescale(cv::Mat& img, int targetWidth);
+    void rescale(cv::Mat& image, int targetWidth);
 
     cv::Mat getSubImage(const cv::Mat& sourceImage, const glm::ivec2& a, const glm::ivec2& b);
 
-    Colors getDominantColors(cv::Mat& img, unsigned k = 1);
+    Colors getDominantColors(cv::Mat& image, unsigned k = 1);
   };
 }

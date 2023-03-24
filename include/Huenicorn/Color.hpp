@@ -1,12 +1,10 @@
 #pragma once
 
 #include <cstdint>
-#include <sstream>
-
-#include <opencv2/opencv.hpp>
 
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
+
 
 namespace Huenicorn
 {

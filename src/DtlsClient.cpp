@@ -2,7 +2,6 @@
 
 #include <stdexcept>
 #include <iostream>
-#include <thread>
 #include <sstream>
 
 // Begin MbedTLS part
@@ -17,7 +16,9 @@
 #endif
 // End MbedTLS part
 
+
 using namespace std;
+
 
 namespace Huenicorn
 {
@@ -60,8 +61,7 @@ namespace Huenicorn
     m_clientkey(clientkey),
     m_address(address),
     m_port(port)
-  {
-  }
+  {}
 
 
   DtlsClient::~DtlsClient()
@@ -85,10 +85,11 @@ namespace Huenicorn
   bool DtlsClient::send(const std::vector<char>& requestBuffer)
   {
     int result = mbedtls_ssl_write(&m_ssl, (unsigned char *)requestBuffer.data(), requestBuffer.size());
-    bool succeeded = result ==  MBEDTLS_ERR_SSL_WANT_READ ||
-                result == MBEDTLS_ERR_SSL_WANT_WRITE ||
-                result >= 0;
-    return succeeded;
+    return (
+      result == MBEDTLS_ERR_SSL_WANT_READ ||
+      result == MBEDTLS_ERR_SSL_WANT_WRITE ||
+      result >= 0
+    );
   }
 
 

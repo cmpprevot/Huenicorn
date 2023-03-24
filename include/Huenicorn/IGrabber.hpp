@@ -13,6 +13,7 @@ namespace Huenicorn
   class IGrabber
   {
   public:
+    // Type definitions
     using Divisors = std::vector<int>;
     using Resolution = glm::ivec2;
     using Resolutions = std::vector<Resolution>;
@@ -24,6 +25,7 @@ namespace Huenicorn
       RefreshRate refreshRate;
     };
 
+    // Constructor / Destructor
     IGrabber(Config* config):
     m_config(config)
     {}
@@ -56,6 +58,7 @@ namespace Huenicorn
 
 
   protected:
+    // Protected static methods
     inline static Divisors _divisors(int number)
     {
       std::vector<int>divisors;

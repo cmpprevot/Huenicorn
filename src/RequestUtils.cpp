@@ -10,6 +10,7 @@
 using namespace nlohmann;
 using namespace std;
 
+
 namespace Huenicorn
 {
   namespace RequestUtils

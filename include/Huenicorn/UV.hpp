@@ -12,6 +12,7 @@ namespace Huenicorn
     UV max;
   };
 
+
   enum UVType
   {
     TopLeft = 0,

@@ -5,8 +5,10 @@
 
 #include <filesystem>
 
+
 using namespace std;
 using namespace nlohmann;
+
 
 namespace Huenicorn
 {
@@ -56,13 +58,6 @@ namespace Huenicorn
   }
 
 
-  // Deprecated : This just became an alias to username
-  const optional<std::string>& Config::apiKey() const
-  {
-    return username();
-  }
-
-
   const optional<std::string>& Config::username() const
   {
     return m_username;
@@ -79,13 +74,6 @@ namespace Huenicorn
   {
     m_bridgeAddress.emplace(bridgeAddress);
     save();
-  }
-
-
-  // Deprecated : This became an alias to setUsername
-  void Config::setApiKey(const std::string& apiKey)
-  {
-    setUsername(apiKey);
   }
 
 

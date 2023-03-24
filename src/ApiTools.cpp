@@ -1,11 +1,9 @@
 #include <Huenicorn/ApiTools.hpp>
 
-#include <iostream>
-#include <fstream>
-
 #include <nlohmann/json.hpp>
 
 #include <Huenicorn/RequestUtils.hpp>
+
 
 using namespace nlohmann;
 using namespace std;
@@ -141,7 +139,6 @@ namespace Huenicorn
       RequestUtils::Headers headers = {{"hue-application-key", username}};
       string url = "https://" + address + "/clip/v2/resource/entertainment_configuration/" + entertainmentConfigurationEntry.first;
       auto response = RequestUtils::sendRequest(url, "GET", "", headers);
-
       if(response.at("errors").size() == 0){
         status = response.at("data").front().at("status");
       }

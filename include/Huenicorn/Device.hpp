@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 
+
 namespace Huenicorn
 {
   struct Device

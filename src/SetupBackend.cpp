@@ -1,9 +1,9 @@
 #include <Huenicorn/SetupBackend.hpp>
-
 #include <Huenicorn/HuenicornCore.hpp>
 
 using namespace std;
 using namespace nlohmann;
+
 
 namespace Huenicorn
 {
@@ -73,9 +73,7 @@ namespace Huenicorn
 
 
   SetupBackend::~SetupBackend()
-  {
-
-  }
+  {}
 
 
   bool SetupBackend::aborted() const

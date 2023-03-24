@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <optional>
 #include <string>
 
 #include <Huenicorn/EntertainmentConfig.hpp>
@@ -12,6 +10,7 @@ namespace Huenicorn
   class EntertainmentConfigSelector
   {
   public:
+    // Constructor
     EntertainmentConfigSelector(const std::string& username, const std::string& clientkey, const std::string& address);
 
     // Getters

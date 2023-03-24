@@ -1,22 +1,22 @@
 #pragma once
 
-#include <thread>
-#include <optional>
-#include <iostream>
 #include <filesystem>
 #include <fstream>
 #include <unordered_set>
 
 #include <restbed>
 
+
 namespace Huenicorn
 {
   class IRestServer
   {
   protected:
+    // Type definitions
     using SharedSession = std::shared_ptr<restbed::Session>;
 
   public:
+    // Constructor / Destructor
     IRestServer(const std::filesystem::path& webRoot):
     m_webroot(webRoot)
     {
@@ -51,12 +51,14 @@ namespace Huenicorn
     virtual ~IRestServer(){}
 
 
+    // Getters
     bool running() const
     {
       return m_service.is_up();
     }
 
 
+    // Methods
     bool start(unsigned port)
     {
       if(running()){
@@ -141,4 +143,3 @@ namespace Huenicorn
     std::unordered_set<std::string> m_webfileBlackList;
   };
 }
-

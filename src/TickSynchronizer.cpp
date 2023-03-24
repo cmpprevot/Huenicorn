@@ -1,6 +1,8 @@
 #include <Huenicorn/TickSynchronizer.hpp>
 
+#include <thread>
 #include <iostream>
+
 
 namespace Huenicorn
 {

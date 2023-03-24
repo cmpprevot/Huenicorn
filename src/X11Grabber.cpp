@@ -3,7 +3,6 @@
 #include <err.h>
 
 #include <cstring>
-#include <algorithm>
 
 #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
@@ -11,6 +10,7 @@
 
 #include <Huenicorn/Config.hpp>
 #include <Huenicorn/ImageProcessing.hpp>
+
 
 namespace Huenicorn
 {
@@ -27,7 +27,7 @@ namespace Huenicorn
 
     Screen* screen = ScreenOfDisplay(m_display, 0);
 
-    m_ximg = XShmCreateImage(m_display,
+    m_ximage = XShmCreateImage(m_display,
       DefaultVisual(m_display, screenId),
       DefaultDepth(m_display, screenId),
       ZPixmap,
@@ -37,10 +37,10 @@ namespace Huenicorn
       screen->height
     );
 
-    m_shmInfo->shmid = shmget(IPC_PRIVATE, m_ximg->bytes_per_line * m_ximg->height, IPC_CREAT | 0777);
+    m_shmInfo->shmid = shmget(IPC_PRIVATE, m_ximage->bytes_per_line * m_ximage->height, IPC_CREAT | 0777);
 
     m_shmInfo->readOnly = False;
-    m_shmInfo->shmaddr = m_ximg->data = (char*)shmat(m_shmInfo->shmid, 0, 0);
+    m_shmInfo->shmaddr = m_ximage->data = (char*)shmat(m_shmInfo->shmid, 0, 0);
 
     XShmAttach(m_display, m_shmInfo.get());
   }
@@ -55,9 +55,9 @@ namespace Huenicorn
       m_shmInfo.reset();
     }
 
-    if(m_ximg){
-      XDestroyImage(m_ximg);
-      m_ximg = nullptr;
+    if(m_ximage){
+      XDestroyImage(m_ximage);
+      m_ximage = nullptr;
     }
 
     if(m_display){
@@ -95,24 +95,24 @@ namespace Huenicorn
       m_imageData->pixels.resize(m_imageData->width * m_imageData->height * 4);
     }
 
-    XShmGetImage(m_display, RootWindow(m_display, screenId), m_ximg, 0, 0, AllPlanes);
+    XShmGetImage(m_display, RootWindow(m_display, screenId), m_ximage, 0, 0, AllPlanes);
 
-    m_imageData->bitsPerPixel = m_ximg->bits_per_pixel;
+    m_imageData->bitsPerPixel = m_ximage->bits_per_pixel;
 
-    memcpy(m_imageData->pixels.data(), m_ximg->data, m_imageData->pixels.size());
+    memcpy(m_imageData->pixels.data(), m_ximage->data, m_imageData->pixels.size());
 
-    cv::Mat img;
+    cv::Mat image;
     if(m_imageData->bitsPerPixel > 24){
-      img = cv::Mat(m_imageData->height, m_imageData->width, CV_8UC4, m_imageData->pixels.data());
-      cv::cvtColor(img, img, cv::COLOR_RGBA2RGB);
+      image = cv::Mat(m_imageData->height, m_imageData->width, CV_8UC4, m_imageData->pixels.data());
+      cv::cvtColor(image, image, cv::COLOR_RGBA2RGB);
     }
     else{
-      img = cv::Mat(m_imageData->height, m_imageData->width, CV_8UC3, m_imageData->pixels.data());
+      image = cv::Mat(m_imageData->height, m_imageData->width, CV_8UC3, m_imageData->pixels.data());
     }
 
-    ImageProcessing::rescale(img, m_config->subsampleWidth());
+    ImageProcessing::rescale(image, m_config->subsampleWidth());
 
-    cvImage = std::move(img);
+    cvImage = std::move(image);
   }
 
 

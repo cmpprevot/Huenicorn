@@ -2,13 +2,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <chrono>
-
-#include <unistd.h>
-
-#include <glm/trigonometric.hpp>
-#include <glm/exponential.hpp>
-#include <glm/geometric.hpp>
 
 #include <Huenicorn/X11Grabber.hpp>
 #include <Huenicorn/ImageProcessing.hpp>

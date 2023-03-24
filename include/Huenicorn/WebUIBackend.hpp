@@ -4,17 +4,17 @@
 
 #include <filesystem>
 
-#include <restbed>
-
 namespace Huenicorn
 {
   class HuenicornCore;
 
   class WebUIBackend : public IRestServer
   {
+    // Type definitions
     using SharedSession = std::shared_ptr<restbed::Session>;
 
   public:
+    // Constructor
     WebUIBackend(HuenicornCore* HuenicornCore);
 
   private:
@@ -34,6 +34,5 @@ namespace Huenicorn
 
     // Attributes
     HuenicornCore* m_huenicornCore;
-
   };
 }

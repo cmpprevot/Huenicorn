@@ -1,16 +1,14 @@
 #include <Huenicorn/ImageProcessing.hpp>
 
-#include <algorithm>
-
 
 namespace Huenicorn
 {
   namespace ImageProcessing
   {
-    void rescale(cv::Mat& img, int targetWidth)
+    void rescale(cv::Mat& image, int targetWidth)
     {
-      int sourceHeight = img.rows;
-      int sourceWidth = img.cols;
+      int sourceHeight = image.rows;
+      int sourceWidth = image.cols;
 
       if(sourceWidth < targetWidth){
         return;
@@ -19,7 +17,7 @@ namespace Huenicorn
       float scaleRatio = static_cast<float>(targetWidth) / sourceWidth;
 
       int targetHeight = sourceHeight * scaleRatio;
-      cv::resize(img, img, cv::Size(targetWidth, targetHeight), 0, 0, cv::InterpolationFlags::INTER_LINEAR);
+      cv::resize(image, image, cv::Size(targetWidth, targetHeight), 0, 0, cv::InterpolationFlags::INTER_LINEAR);
     }
 
 
@@ -32,15 +30,15 @@ namespace Huenicorn
     }
 
 
-    Colors getDominantColors(cv::Mat& img, unsigned k)
+    Colors getDominantColors(cv::Mat& image, unsigned k)
     {
-      if(img.cols < 1 || img.rows < 1){
+      if(image.cols < 1 || image.rows < 1){
         return {Color(0, 0, 0)};
       }
 
       Colors dominantColors;
       dominantColors.reserve(k);
-      cv::Mat data = img.reshape(1, img.total());
+      cv::Mat data = image.reshape(1, image.total());
       data.convertTo(data, CV_32F);
 
       cv::TermCriteria criteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 10, 1.0);

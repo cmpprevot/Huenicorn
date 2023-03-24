@@ -21,6 +21,7 @@ namespace Huenicorn
 {
   class HuenicornCore
   {
+    // Type definitions
     struct ThreadedRestService
     {
       std::unique_ptr<IRestServer> server;
@@ -77,11 +78,9 @@ namespace Huenicorn
     bool m_keepLooping;
     std::unique_ptr<TickSynchronizer> m_tickSynchronizer;
 
-    //  Infrastructure
+    //  API structure wrapper
     std::unique_ptr<EntertainmentConfigSelector> m_selector;
-
     std::unique_ptr<Streamer> m_streamer;
-
     Channels m_channels;
 
     // Service and flags

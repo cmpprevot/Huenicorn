@@ -1,13 +1,10 @@
 #pragma once
 
 #include <string>
-#include <optional>
-#include <thread>
 #include <vector>
-#include <unordered_map>
 
 #include <Huenicorn/DtlsClient.hpp>
-#include <Huenicorn/EntertainmentConfig.hpp>
+#include <Huenicorn/Channel.hpp>
 
 
 namespace Huenicorn
@@ -87,12 +84,11 @@ namespace Huenicorn
     void setEntertainmentConfigId(const std::string& entertainmentConfigId);
 
     // Methods
-    void streamChannels(const std::vector<ChannelStream>& channels);
+    void streamChannels(const ChannelStreams& channels);
 
   private:
     // Attributes
     DtlsClient m_dtlsClient;
     HuestreamHeader m_header;
-
   };
 }
