@@ -11,7 +11,7 @@
 
 namespace Huenicorn
 {
-  namespace JsonCast
+  namespace JsonSerializer
   {
     nlohmann::json serialize(const Credentials& credentials);
     nlohmann::json serialize(const UVs& uvs);

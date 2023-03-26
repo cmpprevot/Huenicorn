@@ -5,7 +5,7 @@
 
 #include <filesystem>
 
-#include <Huenicorn/JsonCast.hpp>
+#include <Huenicorn/JsonSerializer.hpp>
 
 
 using namespace std;
@@ -123,7 +123,7 @@ namespace Huenicorn
     }
 
     if(m_credentials.has_value()){
-      jsonOutConfig["credentials"] = JsonCast::serialize(m_credentials.value());
+      jsonOutConfig["credentials"] = JsonSerializer::serialize(m_credentials.value());
     }
 
     if(!filesystem::exists(m_configFilePath)){

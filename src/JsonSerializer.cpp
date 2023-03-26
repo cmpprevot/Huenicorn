@@ -1,11 +1,11 @@
-#include <Huenicorn/JsonCast.hpp>
+#include <Huenicorn/JsonSerializer.hpp>
 
 using namespace nlohmann;
 
 
 namespace Huenicorn
 {
-  namespace JsonCast
+  namespace JsonSerializer
   {
     nlohmann::json serialize(const Credentials& credentials)
     {

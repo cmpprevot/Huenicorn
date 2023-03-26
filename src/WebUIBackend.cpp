@@ -6,7 +6,7 @@
 #include <nlohmann/json.hpp>
 
 #include <Huenicorn/HuenicornCore.hpp>
-#include <Huenicorn/JsonCast.hpp>
+#include <Huenicorn/JsonSerializer.hpp>
 
 
 using namespace nlohmann;
@@ -98,7 +98,7 @@ namespace Huenicorn
     const auto request = session->get_request();
 
     uint8_t channelId = stoi(request->get_path_parameter("channelId"));
-    string response = JsonCast::serialize(m_huenicornCore->channels().at(channelId)).dump();
+    string response = JsonSerializer::serialize(m_huenicornCore->channels().at(channelId)).dump();
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
       {"Content-Type", "application/json"}
@@ -108,7 +108,7 @@ namespace Huenicorn
 
   void WebUIBackend::_getChannels(const SharedSession& session) const
   {
-    string response = JsonCast::serialize(m_huenicornCore->channels()).dump();
+    string response = JsonSerializer::serialize(m_huenicornCore->channels()).dump();
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
       {"Content-Type", "application/json"}
@@ -294,7 +294,7 @@ namespace Huenicorn
 
       json jsonResponse = json{
         {"succeeded", true},
-        {"channels", JsonCast::serialize(m_huenicornCore->channels())},
+        {"channels", JsonSerializer::serialize(m_huenicornCore->channels())},
       };
       
       if(active){

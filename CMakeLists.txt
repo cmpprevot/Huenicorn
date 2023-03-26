@@ -21,7 +21,7 @@ add_executable(Huenicorn
   src/EntertainmentConfigSelector.cpp
   src/HuenicornCore.cpp
   src/ImageProcessing.cpp
-  src/JsonCast.cpp
+  src/JsonSerializer.cpp
   src/Streamer.cpp
   src/RequestUtils.cpp
   src/SetupBackend.cpp
@@ -41,7 +41,7 @@ add_executable(Huenicorn
   include/Huenicorn/IGrabber.hpp
   include/Huenicorn/ImageProcessing.hpp
   include/Huenicorn/IRestServer.hpp
-  include/Huenicorn/JsonCast.hpp
+  include/Huenicorn/JsonSerializer.hpp
   include/Huenicorn/RequestUtils.hpp
   include/Huenicorn/SetupBackend.hpp
   include/Huenicorn/Streamer.hpp

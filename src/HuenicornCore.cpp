@@ -8,7 +8,7 @@
 #include <Huenicorn/RequestUtils.hpp>
 #include <Huenicorn/SetupBackend.hpp>
 #include <Huenicorn/WebUIBackend.hpp>
-#include <Huenicorn/JsonCast.hpp>
+#include <Huenicorn/JsonSerializer.hpp>
 
 
 using namespace nlohmann;
@@ -252,7 +252,7 @@ namespace Huenicorn
 
     nlohmann::json profile = json{
       {"entertainmentConfigId", m_selector->selectedEntertainmentConfigId()},
-      {"channels", JsonCast::serialize(m_channels)}
+      {"channels", JsonSerializer::serialize(m_channels)}
     };
 
     ofstream profileFile(m_profileFilePath, ofstream::out);
