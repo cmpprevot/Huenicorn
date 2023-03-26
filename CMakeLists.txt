@@ -16,6 +16,7 @@ add_executable(Huenicorn
   src/ApiTools.cpp
   src/Channel.cpp
   src/Config.cpp
+  src/Credentials.cpp
   src/DtlsClient.cpp
   src/EntertainmentConfigSelector.cpp
   src/HuenicornCore.cpp
@@ -31,6 +32,7 @@ add_executable(Huenicorn
   include/Huenicorn/Channel.hpp
   include/Huenicorn/Color.hpp
   include/Huenicorn/Config.hpp
+  include/Huenicorn/Credentials.hpp
   include/Huenicorn/Device.hpp
   include/Huenicorn/DtlsClient.hpp
   include/Huenicorn/EntertainmentConfig.hpp

@@ -2,6 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include <Huenicorn/Credentials.hpp>
 #include <Huenicorn/UV.hpp>
 #include <Huenicorn/Channel.hpp>
 #include <Huenicorn/Device.hpp>
@@ -12,6 +13,7 @@ namespace Huenicorn
 {
   namespace JsonCast
   {
+    nlohmann::json serialize(const Credentials& credentials);
     nlohmann::json serialize(const UVs& uvs);
     nlohmann::json serialize(const Device& device);
     nlohmann::json serialize(const Devices& devices);

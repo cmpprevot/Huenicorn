@@ -185,10 +185,9 @@ namespace Huenicorn
       string data(reinterpret_cast<const char*>(body.data()), body.size());
       json jsonCredentials = json::parse(data);
 
-      string username = jsonCredentials.at("username");
-      string clientkey = jsonCredentials.at("clientkey");
+      Credentials credentials(jsonCredentials.at("username"), jsonCredentials.at("clientkey"));
 
-      json jsonResponse = {{"succeeded", m_core->validateCredentials(username, clientkey)}};
+      json jsonResponse = {{"succeeded", m_core->validateCredentials(credentials)}};
 
       string response = jsonResponse.dump();
       session->close(restbed::OK, response, {

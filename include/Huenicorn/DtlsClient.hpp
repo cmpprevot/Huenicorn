@@ -12,6 +12,8 @@
 #include <mbedtls/certs.h>
 #include <mbedtls/timing.h>
 
+#include <Huenicorn/Credentials.hpp>
+
 
 namespace Huenicorn
 {
@@ -21,7 +23,7 @@ namespace Huenicorn
   static constexpr unsigned HandhsakeAttempts = 4;
 
   public:
-    DtlsClient(const std::string& username, const std::string& clientkey, const std::string& address, const std::string& port);
+    DtlsClient(const Credentials& credentials, const std::string& address, const std::string& port);
     ~DtlsClient();
 
     void init();
@@ -38,8 +40,7 @@ namespace Huenicorn
     void _deallocate();
 
     // Attributes
-    const std::string m_username;
-    const std::string m_clientkey;
+    const Credentials m_credentials;
     const std::string m_address;
     const std::string m_port;
 

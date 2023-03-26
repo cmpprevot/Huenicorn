@@ -79,7 +79,7 @@ namespace Huenicorn
 
 
   public:
-    Streamer(const std::string& username, const std::string& clientkey, const std::string& address);
+    Streamer(const Credentials& credentials, const std::string& address);
 
     void setEntertainmentConfigId(const std::string& entertainmentConfigId);
 

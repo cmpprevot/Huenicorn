@@ -10,12 +10,11 @@ using namespace std;
 
 namespace Huenicorn
 {
-  EntertainmentConfigSelector::EntertainmentConfigSelector(const std::string& username, const std::string& clientkey, const std::string& address):
-  m_username(username),
-  m_clientkey(clientkey),
+  EntertainmentConfigSelector::EntertainmentConfigSelector(const Credentials& credentials, const std::string& address):
+  m_credentials(credentials),
   m_address(address)
   {
-    m_entertainmentConfigs = ApiTools::loadEntertainmentConfigurations(m_username, address);
+    m_entertainmentConfigs = ApiTools::loadEntertainmentConfigurations(m_credentials.username(), address);
   }
 
 
@@ -56,11 +55,11 @@ namespace Huenicorn
       }
     }
 
-    if(ApiTools::streamingActive(*m_selectedConfig, m_username, m_address)){
+    if(ApiTools::streamingActive(*m_selectedConfig, m_credentials.username(), m_address)){
       disableStreaming();
     }
 
-    ApiTools::setSelectedConfigStreamActivity(true, *m_selectedConfig, m_username, m_address);
+    ApiTools::setSelectedConfigStreamActivity(true, *m_selectedConfig, m_credentials.username(), m_address);
 
     return true;
   }
@@ -68,7 +67,7 @@ namespace Huenicorn
 
   void EntertainmentConfigSelector::disableStreaming() const
   {
-    ApiTools::setSelectedConfigStreamActivity(false, *m_selectedConfig, m_username, m_address);
+    ApiTools::setSelectedConfigStreamActivity(false, *m_selectedConfig, m_credentials.username(), m_address);
   }
 
 

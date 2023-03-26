@@ -55,7 +55,7 @@ namespace Huenicorn
     void start();
     void stop();
     bool validateBridgeAddress(const std::string& bridgeAddress);
-    bool validateCredentials(const std::string& username, const std::string& clientkey);
+    bool validateCredentials(const Credentials& credentials);
     bool setChannelActivity(uint8_t channelId, bool active);
     void saveProfile() const;
 

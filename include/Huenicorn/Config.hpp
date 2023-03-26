@@ -5,6 +5,9 @@
 
 #include <nlohmann/json.hpp>
 
+#include <Huenicorn/Credentials.hpp>
+
+
 namespace Huenicorn
 {
   class Config
@@ -19,15 +22,15 @@ namespace Huenicorn
     bool initialSetupOk() const;
     int restServerPort() const;
     const std::optional<std::string>& bridgeAddress() const;
-    const std::optional<std::string>& username() const;
-    const std::optional<std::string>& clientkey() const;
+    const std::string& username() const;
+    const std::string& clientkey() const;
+    const std::optional<Credentials>& credentials() const;
     unsigned refreshRate() const;
     unsigned subsampleWidth() const;
 
   // Setters
     void setBridgeAddress(const std::string& bridgeAddress);
-    void setUsername(const std::string& username);
-    void setClientkey(const std::string& clientKey);
+    void setCredentials(const std::string& username, const std::string& clientkey);
     void setSubsampleWidth(unsigned subsampleWidth);
     void setRefreshRate(unsigned refreshRate);
 
@@ -43,8 +46,7 @@ namespace Huenicorn
 
     int m_restServerPort{8080};
     std::optional<std::string> m_bridgeAddress;
-    std::optional<std::string> m_username;
-    std::optional<std::string> m_clientkey;
+    std::optional<Credentials> m_credentials;
     unsigned m_refreshRate{0};
     unsigned m_subsampleWidth{0};
   };

@@ -8,8 +8,8 @@ using namespace std;
 
 namespace Huenicorn
 {
-  Streamer::Streamer(const std::string& username, const std::string& clientkey, const std::string& address):
-    m_dtlsClient(username, clientkey, address, PORT)
+  Streamer::Streamer(const Credentials& credentials, const std::string& address):
+    m_dtlsClient(credentials, address, PORT)
   {
     try{
       m_dtlsClient.init();

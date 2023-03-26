@@ -7,6 +7,15 @@ namespace Huenicorn
 {
   namespace JsonCast
   {
+    nlohmann::json serialize(const Credentials& credentials)
+    {
+      return {
+        {"username", credentials.username()},
+        {"clientkey", credentials.clientkey()},
+      };
+    }
+
+
     nlohmann::json serialize(const UVs& uvs)
     {
       return {

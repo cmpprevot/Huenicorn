@@ -2,7 +2,6 @@
 
 #include <stdexcept>
 #include <iostream>
-#include <sstream>
 
 // Begin MbedTLS part
 #ifndef MBEDTLS_CONFIG_FILE
@@ -22,43 +21,8 @@ using namespace std;
 
 namespace Huenicorn
 {
-  std::vector<unsigned char> fromHex(const std::string& hexString)
-  {
-    if(hexString.size() % 2 != 0){
-      throw std::runtime_error("Wrong hex string length");
-    }
-
-    std::vector<unsigned char> bytes;
-    bytes.resize(hexString.size() / 2);
-
-    std::stringstream converter;
-    int byte;
-    for(int i = 0; auto& b : bytes){
-      converter << std::hex << hexString.substr(i, 2);
-      converter >> byte;
-      b = byte & 0xFF;
-      converter.clear();
-      i += 2;
-    }
-
-    return bytes;
-  }
-
-
-  std::vector<unsigned char> stringToBytes(const std::string& string)
-  {
-    std::vector<unsigned char> bytes;
-    for(unsigned char c : string){
-      bytes.push_back(static_cast<unsigned char>(c));
-    }
-
-    return bytes;
-  }
-
-
-  DtlsClient::DtlsClient(const std::string& username, const std::string& clientkey, const std::string& address, const std::string& port):
-    m_username(username),
-    m_clientkey(clientkey),
+  DtlsClient::DtlsClient(const Credentials& credentials, const std::string& address, const std::string& port):
+    m_credentials(credentials),
     m_address(address),
     m_port(port)
   {}
@@ -138,8 +102,8 @@ namespace Huenicorn
 
   void DtlsClient::_initSSL()
   {
-    std::vector pskRawArray = fromHex(m_clientkey);
-    std::vector pskIdRawArray = stringToBytes(m_username);
+    auto pskRawArray = m_credentials.clientkeyBytes();
+    auto pskIdRawArray = m_credentials.usernameBytes();
 
     int result = mbedtls_ssl_config_defaults(
       &m_conf,

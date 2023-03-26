@@ -100,8 +100,7 @@ namespace Huenicorn
 
     string username = response.at(0).at("success").at("username");
     string clientkey = response.at(0).at("success").at("clientkey");
-    m_config.setUsername(username);
-    m_config.setClientkey(clientkey);
+    m_config.setCredentials(username, clientkey);
 
     return {{"succeeded", true}, {"username", username}, {"clientkey", clientkey}};
   }
@@ -208,10 +207,10 @@ namespace Huenicorn
   }
 
 
-  bool HuenicornCore::validateCredentials(const std::string& username, const std::string& clientkey)
+  bool HuenicornCore::validateCredentials(const Credentials& credentials)
   {
     try{
-      auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api/" + username, "GET", "");
+      auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api/" + credentials.username(), "GET", "");
       if(response.size() == 0){
         return false;
       }
@@ -220,8 +219,7 @@ namespace Huenicorn
         return false;
       }
 
-      m_config.setUsername(username);
-      m_config.setClientkey(clientkey);
+      m_config.setCredentials(credentials.username(), credentials.clientkey());
 
       cout << "Successfully registered credentials" << endl;
     }
@@ -286,7 +284,7 @@ namespace Huenicorn
       return false;
     }
 
-    const string& username = m_config.username().value();
+    const string& username = m_config.credentials().value().username();
     const string& bridgeAddress =  m_config.bridgeAddress().value();
     Devices devices = ApiTools::loadDevices(username, bridgeAddress);
     ConfigurationsChannels configurationsChannels = ApiTools::loadConfigurationsChannels(username, bridgeAddress);
@@ -346,10 +344,9 @@ namespace Huenicorn
       m_webUIService.server->start(restServerPort);
     });
 
-    const string& username = m_config.username().value();
-    const string& clientkey = m_config.clientkey().value();
+    const Credentials& credentials = m_config.credentials().value();
     const string& bridgeAddress =  m_config.bridgeAddress().value();
-    m_selector = make_unique<EntertainmentConfigSelector>(username, clientkey, bridgeAddress);
+    m_selector = make_unique<EntertainmentConfigSelector>(credentials, bridgeAddress);
 
     if(!_loadProfile() && ! m_openedSetup){
       thread spawnBrowser([this](){_spawnBrowser();});
@@ -361,7 +358,7 @@ namespace Huenicorn
       return;
     }
 
-    m_streamer = make_unique<Streamer>(m_config.username().value(), m_config.clientkey().value(), m_config.bridgeAddress().value());
+    m_streamer = make_unique<Streamer>(credentials, m_config.bridgeAddress().value());
 
     m_streamer->setEntertainmentConfigId(m_selector->selectedEntertainmentConfigId());
     // Todo : Check if handshake went well before proceding

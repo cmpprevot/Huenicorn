@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include <Huenicorn/Credentials.hpp>
 #include <Huenicorn/EntertainmentConfig.hpp>
 
 
@@ -11,7 +12,7 @@ namespace Huenicorn
   {
   public:
     // Constructor
-    EntertainmentConfigSelector(const std::string& username, const std::string& clientkey, const std::string& address);
+    EntertainmentConfigSelector(const Credentials& credentials, const std::string& address);
 
     // Getters
     const std::string& selectedEntertainmentConfigId() const;
@@ -27,8 +28,7 @@ namespace Huenicorn
     void _clearConfigs();
 
     // Attributes
-    const std::string m_username;
-    const std::string m_clientkey;
+    const Credentials m_credentials;
     const std::string m_address;
 
     EntertainmentConfigs m_entertainmentConfigs;
