@@ -100,7 +100,9 @@ namespace Huenicorn
     string serviceURL = serviceUrlStream.str();
     std::cout << "Setup WebUI is ready and available at " << serviceURL << std::endl;
 
-    system(string("xdg-open " + serviceURL).c_str());
+    if(system(string("xdg-open " + serviceURL).c_str()) != 0){
+      std::cout << "Failed to open browser" << std::endl;
+    }
   }
 
 
