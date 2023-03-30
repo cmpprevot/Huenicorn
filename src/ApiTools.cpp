@@ -12,17 +12,17 @@ namespace Huenicorn
 {
   namespace ApiTools
   {
-    EntertainmentConfigs loadEntertainmentConfigurations(const string& username, const string& address)
+    EntertainmentConfigurations loadEntertainmentConfigurations(const string& username, const string& address)
     {
-      EntertainmentConfigs entertainmentConfigs;
+      EntertainmentConfigurations entertainmentConfigurations;
 
       RequestUtils::Headers headers = {{"hue-application-key", username}};
       string entertainmentConfUrl = "https://" + address + "/clip/v2/resource/entertainment_configuration";
-      auto entertainmentConfResponse = RequestUtils::sendRequest(entertainmentConfUrl, "GET", "", headers);
+      auto entertainmentConfigurationResponse = RequestUtils::sendRequest(entertainmentConfUrl, "GET", "", headers);
 
-      if(entertainmentConfResponse.at("errors").size() == 0){
+      if(entertainmentConfigurationResponse.at("errors").size() == 0){
         // Listing entertainment configurations
-        for(const json& jsonEntertainentConfiguration : entertainmentConfResponse.at("data")){
+        for(const json& jsonEntertainentConfiguration : entertainmentConfigurationResponse.at("data")){
           string confId = jsonEntertainentConfiguration.at("id");
           string confName = jsonEntertainentConfiguration.at("metadata").at("name");
 
@@ -45,11 +45,11 @@ namespace Huenicorn
             channels.insert({jsonChannel.at("channel_id").get<uint8_t>(), {false, {}, 0.f}});
           }
 
-          entertainmentConfigs.insert({confId, {confName, lights, channels}});
+          entertainmentConfigurations.insert({confId, {confName, lights, channels}});
         }
       }
 
-      return entertainmentConfigs;
+      return entertainmentConfigurations;
     }
 
 
@@ -117,7 +117,7 @@ namespace Huenicorn
     }
 
 
-    void setSelectedConfigStreamActivity(bool active, const EntertainmentConfigEntry& entertrainmentConfigurationEntry, const string& username, const string& address)
+    void setStreamingState(const EntertainmentConfigurationEntry& entertrainmentConfigurationEntry, const string& username, const string& address, bool active)
     {
       json jsonBody = {
         {"action", active ? "start" : "stop"},
@@ -132,7 +132,7 @@ namespace Huenicorn
     }
 
 
-    bool streamingActive(const EntertainmentConfigEntry& entertainmentConfigurationEntry, const std::string& username, const std::string& address)
+    bool streamingActive(const EntertainmentConfigurationEntry& entertainmentConfigurationEntry, const std::string& username, const std::string& address)
     {
       string status;
 

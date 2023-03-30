@@ -37,15 +37,21 @@ namespace Huenicorn
   }
 
 
-  const EntertainmentConfigs& HuenicornCore::entertainmentConfigurations() const
+  const EntertainmentConfigurations& HuenicornCore::entertainmentConfigurations() const
   {
-    return m_selector->entertainmentConfigs();
+    return m_selector->entertainmentConfigurations();
   }
 
 
-  const EntertainmentConfig& HuenicornCore::selectedConfiguration() const
+  const EntertainmentConfiguration& HuenicornCore::currentEntertainmentConfiguration() const
   {
-    return m_selector->selectedConfig();
+    return m_selector->currentEntertainmentConfiguration();
+  }
+
+
+  const std::string& HuenicornCore::selectedEntertinmentConfigurationId() const
+  {
+    return m_selector->currentEntertainmentConfigurationId();
   }
 
 
@@ -119,11 +125,11 @@ namespace Huenicorn
 
   bool HuenicornCore::setEntertainmentConfiguration(const std::string& entertainmentConfigurationId)
   {
-    if(!m_selector->selectEntertainementConfig(entertainmentConfigurationId)){
+    if(!m_selector->selectEntertainementConfiguration(entertainmentConfigurationId)){
       return false;
     }
 
-    m_streamer->setEntertainmentConfigId(m_selector->selectedEntertainmentConfigId());
+    m_streamer->setEntertainmentConfigId(m_selector->currentEntertainmentConfigurationId());
 
     return true;
   }
@@ -268,13 +274,13 @@ namespace Huenicorn
 
   void HuenicornCore::saveProfile()
   {
-    if(!m_selector->validSelecion()){
+    if(!m_selector->validSelection()){
       cout << "There is currently no valid entertainment configuration selected." << endl;
       return;
     }
 
     nlohmann::json profile = json{
-      {"entertainmentConfigId", m_selector->selectedEntertainmentConfigId()},
+      {"entertainmentConfigId", m_selector->currentEntertainmentConfigurationId()},
       {"channels", JsonSerializer::serialize(m_channels)}
     };
 
@@ -306,7 +312,7 @@ namespace Huenicorn
       }
     }
     
-    if(!m_selector->selectEntertainementConfig(entertainmentConfigId)){
+    if(!m_selector->selectEntertainementConfiguration(entertainmentConfigId)){
       cout << "Invalid entertainment config selection" << endl;
       return false;
     }
@@ -326,9 +332,9 @@ namespace Huenicorn
 
     Channels channels;
 
-    for(const auto& [id, channel] : m_selector->selectedConfig().channels()){
+    for(const auto& [id, channel] : m_selector->currentEntertainmentConfiguration().channels()){
       bool found = false;
-      const auto& members = ApiTools::matchDevices(configurationsChannels.at(m_selector->selectedEntertainmentConfigId()).at(id), devices);
+      const auto& members = ApiTools::matchDevices(configurationsChannels.at(m_selector->currentEntertainmentConfigurationId()).at(id), devices);
       if(jsonProfile.contains("channels")){
         for(const auto& jsonProfileChannel : jsonProfile.at("channels")){
           if(jsonProfileChannel.at("channelId") == id){
@@ -385,21 +391,21 @@ namespace Huenicorn
 
     const Credentials& credentials = m_config.credentials().value();
     const string& bridgeAddress =  m_config.bridgeAddress().value();
-    m_selector = make_unique<EntertainmentConfigSelector>(credentials, bridgeAddress);
+    m_selector = make_unique<EntertainmentConfigurationSelector>(credentials, bridgeAddress);
 
     if(!_loadProfile() && !m_openedSetup){
       thread spawnBrowser([this](){_spawnBrowser();});
       spawnBrowser.detach();
     }
 
-    if(!m_selector->validSelecion()){
+    if(!m_selector->validSelection()){
       cout << "No entertainment configuration was found" << endl;
       return;
     }
 
     m_streamer = make_unique<Streamer>(credentials, m_config.bridgeAddress().value());
 
-    m_streamer->setEntertainmentConfigId(m_selector->selectedEntertainmentConfigId());
+    m_streamer->setEntertainmentConfigId(m_selector->currentEntertainmentConfigurationId());
     // Todo : Check if handshake went well before proceding
 
     m_tickSynchronizer = make_unique<TickSynchronizer>(1.0f / static_cast<float>(m_config.refreshRate()));

@@ -11,14 +11,16 @@ include_directories(
 )
 
 
-add_executable(Huenicorn
+set(BinName huenicorn)
+
+add_executable(${BinName}
   src/main.cpp
   src/ApiTools.cpp
   src/Channel.cpp
   src/Config.cpp
   src/Credentials.cpp
   src/DtlsClient.cpp
-  src/EntertainmentConfigSelector.cpp
+  src/EntertainmentConfigurationSelector.cpp
   src/HuenicornCore.cpp
   src/ImageProcessing.cpp
   src/JsonSerializer.cpp
@@ -35,8 +37,8 @@ add_executable(Huenicorn
   include/Huenicorn/Credentials.hpp
   include/Huenicorn/Device.hpp
   include/Huenicorn/DtlsClient.hpp
-  include/Huenicorn/EntertainmentConfig.hpp
-  include/Huenicorn/EntertainmentConfigSelector.hpp
+  include/Huenicorn/EntertainmentConfiguration.hpp
+  include/Huenicorn/EntertainmentConfigurationSelector.hpp
   include/Huenicorn/HuenicornCore.hpp
   include/Huenicorn/IGrabber.hpp
   include/Huenicorn/ImageProcessing.hpp
@@ -51,12 +53,12 @@ add_executable(Huenicorn
   include/Huenicorn/X11Grabber.hpp
 )
 
-set_target_properties(Huenicorn PROPERTIES CXX_STANDARD 20)
+set_target_properties(${BinName} PROPERTIES CXX_STANDARD 20)
 
-target_link_libraries(Huenicorn PUBLIC X11 Xext Xrandr ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp restbed mbedtls mbedcrypto mbedx509)
+target_link_libraries(${BinName} PUBLIC X11 Xext Xrandr ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp restbed mbedtls mbedcrypto mbedx509)
 
 
-target_compile_options(Huenicorn PRIVATE
+target_compile_options(${BinName} PRIVATE
   -Werror
   -Wall
   -Wextra

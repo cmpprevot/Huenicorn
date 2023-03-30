@@ -16,7 +16,7 @@ namespace Huenicorn
     }
 
 
-    nlohmann::json serialize(const EntertainmentConfig& entertainmentConfiguration)
+    nlohmann::json serialize(const EntertainmentConfiguration& entertainmentConfiguration)
     {
       return {
         {"name", entertainmentConfiguration.name()},
@@ -26,7 +26,7 @@ namespace Huenicorn
     }
 
 
-    nlohmann::json serialize(const EntertainmentConfigs& entertainmentConfigurations)
+    nlohmann::json serialize(const EntertainmentConfigurations& entertainmentConfigurations)
     {
       nlohmann::json jsonEntertainmentConfigurations = nlohmann::json::array();
       for(const auto& entertainmentConfiguration : entertainmentConfigurations){

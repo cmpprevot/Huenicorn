@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 #include <Huenicorn/Device.hpp>
-#include <Huenicorn/EntertainmentConfig.hpp>
+#include <Huenicorn/EntertainmentConfiguration.hpp>
 
 
 namespace Huenicorn
@@ -18,11 +18,11 @@ namespace Huenicorn
 
   namespace ApiTools
   {
-    EntertainmentConfigs loadEntertainmentConfigurations(const std::string& username, const std::string& address);
+    EntertainmentConfigurations loadEntertainmentConfigurations(const std::string& username, const std::string& address);
     Devices loadDevices(const std::string& username, const std::string& address);
     ConfigurationsChannels loadConfigurationsChannels(const std::string& username, const std::string& address);
     std::vector<Device> matchDevices(const MembersIds& membersIds, const Devices& devices);
-    void setSelectedConfigStreamActivity(bool active, const EntertainmentConfigEntry& entertainmentConfigurationEntry, const std::string& username, const std::string& address);
-    bool streamingActive(const EntertainmentConfigEntry& entertainmentConfigurationEntry, const std::string& username, const std::string& address);
+    void setStreamingState(const EntertainmentConfigurationEntry& entertainmentConfigurationEntry, const std::string& username, const std::string& address, bool active);
+    bool streamingActive(const EntertainmentConfigurationEntry& entertainmentConfigurationEntry, const std::string& username, const std::string& address);
   }
 }

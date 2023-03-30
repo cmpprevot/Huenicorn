@@ -12,8 +12,8 @@
 #include <Huenicorn/Config.hpp>
 #include <Huenicorn/UV.hpp>
 #include <Huenicorn/Channel.hpp>
-#include <Huenicorn/EntertainmentConfig.hpp>
-#include <Huenicorn/EntertainmentConfigSelector.hpp>
+#include <Huenicorn/EntertainmentConfiguration.hpp>
+#include <Huenicorn/EntertainmentConfigurationSelector.hpp>
 #include <Huenicorn/ApiTools.hpp>
 #include <Huenicorn/Streamer.hpp>
 
@@ -37,8 +37,9 @@ namespace Huenicorn
     // Getters
     const std::filesystem::path configFilePath() const;
     const Channels& channels() const;
-    const EntertainmentConfigs& entertainmentConfigurations() const;
-    const EntertainmentConfig& selectedConfiguration() const;
+    const EntertainmentConfigurations& entertainmentConfigurations() const;
+    const EntertainmentConfiguration& currentEntertainmentConfiguration() const;
+    const std::string& selectedEntertinmentConfigurationId() const;
     glm::ivec2 displayResolution() const;
     std::vector<glm::ivec2> subsampleResolutionCandidates() const;
     unsigned subsampleWidth() const;
@@ -91,7 +92,7 @@ namespace Huenicorn
     std::unique_ptr<TickSynchronizer> m_tickSynchronizer;
 
     //  API structure wrapper
-    std::unique_ptr<EntertainmentConfigSelector> m_selector;
+    std::unique_ptr<EntertainmentConfigurationSelector> m_selector;
     std::unique_ptr<Streamer> m_streamer;
     Channels m_channels;
 

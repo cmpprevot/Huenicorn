@@ -111,11 +111,20 @@ namespace Huenicorn
   {
     const auto request = session->get_request();
 
-    string response = JsonSerializer::serialize(m_huenicornCore->entertainmentConfigurations()).dump();
+    auto entertainmentConfigurations = JsonSerializer::serialize(m_huenicornCore->entertainmentConfigurations());
+    string currentEntertainmentConfigurationId = m_huenicornCore->selectedEntertinmentConfigurationId();
+
+    json jsonResponse = {
+      {"entertainmentConfigurations", entertainmentConfigurations},
+      {"currentEntertainmentConfigurationId", currentEntertainmentConfigurationId}
+    };
+
+    string response = jsonResponse.dump();
+
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
       {"Content-Type", "application/json"}
-    }); 
+    });
   }
 
 

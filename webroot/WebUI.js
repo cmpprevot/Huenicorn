@@ -250,18 +250,23 @@ class WebUI
   }
 
 
-  _entertainmentConfigurationsCallback(entertainmentConfigurations)
+  _entertainmentConfigurationsCallback(entertainmentConfigurationsData)
   {
+    let entertainmentConfigurations = entertainmentConfigurationsData.entertainmentConfigurations;
+    let currentEntertainmentConfigurationId = entertainmentConfigurationsData.currentEntertainmentConfigurationId;
+
     if(entertainmentConfigurations.length > 1){
       this.entertainmentConfigurationsNode.style.display = "block";
     }
 
-    for(let configuration of entertainmentConfigurations){
+    for(let entertainmentConfiguration of entertainmentConfigurations){
       let newOption = document.createElement("option");
-      newOption.innerHTML = configuration.name;
-      newOption.value = configuration.entertainmentConfigurationId;
+      newOption.innerHTML = entertainmentConfiguration.name;
+      newOption.value = entertainmentConfiguration.entertainmentConfigurationId;
       this.entertainmentConfigurationsSelectNode.appendChild(newOption);
     }
+
+    this.entertainmentConfigurationsSelectNode.value = currentEntertainmentConfigurationId;
   }
 
   _manageChannel(channelId)

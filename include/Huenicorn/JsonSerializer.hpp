@@ -14,8 +14,8 @@ namespace Huenicorn
   namespace JsonSerializer
   {
     nlohmann::json serialize(const Credentials& credentials);
-    nlohmann::json serialize(const EntertainmentConfig& entertainmentConfiguration);
-    nlohmann::json serialize(const EntertainmentConfigs& entertainmentConfigurations);
+    nlohmann::json serialize(const EntertainmentConfiguration& entertainmentConfiguration);
+    nlohmann::json serialize(const EntertainmentConfigurations& entertainmentConfigurations);
     nlohmann::json serialize(const UVs& uvs);
     nlohmann::json serialize(const Device& device);
     nlohmann::json serialize(const Devices& devices);
