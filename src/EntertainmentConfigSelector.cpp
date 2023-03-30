@@ -30,6 +30,12 @@ namespace Huenicorn
   }
 
 
+  const EntertainmentConfigs& EntertainmentConfigSelector::entertainmentConfigs() const
+  {
+    return m_entertainmentConfigs;
+  }
+
+
   bool EntertainmentConfigSelector::validSelecion() const
   {
     return m_selectedConfig != m_entertainmentConfigs.end();
@@ -42,7 +48,9 @@ namespace Huenicorn
       return false;
     }
 
-    if(entertainmentConfigId == ""){
+    disableStreaming();
+
+    if(entertainmentConfigId.empty()){
       cout << "Fallback selection" << endl;
       m_selectedConfig = m_entertainmentConfigs.begin();
     }
@@ -55,6 +63,7 @@ namespace Huenicorn
       }
     }
 
+    // Disable previous configuration
     if(ApiTools::streamingActive(*m_selectedConfig, m_credentials.username(), m_address)){
       disableStreaming();
     }
@@ -67,6 +76,10 @@ namespace Huenicorn
 
   void EntertainmentConfigSelector::disableStreaming() const
   {
+    if(m_selectedConfig == m_entertainmentConfigs.end()){
+      return;
+    }
+
     ApiTools::setSelectedConfigStreamActivity(false, *m_selectedConfig, m_credentials.username(), m_address);
   }
 

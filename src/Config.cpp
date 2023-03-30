@@ -72,6 +72,12 @@ namespace Huenicorn
   }
 
 
+  const std::optional<std::string>& Config::profileName() const
+  {
+    return m_profileName;
+  }
+
+
   const std::optional<Credentials>& Config::credentials() const
   {
     return m_credentials;
@@ -88,6 +94,13 @@ namespace Huenicorn
   void Config::setCredentials(const std::string& username, const std::string& clientkey)
   {
     m_credentials.emplace(username, clientkey);
+    save();
+  }
+
+
+  void Config::setProfileName(const std::string& profileName)
+  {
+    m_profileName.emplace(profileName);
     save();
   }
 
@@ -124,6 +137,10 @@ namespace Huenicorn
 
     if(m_credentials.has_value()){
       jsonOutConfig["credentials"] = JsonSerializer::serialize(m_credentials.value());
+    }
+
+    if(m_profileName.has_value()){
+      jsonOutConfig["profileName"] = m_profileName.value();
     }
 
     if(!filesystem::exists(m_configFilePath)){
@@ -180,6 +197,10 @@ namespace Huenicorn
       return false;
     }
 
+    if(jsonConfigRoot.contains("profileName")){
+      m_profileName.emplace(jsonConfigRoot.at("profileName"));
+    }
+
     if(jsonConfigRoot.contains("subsampleWidth")){
       m_subsampleWidth = jsonConfigRoot.at("subsampleWidth");
     }
@@ -187,7 +208,7 @@ namespace Huenicorn
     if(jsonConfigRoot.contains("refreshRate")){
       m_refreshRate = jsonConfigRoot.at("refreshRate");
     }
-    
+
     return !jsonConfigRoot.empty();
   }
 }

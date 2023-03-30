@@ -25,12 +25,14 @@ namespace Huenicorn
     const std::string& username() const;
     const std::string& clientkey() const;
     const std::optional<Credentials>& credentials() const;
+    const std::optional<std::string>& profileName() const;
     unsigned refreshRate() const;
     unsigned subsampleWidth() const;
 
   // Setters
     void setBridgeAddress(const std::string& bridgeAddress);
     void setCredentials(const std::string& username, const std::string& clientkey);
+    void setProfileName(const std::string& profileName);
     void setSubsampleWidth(unsigned subsampleWidth);
     void setRefreshRate(unsigned refreshRate);
 
@@ -47,6 +49,7 @@ namespace Huenicorn
     int m_restServerPort{8080};
     std::optional<std::string> m_bridgeAddress;
     std::optional<Credentials> m_credentials;
+    std::optional<std::string> m_profileName;
     unsigned m_refreshRate{0};
     unsigned m_subsampleWidth{0};
   };

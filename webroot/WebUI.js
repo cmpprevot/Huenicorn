@@ -17,6 +17,10 @@ class WebUI
     this.activeChannels = {};
 
     this.screenWidget = new ScreenWidget(this);
+    
+    this.entertainmentConfigurationsNode = document.getElementById("entertainmentConfigurations");
+    this.entertainmentConfigurationsSelectNode = document.getElementById("entertainmentConfigurationsSelect");
+    this.entertainmentConfigurationsSelectNode.addEventListener("change", (event) => {this._setEntertainmentConfiguration(event.target.value);});
 
     this.advancedSettingsCheckbox = document.getElementById("advancedSettingsCheckbox");
     this.advancedSettingsCheckbox.addEventListener("click", (e) => {this._toggleAdvancedDisplay(e.target.checked);});
@@ -51,6 +55,10 @@ class WebUI
     let displayInfoPromise = RequestUtils.get("/displayInfo");
     displayInfoPromise.then((data) => {this._displayInfoCallback(data);});
     displayInfoPromise.catch((error) => {log(error);});
+
+    let entertainmentConfigurationsPromise = RequestUtils.get("/entertainmentConfigurations");
+    entertainmentConfigurationsPromise.then((data) => {this._entertainmentConfigurationsCallback(data);});
+    entertainmentConfigurationsPromise.catch((error) => {log(error);});
   }
 
 
@@ -242,6 +250,20 @@ class WebUI
   }
 
 
+  _entertainmentConfigurationsCallback(entertainmentConfigurations)
+  {
+    if(entertainmentConfigurations.length > 1){
+      this.entertainmentConfigurationsNode.style.display = "block";
+    }
+
+    for(let configuration of entertainmentConfigurations){
+      let newOption = document.createElement("option");
+      newOption.innerHTML = configuration.name;
+      newOption.value = configuration.entertainmentConfigurationId;
+      this.entertainmentConfigurationsSelectNode.appendChild(newOption);
+    }
+  }
+
   _manageChannel(channelId)
   {
     for(let loopChannelId of Object.keys(this.activeChannels)){
@@ -277,6 +299,19 @@ class WebUI
   }
 
 
+  _setEntertainmentConfiguration(entertaimentConfigurationId)
+  {
+    log(entertaimentConfigurationId);
+    let promise = RequestUtils.put("/setEntertainmentConfiguration", JSON.stringify(entertaimentConfigurationId));
+    promise.then((displayInfo) => {
+      // RELOAD !!
+      log("Reloading data", displayInfo);
+
+    });
+    promise.catch((error) => {log(error);});
+  }
+
+
   _setSubsampleWidth(subsampleWidth)
   {
     let promise = RequestUtils.put("/setSubsampleWidth", JSON.stringify(subsampleWidth));
@@ -294,7 +329,7 @@ class WebUI
 
   _setRefreshRate(refreshRate){
     let promise = RequestUtils.put("/setRefreshRate", JSON.stringify(refreshRate));
-    promise.then((data) => {this._setRefreshRateCallback(JSON.parse(data).refreshRate);});
+    promise.then((data) => {this._setRefreshRateCallback(data.refreshRate);});
     promise.catch((error) => {log(error);});
   }
 

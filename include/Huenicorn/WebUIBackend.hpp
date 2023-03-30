@@ -20,10 +20,12 @@ namespace Huenicorn
   private:
 
     // Handlers
+    void _entertainmentConfigurations(const SharedSession& session) const;
     void _getChannel(const SharedSession& session) const;
     void _getChannels(const SharedSession& session) const;
     void _getChannelsMembers(const SharedSession& session) const;
     void _getDisplayInfo(const SharedSession& session) const;
+    void _setEntertainmentConfiguration(const SharedSession& session) const;
     void _setChannelUV(const SharedSession& session) const;
     void _setChannelGammaFactor(const SharedSession& session) const;
     void _setSubsampleWidth(const SharedSession& session) const;

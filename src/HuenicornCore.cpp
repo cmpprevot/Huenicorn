@@ -20,7 +20,6 @@ namespace Huenicorn
 {
   HuenicornCore::HuenicornCore(const std::filesystem::path& configRoot):
   m_configRoot(configRoot),
-  m_profileFilePath(m_configRoot / "profile.json"),
   m_config(m_configRoot),
   m_grabber(make_unique<X11Grabber>(&m_config))
   {}
@@ -35,6 +34,18 @@ namespace Huenicorn
   const Channels& HuenicornCore::channels() const
   {
     return m_channels;
+  }
+
+
+  const EntertainmentConfigs& HuenicornCore::entertainmentConfigurations() const
+  {
+    return m_selector->entertainmentConfigs();
+  }
+
+
+  const EntertainmentConfig& HuenicornCore::selectedConfiguration() const
+  {
+    return m_selector->selectedConfig();
   }
 
 
@@ -103,6 +114,18 @@ namespace Huenicorn
     m_config.setCredentials(username, clientkey);
 
     return {{"succeeded", true}, {"username", username}, {"clientkey", clientkey}};
+  }
+
+
+  bool HuenicornCore::setEntertainmentConfiguration(const std::string& entertainmentConfigurationId)
+  {
+    if(!m_selector->selectEntertainementConfig(entertainmentConfigurationId)){
+      return false;
+    }
+
+    m_streamer->setEntertainmentConfigId(m_selector->selectedEntertainmentConfigId());
+
+    return true;
   }
 
 
@@ -243,7 +266,7 @@ namespace Huenicorn
   }
 
 
-  void HuenicornCore::saveProfile() const
+  void HuenicornCore::saveProfile()
   {
     if(!m_selector->validSelecion()){
       cout << "There is currently no valid entertainment configuration selected." << endl;
@@ -255,7 +278,11 @@ namespace Huenicorn
       {"channels", JsonSerializer::serialize(m_channels)}
     };
 
-    ofstream profileFile(m_profileFilePath, ofstream::out);
+    if(!m_config.profileName().has_value()){
+      m_config.setProfileName("profile");
+    }
+
+    ofstream profileFile(_profilePath(), ofstream::out);
     profileFile << profile.dump(2) << endl;
     profileFile.close();
   }
@@ -263,31 +290,41 @@ namespace Huenicorn
 
   bool HuenicornCore::_loadProfile()
   {
-    filesystem::path profilePath = m_profileFilePath;
+    filesystem::path profilePath = _profilePath();
     json jsonProfile = json::object();
 
-    if(filesystem::exists(profilePath) && filesystem::is_regular_file(profilePath)){
+    string entertainmentConfigId = {};
+    bool foundProfile = false;
+
+    if(!profilePath.empty() && filesystem::exists(profilePath) && filesystem::is_regular_file(profilePath)){
       ifstream profileFile(profilePath);
       jsonProfile = json::parse(profileFile);
-    }
-    else{
-      cout << "No profile found yet." << endl;
-    }
 
-    string entertainmentConfigId = "";
-    if(jsonProfile.contains("entertainmentConfigId")){
-      entertainmentConfigId = jsonProfile.at("entertainmentConfigId");
+      if(jsonProfile.contains("entertainmentConfigId")){
+        entertainmentConfigId = jsonProfile.at("entertainmentConfigId");
+        foundProfile = true;
+      }
     }
-
+    
     if(!m_selector->selectEntertainementConfig(entertainmentConfigId)){
-      cout << "Invalid entertaintment config selection" << endl;
+      cout << "Invalid entertainment config selection" << endl;
       return false;
     }
 
+    _initChannels(jsonProfile);
+
+    return foundProfile;
+  }
+
+
+  void HuenicornCore::_initChannels(const nlohmann::json& jsonProfile)
+  {
     const string& username = m_config.credentials().value().username();
     const string& bridgeAddress =  m_config.bridgeAddress().value();
     Devices devices = ApiTools::loadDevices(username, bridgeAddress);
     ConfigurationsChannels configurationsChannels = ApiTools::loadConfigurationsChannels(username, bridgeAddress);
+
+    Channels channels;
 
     for(const auto& [id, channel] : m_selector->selectedConfig().channels()){
       bool found = false;
@@ -304,7 +341,7 @@ namespace Huenicorn
 
             UVs uvs = {{uvAx, uvAy}, {uvBx, uvBy}};
             float gammaFactor = jsonProfileChannel.at("gammaFactor");
-            m_channels.emplace(id, Channel{active, members, gammaFactor, uvs});
+            channels.emplace(id, Channel{active, members, gammaFactor, uvs});
 
             found = true;
             break;
@@ -313,11 +350,11 @@ namespace Huenicorn
       }
 
       if(!found){
-        m_channels.emplace(id, Channel{false, members, 0.0f, {}});
+        channels.emplace(id, Channel{false, members, 0.0f});
       }
     }
 
-    return true;
+    m_channels = std::move(channels);
   }
 
 
@@ -332,7 +369,9 @@ namespace Huenicorn
     string serviceURL = serviceUrlStream.str();
     std::cout << "Management WebUI is ready and available at " << serviceURL << std::endl;
 
-    system(string("xdg-open " + serviceURL).c_str());
+    if(system(string("xdg-open " + serviceURL).c_str()) != 0){
+      std::cout << "Failed to open browser" << std::endl;
+    }
   }
 
 
@@ -348,7 +387,7 @@ namespace Huenicorn
     const string& bridgeAddress =  m_config.bridgeAddress().value();
     m_selector = make_unique<EntertainmentConfigSelector>(credentials, bridgeAddress);
 
-    if(!_loadProfile() && ! m_openedSetup){
+    if(!_loadProfile() && !m_openedSetup){
       thread spawnBrowser([this](){_spawnBrowser();});
       spawnBrowser.detach();
     }
@@ -372,7 +411,8 @@ namespace Huenicorn
       _processFrame();
 
       if(!m_tickSynchronizer->sync()){
-        cout << "Scheduled interval has been exceeded of " << m_tickSynchronizer->lastExcess().extra << " (" << m_tickSynchronizer->lastExcess().rate * 100 << "%)." << endl;
+        const auto& lastExcess = m_tickSynchronizer->lastExcess();
+        cout << "Scheduled interval has been exceeded of " << lastExcess.extra << " (" << lastExcess.rate * 100 << "%)." << endl;
         cout << "Please reduce refreshRate if this warning persists." << endl;
       }
     }
@@ -388,7 +428,7 @@ namespace Huenicorn
   {
     m_grabber->grabFrameSubsample(m_cvImage);
     cv::Mat subframeImage;
-    vector<ChannelStream> channelStreams;
+    ChannelStreams channelStreams;
 
     for(auto& [channelId, channel] : m_channels){
       if(channel.state() == Channel::State::Inactive){

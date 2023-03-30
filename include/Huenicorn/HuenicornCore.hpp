@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <thread>
+#include <filesystem>
 
 #include <nlohmann/json.hpp>
 
@@ -36,6 +37,8 @@ namespace Huenicorn
     // Getters
     const std::filesystem::path configFilePath() const;
     const Channels& channels() const;
+    const EntertainmentConfigs& entertainmentConfigurations() const;
+    const EntertainmentConfig& selectedConfiguration() const;
     glm::ivec2 displayResolution() const;
     std::vector<glm::ivec2> subsampleResolutionCandidates() const;
     unsigned subsampleWidth() const;
@@ -45,6 +48,7 @@ namespace Huenicorn
 
 
     // Setters
+    bool setEntertainmentConfiguration(const std::string& entertainmentConfigurationId);
     const UVs& setChannelUV(uint8_t channelId, UV&& uv, UVType uvType);
     bool setChannelGammaFactor(uint8_t syncedChannelId, float gammaFactor);
     void setSubsampleWidth(unsigned subsampleWidth);
@@ -57,22 +61,30 @@ namespace Huenicorn
     bool validateBridgeAddress(const std::string& bridgeAddress);
     bool validateCredentials(const Credentials& credentials);
     bool setChannelActivity(uint8_t channelId, bool active);
-    void saveProfile() const;
+    void saveProfile();
 
 
   private:
 
     // Private methods
     bool _loadProfile();
+    void _initChannels(const nlohmann::json& jsonProfile);
     void _spawnBrowser();
     void _loop();
     void _processFrame();
     void _shutdown();
 
+    std::filesystem::path _profilePath() const
+    {
+      if(!m_config.profileName().has_value()){
+        return {};
+      }
+
+      return m_configRoot / std::filesystem::path(m_config.profileName().value()).replace_extension("json");
+    }
 
     // Attributes
     std::filesystem::path m_configRoot;
-    std::filesystem::path m_profileFilePath;
     Config m_config;
 
     bool m_keepLooping;

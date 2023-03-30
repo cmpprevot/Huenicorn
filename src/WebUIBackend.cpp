@@ -21,6 +21,13 @@ namespace Huenicorn
   {
     {
       auto resource = make_shared<restbed::Resource>();
+      resource->set_path("/entertainmentConfigurations");
+      resource->set_method_handler("GET", [this](SharedSession session){_entertainmentConfigurations(session);});
+      m_service.publish(resource);
+    }
+
+    {
+      auto resource = make_shared<restbed::Resource>();
       resource->set_path("/channel/{channelId: .+}");
       resource->set_method_handler("GET", [this](SharedSession session){_getChannel(session);});
       m_service.publish(resource);
@@ -37,6 +44,13 @@ namespace Huenicorn
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/displayInfo");
       resource->set_method_handler("GET", [this](SharedSession session){_getDisplayInfo(session);});
+      m_service.publish(resource);
+    }
+
+    {
+      auto resource = make_shared<restbed::Resource>();
+      resource->set_path("/setEntertainmentConfiguration");
+      resource->set_method_handler("PUT", [this](SharedSession session){_setEntertainmentConfiguration(session);});
       m_service.publish(resource);
     }
 
@@ -93,6 +107,18 @@ namespace Huenicorn
   }
 
 
+  void WebUIBackend::_entertainmentConfigurations(const SharedSession& session) const
+  {
+    const auto request = session->get_request();
+
+    string response = JsonSerializer::serialize(m_huenicornCore->entertainmentConfigurations()).dump();
+    session->close(restbed::OK, response, {
+      {"Content-Length", std::to_string(response.size())},
+      {"Content-Type", "application/json"}
+    }); 
+  }
+
+
   void WebUIBackend::_getChannel(const SharedSession& session) const
   {
     const auto request = session->get_request();
@@ -121,6 +147,7 @@ namespace Huenicorn
     auto displayResolution = m_huenicornCore->displayResolution();
     auto subsampleResolutionCandidates = m_huenicornCore->subsampleResolutionCandidates();
 
+    // TODO : Serialize from JsonSerializer
     json jsonSubsampleCandidates = json::array();
     for(const auto& candidate : this->m_huenicornCore->subsampleResolutionCandidates()){
       jsonSubsampleCandidates.push_back({
@@ -129,12 +156,14 @@ namespace Huenicorn
       });
     }
 
+    // TODO : Serialize from JsonSerializer
     json jsonDisplayInfo{
       {"x", displayResolution.x},
       {"y", displayResolution.y},
       {"subsampleWidth", m_huenicornCore->subsampleWidth()},
       {"subsampleResolutionCandidates", jsonSubsampleCandidates},
-      {"selectedRefreshRate", m_huenicornCore->refreshRate()}
+      {"selectedRefreshRate", m_huenicornCore->refreshRate()},
+      // ToDo : add max refreshRate
     };
 
     string response = jsonDisplayInfo.dump();
@@ -142,6 +171,33 @@ namespace Huenicorn
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
       {"Content-Type", "application/json"}
+    });
+  }
+
+
+  void WebUIBackend::_setEntertainmentConfiguration(const SharedSession& session) const
+  {
+    const auto request = session->get_request();
+    int contentLength = request->get_header("Content-Length", 0);
+
+    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+      string data(reinterpret_cast<const char*>(body.data()), body.size());
+
+      string entertainmentConfigurationId = json::parse(data);
+
+      bool succeeded = m_huenicornCore->setEntertainmentConfiguration(entertainmentConfigurationId);
+
+      json jsonResponse = {
+        {"succeeded", succeeded},
+        {"entertainmentConfigurationId", entertainmentConfigurationId}
+      };
+
+      string response = jsonResponse.dump();
+
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
     });
   }
 
@@ -164,6 +220,7 @@ namespace Huenicorn
 
       const auto& clampedUVs = m_huenicornCore->setChannelUV(channelId, {x, y}, uvType);
 
+      // TODO : Serialize from JsonSerializer
       json jsonResponse = {
         {"uvA", {{"x", clampedUVs.min.x}, {"y", clampedUVs.min.y}}},
         {"uvB", {{"x", clampedUVs.max.x}, {"y", clampedUVs.max.y}}}

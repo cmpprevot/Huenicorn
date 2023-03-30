@@ -90,13 +90,13 @@ input[type=text]
 {
   width: 800px;
   display: inline-block;
+  margin-bottom: 20px;
 }
 
 
 .listContainer
 {
   display: inline-block;
-
 }
 
 .channelList
@@ -118,11 +118,25 @@ input[type=text]
   width: 400px;
   margin-left: auto;
   margin-right: auto;
-  margin-top: 20px;
+  margin-bottom: 20px;
   padding: 20px;
   box-shadow: var(--shadow);
   border: var(--border);
   border-radius: var(--borderRadius);
+}
+
+
+#entertainmentConfigurations
+{
+  display: none;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+
+#entertainmentConfigurationsSelect
+{
+  width: 200px;
 }
 
 

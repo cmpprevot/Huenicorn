@@ -17,6 +17,7 @@ namespace Huenicorn
     // Getters
     const std::string& selectedEntertainmentConfigId() const;
     const EntertainmentConfig& selectedConfig() const;
+    const EntertainmentConfigs& entertainmentConfigs() const;
     bool validSelecion() const;
 
     // Methods
@@ -32,6 +33,6 @@ namespace Huenicorn
     const std::string m_address;
 
     EntertainmentConfigs m_entertainmentConfigs;
-    EntertainmentConfigsIterator m_selectedConfig{nullptr};
+    EntertainmentConfigsIterator m_selectedConfig{m_entertainmentConfigs.end()};
   };
 }

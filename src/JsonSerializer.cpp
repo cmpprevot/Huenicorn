@@ -16,6 +16,28 @@ namespace Huenicorn
     }
 
 
+    nlohmann::json serialize(const EntertainmentConfig& entertainmentConfiguration)
+    {
+      return {
+        {"name", entertainmentConfiguration.name()},
+        //{"devices", JsonSerializer::serialize(entertainmentConfiguration.devices())},
+        //{"channels", JsonSerializer::serialize(entertainmentConfiguration.channels())},
+      };
+    }
+
+
+    nlohmann::json serialize(const EntertainmentConfigs& entertainmentConfigurations)
+    {
+      nlohmann::json jsonEntertainmentConfigurations = nlohmann::json::array();
+      for(const auto& entertainmentConfiguration : entertainmentConfigurations){
+        auto& it = jsonEntertainmentConfigurations.emplace_back(serialize(entertainmentConfiguration.second));
+        it["entertainmentConfigurationId"] = entertainmentConfiguration.first;
+      }
+
+      return jsonEntertainmentConfigurations;
+    }
+
+
     nlohmann::json serialize(const UVs& uvs)
     {
       return {
