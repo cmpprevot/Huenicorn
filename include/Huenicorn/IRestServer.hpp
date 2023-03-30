@@ -111,6 +111,19 @@ namespace Huenicorn
 
       std::filesystem::path webFileFullPath = m_webroot / webFileName;
 
+      if(!std::filesystem::exists(m_webroot)){
+        std::string response = "<h1>Error : Could not locate webroot</h1><p>Make sure that the webroot directory figures in the current working directory</p>";
+        std::string contentType = "text/html";
+
+        std::multimap<std::string, std::string> headers{
+          {"Content-Length", std::to_string(response.size())},
+          {"Content-Type", contentType}
+        };
+
+        session->close(restbed::OK, response, headers);
+        return;
+      }
+
       if(!std::filesystem::exists(webFileFullPath) || m_webfileBlackList.contains(webFileName)){
         webFileName = "404.html";
         webFileFullPath = m_webroot / webFileName;
