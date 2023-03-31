@@ -79,6 +79,12 @@ namespace Huenicorn
   }
 
 
+  unsigned HuenicornCore::maxRefreshRate() const
+  {
+    return m_grabber->displayRefreshRate();
+  }
+
+
   json HuenicornCore::autoDetectedBridge() const
   {
     string bridgeAddress;

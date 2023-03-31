@@ -44,6 +44,7 @@ namespace Huenicorn
     std::vector<glm::ivec2> subsampleResolutionCandidates() const;
     unsigned subsampleWidth() const;
     unsigned refreshRate() const;
+    unsigned maxRefreshRate() const;
     nlohmann::json autoDetectedBridge() const;
     nlohmann::json registerNewUser();
 

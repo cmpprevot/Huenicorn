@@ -156,7 +156,6 @@ namespace Huenicorn
     auto displayResolution = m_huenicornCore->displayResolution();
     auto subsampleResolutionCandidates = m_huenicornCore->subsampleResolutionCandidates();
 
-    // TODO : Serialize from JsonSerializer
     json jsonSubsampleCandidates = json::array();
     for(const auto& candidate : this->m_huenicornCore->subsampleResolutionCandidates()){
       jsonSubsampleCandidates.push_back({
@@ -165,14 +164,13 @@ namespace Huenicorn
       });
     }
 
-    // TODO : Serialize from JsonSerializer
     json jsonDisplayInfo{
       {"x", displayResolution.x},
       {"y", displayResolution.y},
       {"subsampleWidth", m_huenicornCore->subsampleWidth()},
       {"subsampleResolutionCandidates", jsonSubsampleCandidates},
       {"selectedRefreshRate", m_huenicornCore->refreshRate()},
-      // ToDo : add max refreshRate
+      {"maxRefreshRate", m_huenicornCore->maxRefreshRate()}
     };
 
     string response = jsonDisplayInfo.dump();

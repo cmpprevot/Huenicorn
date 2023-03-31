@@ -241,6 +241,7 @@ class WebUI
     let y = displayInfo.y;
     let subsampleWidth = displayInfo.subsampleWidth;
     this.refreshRateInputNode.value = displayInfo.selectedRefreshRate;
+    this.refreshRateInputNode.max = displayInfo.maxRefreshRate;
 
     this.screenWidget.setDimensions(x, y, subsampleWidth);
     this.screenWidget.setSubsampleCandidates(displayInfo.subsampleResolutionCandidates);
