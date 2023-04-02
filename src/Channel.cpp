@@ -48,15 +48,15 @@ namespace Huenicorn
   }
 
 
-  UVs& Channel::setUV(UV&& uv, UVType uvType)
+  UVs& Channel::setUV(UV&& uv, UVCorner uvCorner)
   {
     UVs newUVs = m_uvs;
     uv.x = glm::clamp(uv.x, 0.f, 1.f);
     uv.y = glm::clamp(uv.y, 0.f, 1.f);
 
-    switch (uvType)
+    switch (uvCorner)
     {
-      case UVType::TopLeft:
+      case UVCorner::TopLeft:
       {
         newUVs.min.x = uv.x;
         newUVs.min.y = uv.y;
@@ -65,7 +65,7 @@ namespace Huenicorn
         break;
       }
 
-      case UVType::TopRight:
+      case UVCorner::TopRight:
       {
         newUVs.max.x = uv.x;
         newUVs.min.y = uv.y;
@@ -74,7 +74,7 @@ namespace Huenicorn
         break;
       }
 
-      case UVType::BottomLeft:
+      case UVCorner::BottomLeft:
       {
         newUVs.min.x = uv.x;
         newUVs.max.y = uv.y;
@@ -83,7 +83,7 @@ namespace Huenicorn
         break;
       }
 
-      case UVType::BottomRight:
+      case UVCorner::BottomRight:
       {
         newUVs.max.x = uv.x;
         newUVs.max.y = uv.y;

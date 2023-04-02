@@ -16,13 +16,26 @@ namespace Huenicorn
 
     using GamutCoordinates = std::array<glm::vec2, 3>;
 
+    /**
+     * @brief Color constructor
+     * 
+     * @param r Red channel
+     * @param g Green channel
+     * @param b Blue channel
+     */
     Color(ChannelDepth r = 0, ChannelDepth g = 0,  ChannelDepth b = 0):
     m_r(r),
     m_g(g),
     m_b(b)
     {}
 
-
+    /**
+     * @brief Equality comparison operator
+     * 
+     * @param other Other color to compare
+     * @return true Other color is equal
+     * @return false Other color is not equal
+     */
     bool operator==(const Color& other) const
     {
       return  m_r == other.m_r &&
@@ -30,19 +43,24 @@ namespace Huenicorn
               m_b == other.m_b;
     }
 
-
+    /**
+     * @brief Inequality comparison operator
+     * 
+     * @param other Other color to compare
+     * @return true Other color is not equal
+     * @return false Other color is equal
+     */
     bool operator!=(const Color& other) const
     {
       return  !(*this == other);
     }
 
 
-    cv::Scalar toScalar() const
-    {
-      return cv::Scalar(m_r, m_g, m_b);
-    }
-
-
+    /**
+     * @brief Returns a rgb value in normalized 0-1 floating range
+     * 
+     * @return glm::vec3 normalized color
+     */
     glm::vec3 toNormalized() const
     {
       return glm::vec3(
@@ -53,6 +71,12 @@ namespace Huenicorn
     }
 
 
+    /**
+     * @brief Returns a XY conversion of RGB color
+     * 
+     * @param gamutCoordinates Boundaries of the gammut
+     * @return glm::vec2 XY color coordinates
+     */
     glm::vec2 toXY(const GamutCoordinates& gamutCoordinates) const
     {
       // Following https://gist.github.com/popcorn245/30afa0f98eea1c2fd34d
@@ -95,6 +119,11 @@ namespace Huenicorn
     }
 
 
+    /**
+     * @brief Returns the ponderated brightness of RGB color
+     * 
+     * @return float Color brightness
+     */
     float brightness() const
     {
       return (m_r * 0.3f + m_g * 0.59f + m_b * 0.11f) / Color::Max;
@@ -102,12 +131,29 @@ namespace Huenicorn
 
 
   private:
+    // Private methods
+    /**
+     * @brief Computes a sign check on boundaries
+     * 
+     * @param a Gammut vertex a
+     * @param b Gammut vertex b
+     * @param c Gammut vertex c
+     * @return float Signed value for boundary check
+     */
     static inline float _sign(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c)
     {
       return (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y);
     }
 
 
+    /**
+     * @brief Returns wether the XY color coordinates fits in gammut
+     * 
+     * @param xy 
+     * @param gamutCoordinates 
+     * @return true XY color fits in gammut boundaries
+     * @return false XY color doesn't fit in gammut boundaries
+     */
     inline static bool _xyInGamut(const glm::vec2& xy, const GamutCoordinates& gamutCoordinates)
     {
       bool has_neg, has_pos;
@@ -126,7 +172,7 @@ namespace Huenicorn
       return !(has_neg && has_pos);
     }
 
-  private:
+    // Attributes
     ChannelDepth m_r;
     ChannelDepth m_g;
     ChannelDepth m_b;

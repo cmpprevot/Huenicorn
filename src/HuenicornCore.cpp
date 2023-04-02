@@ -49,7 +49,7 @@ namespace Huenicorn
   }
 
 
-  const std::string& HuenicornCore::selectedEntertinmentConfigurationId() const
+  const std::string& HuenicornCore::currentEntertinmentConfigurationId() const
   {
     return m_selector->currentEntertainmentConfigurationId();
   }
@@ -135,15 +135,15 @@ namespace Huenicorn
       return false;
     }
 
-    m_streamer->setEntertainmentConfigId(m_selector->currentEntertainmentConfigurationId());
+    m_streamer->setEntertainmentConfigurationId(m_selector->currentEntertainmentConfigurationId());
 
     return true;
   }
 
 
-  const UVs& HuenicornCore::setChannelUV(uint8_t channelId, UV&& uv, UVType uvType)
+  const UVs& HuenicornCore::setChannelUV(uint8_t channelId, UV&& uv, UVCorner uvCorner)
   {
-    return m_channels.at(channelId).setUV(std::move(uv), uvType);
+    return m_channels.at(channelId).setUV(std::move(uv), uvCorner);
   }
 
 
@@ -300,6 +300,16 @@ namespace Huenicorn
   }
 
 
+  filesystem::path HuenicornCore::_profilePath() const
+  {
+    if(!m_config.profileName().has_value()){
+      return {};
+    }
+
+    return m_configRoot / std::filesystem::path(m_config.profileName().value()).replace_extension("json");
+  }
+
+
   bool HuenicornCore::_loadProfile()
   {
     filesystem::path profilePath = _profilePath();
@@ -334,13 +344,13 @@ namespace Huenicorn
     const string& username = m_config.credentials().value().username();
     const string& bridgeAddress =  m_config.bridgeAddress().value();
     Devices devices = ApiTools::loadDevices(username, bridgeAddress);
-    ConfigurationsChannels configurationsChannels = ApiTools::loadConfigurationsChannels(username, bridgeAddress);
+    EntertainmentConfigurationsChannels entertainmentConfigurationsChannels = ApiTools::loadEntertainmentConfigurationsChannels(username, bridgeAddress);
 
     Channels channels;
 
     for(const auto& [id, channel] : m_selector->currentEntertainmentConfiguration().channels()){
       bool found = false;
-      const auto& members = ApiTools::matchDevices(configurationsChannels.at(m_selector->currentEntertainmentConfigurationId()).at(id), devices);
+      const auto& members = ApiTools::matchDevices(entertainmentConfigurationsChannels.at(m_selector->currentEntertainmentConfigurationId()).at(id), devices);
       if(jsonProfile.contains("channels")){
         for(const auto& jsonProfileChannel : jsonProfile.at("channels")){
           if(jsonProfileChannel.at("channelId") == id){
@@ -411,7 +421,7 @@ namespace Huenicorn
 
     m_streamer = make_unique<Streamer>(credentials, m_config.bridgeAddress().value());
 
-    m_streamer->setEntertainmentConfigId(m_selector->currentEntertainmentConfigurationId());
+    m_streamer->setEntertainmentConfigurationId(m_selector->currentEntertainmentConfigurationId());
     // Todo : Check if handshake went well before proceding
 
     m_tickSynchronizer = make_unique<TickSynchronizer>(1.0f / static_cast<float>(m_config.refreshRate()));

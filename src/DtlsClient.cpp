@@ -169,7 +169,7 @@ namespace Huenicorn
   void DtlsClient::_handshake()
   {
     int result;
-    for(unsigned attempt = 0; attempt < HandhsakeAttempts; attempt++){
+    for(unsigned attempt = 0; attempt < HandshakeAttempts; attempt++){
       mbedtls_ssl_conf_handshake_timeout(&m_conf, 400, 1000);
       do{
         result = mbedtls_ssl_handshake(&m_ssl);

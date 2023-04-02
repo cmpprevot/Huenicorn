@@ -13,7 +13,7 @@ namespace Huenicorn
   };
 
 
-  enum UVType
+  enum UVCorner
   {
     TopLeft = 0,
     TopRight = 1,

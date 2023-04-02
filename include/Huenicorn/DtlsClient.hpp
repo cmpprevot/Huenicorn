@@ -19,24 +19,85 @@ namespace Huenicorn
 {
   class DtlsClient
   {
-  static constexpr std::string Hostname = "Hue";
-  static constexpr unsigned HandhsakeAttempts = 4;
+    // Constants
+    static constexpr std::string Hostname = "Hue";
+    static constexpr unsigned HandshakeAttempts = 4;
 
   public:
+    // Constructor / destructor
+    /**
+     * @brief DtlsClient constructor
+     * 
+     * @param credentials PSK credentials
+     * @param address Address of the DTLS server
+     * @param port Port of the DTLS server
+     */
     DtlsClient(const Credentials& credentials, const std::string& address, const std::string& port);
+
+
+    /**
+     * @brief DtlsClient destructor
+     * 
+     */
     ~DtlsClient();
 
+    /**
+     * @brief Calls all the inner initializations
+     * 
+     */
     void init();
 
+
+    /**
+     * @brief Sends byte buffer to the server
+     * 
+     * @param requestBuffer Byte buffer to send to the server
+     * @return true Sending was successful
+     * @return false Sending failed
+     */
     bool send(const std::vector<char>& requestBuffer);
 
   private:
+    // Private methods
+    /**
+     * @brief Initializes MberdTLS objects
+     * 
+     */
     void _initMembers();
+
+
+    /**
+     * @brief Initializes the random number generator
+     * 
+     */
     void _initRNG();
+
+
+    /**
+     * @brief Initializes the connection
+     * 
+     */
     void _initConnection();
+
+
+    /**
+     * @brief Initializes the SSL layer with PSK
+     * 
+     */
     void _initSSL();
+
+
+    /**
+     * @brief Execute handshake
+     * 
+     */
     void _handshake();
 
+
+    /**
+     * @brief Free all the allocated MbedTLS members
+     * 
+     */
     void _deallocate();
 
     // Attributes

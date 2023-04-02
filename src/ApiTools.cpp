@@ -12,12 +12,12 @@ namespace Huenicorn
 {
   namespace ApiTools
   {
-    EntertainmentConfigurations loadEntertainmentConfigurations(const string& username, const string& address)
+    EntertainmentConfigurations loadEntertainmentConfigurations(const string& username, const string& bridgeAddress)
     {
       EntertainmentConfigurations entertainmentConfigurations;
 
       RequestUtils::Headers headers = {{"hue-application-key", username}};
-      string entertainmentConfUrl = "https://" + address + "/clip/v2/resource/entertainment_configuration";
+      string entertainmentConfUrl = "https://" + bridgeAddress + "/clip/v2/resource/entertainment_configuration";
       auto entertainmentConfigurationResponse = RequestUtils::sendRequest(entertainmentConfUrl, "GET", "", headers);
 
       if(entertainmentConfigurationResponse.at("errors").size() == 0){
@@ -33,7 +33,7 @@ namespace Huenicorn
           for(const json& lightService : lightServices){
             const string& lightId = lightService.at("rid");
 
-            string lightUrl = "https://" + address + "/clip/v2/resource/light/" + lightId;
+            string lightUrl = "https://" + bridgeAddress + "/clip/v2/resource/light/" + lightId;
             auto jsonLightData = RequestUtils::sendRequest(lightUrl, "GET", "", headers);
             const json& metadata = jsonLightData.at("data").at(0).at("metadata");
 
@@ -53,10 +53,10 @@ namespace Huenicorn
     }
 
 
-    Devices loadDevices(const string& username, const string& address)
+    Devices loadDevices(const string& username, const string& bridgeAddress)
     {
       RequestUtils::Headers headers = {{"hue-application-key", username}};
-      string resourceUrl = "https://" + address + "/clip/v2/resource";
+      string resourceUrl = "https://" + bridgeAddress + "/clip/v2/resource";
       auto jsonResource = RequestUtils::sendRequest(resourceUrl, "GET", "", headers);
 
       Devices devices;
@@ -81,14 +81,14 @@ namespace Huenicorn
     }
 
 
-    ConfigurationsChannels loadConfigurationsChannels(const string& username, const string& address)
+    EntertainmentConfigurationsChannels loadEntertainmentConfigurationsChannels(const string& username, const string& bridgeAddress)
     {
       RequestUtils::Headers headers = {{"hue-application-key", username}};
-      string resourceUrl = "https://" + address + "/clip/v2/resource/entertainment_configuration";
+      string resourceUrl = "https://" + bridgeAddress + "/clip/v2/resource/entertainment_configuration";
 
       auto jsonEntertainmentConfigurations = RequestUtils::sendRequest(resourceUrl, "GET", "", headers);
 
-      ConfigurationsChannels configurationsChannels;
+      EntertainmentConfigurationsChannels entertainmentConfigurationsChannels;
 
       for(const auto& entConf : jsonEntertainmentConfigurations.at("data")){
         string configurationId = entConf.at("id");
@@ -96,12 +96,12 @@ namespace Huenicorn
           uint8_t channelId = jsonChannel.at("channel_id");
           for(const auto& jsonMember : jsonChannel.at("members")){
             string jsonMemberId = jsonMember.at("service").at("rid");
-            configurationsChannels[configurationId][channelId].push_back(jsonMemberId);
+            entertainmentConfigurationsChannels[configurationId][channelId].push_back(jsonMemberId);
           }
         }
       }
 
-      return configurationsChannels;
+      return entertainmentConfigurationsChannels;
     }
 
 
@@ -117,7 +117,7 @@ namespace Huenicorn
     }
 
 
-    void setStreamingState(const EntertainmentConfigurationEntry& entertrainmentConfigurationEntry, const string& username, const string& address, bool active)
+    void setStreamingState(const EntertainmentConfigurationEntry& entertrainmentConfigurationEntry, const string& username, const string& bridgeAddress, bool active)
     {
       json jsonBody = {
         {"action", active ? "start" : "stop"},
@@ -126,18 +126,18 @@ namespace Huenicorn
 
       RequestUtils::Headers headers = {{"hue-application-key", username}};
 
-      string url = "https://" + address + "/clip/v2/resource/entertainment_configuration/" + entertrainmentConfigurationEntry.first;
+      string url = "https://" + bridgeAddress + "/clip/v2/resource/entertainment_configuration/" + entertrainmentConfigurationEntry.first;
 
       RequestUtils::sendRequest(url, "PUT", jsonBody.dump(), headers);
     }
 
 
-    bool streamingActive(const EntertainmentConfigurationEntry& entertainmentConfigurationEntry, const std::string& username, const std::string& address)
+    bool streamingActive(const EntertainmentConfigurationEntry& entertainmentConfigurationEntry, const std::string& username, const std::string& bridgeAddress)
     {
       string status;
 
       RequestUtils::Headers headers = {{"hue-application-key", username}};
-      string url = "https://" + address + "/clip/v2/resource/entertainment_configuration/" + entertainmentConfigurationEntry.first;
+      string url = "https://" + bridgeAddress + "/clip/v2/resource/entertainment_configuration/" + entertainmentConfigurationEntry.first;
       auto response = RequestUtils::sendRequest(url, "GET", "", headers);
       if(response.at("errors").size() == 0){
         status = response.at("data").front().at("status");

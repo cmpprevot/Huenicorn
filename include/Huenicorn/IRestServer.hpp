@@ -17,6 +17,11 @@ namespace Huenicorn
 
   public:
     // Constructor / Destructor
+    /**
+     * @brief IRestServer constructor
+     * 
+     * @param webRoot Path to the web root directory
+     */
     IRestServer(const std::filesystem::path& webRoot):
     m_webroot(webRoot)
     {
@@ -48,10 +53,20 @@ namespace Huenicorn
     }
 
 
+    /**
+     * @brief IRestServer destructor
+     * 
+     */
     virtual ~IRestServer(){}
 
 
     // Getters
+    /**
+     * @brief Returns wether the REST server is running or not
+     * 
+     * @return true REST server is running
+     * @return false REST server is not running
+     */
     bool running() const
     {
       return m_service.is_up();
@@ -59,6 +74,13 @@ namespace Huenicorn
 
 
     // Methods
+    /**
+     * @brief Starts the REST server and triggers _onStart event
+     * 
+     * @param port Listening port of the REST server
+     * @return true REST server started successfully
+     * @return false REST server is already running
+     */
     bool start(unsigned port)
     {
       if(running()){
@@ -75,12 +97,27 @@ namespace Huenicorn
     }
 
 
+    /**
+     * @brief Stops the REST server
+     * 
+     * @return true 
+     * @return false 
+     */
     bool stop()
     {
       return _stop();
     }
 
   private:
+    // Private method
+
+
+    /**
+     * @brief Stops REST server and triggers _onStop event
+     * 
+     * @return true REST server stopped successfully
+     * @return false REST server was not running
+     */
     bool _stop()
     {
       if(!running()){
@@ -88,18 +125,34 @@ namespace Huenicorn
       }
 
       m_service.stop();
-
       _onStop();
 
       return true;
     }
 
   protected:
+    // Protected methods
+
+    /**
+     * @brief Overridable routine triggering at server start
+     * 
+     */
     virtual void _onStart(){}
+
+
+    /**
+     * @brief Overridable routine triggering at server stop
+     * 
+     */
     virtual void _onStop(){}
 
 
     // Handlers
+    /**
+     * @brief Web filesystem handler
+     * 
+     * @param session Pending HTTP connection
+     */
     void _getWebFile(const SharedSession& session) const
     {
       const auto request = session->get_request();
@@ -146,6 +199,7 @@ namespace Huenicorn
 
       session->close(restbed::OK, response, headers);
     }
+
 
     // Attributes
     std::shared_ptr<restbed::Settings> m_settings;

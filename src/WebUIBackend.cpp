@@ -22,7 +22,7 @@ namespace Huenicorn
     {
       auto resource = make_shared<restbed::Resource>();
       resource->set_path("/entertainmentConfigurations");
-      resource->set_method_handler("GET", [this](SharedSession session){_entertainmentConfigurations(session);});
+      resource->set_method_handler("GET", [this](SharedSession session){_getEntertainmentConfigurations(session);});
       m_service.publish(resource);
     }
 
@@ -107,12 +107,12 @@ namespace Huenicorn
   }
 
 
-  void WebUIBackend::_entertainmentConfigurations(const SharedSession& session) const
+  void WebUIBackend::_getEntertainmentConfigurations(const SharedSession& session) const
   {
     const auto request = session->get_request();
 
     auto entertainmentConfigurations = JsonSerializer::serialize(m_huenicornCore->entertainmentConfigurations());
-    string currentEntertainmentConfigurationId = m_huenicornCore->selectedEntertinmentConfigurationId();
+    string currentEntertainmentConfigurationId = m_huenicornCore->currentEntertinmentConfigurationId();
 
     json jsonResponse = {
       {"entertainmentConfigurations", entertainmentConfigurations},
@@ -223,9 +223,9 @@ namespace Huenicorn
 
       float x = jsonUV.at("x");
       float y = jsonUV.at("y");
-      UVType uvType = static_cast<UVType>(jsonUV.at("type").get<int>());
+      UVCorner uvCorner = static_cast<UVCorner>(jsonUV.at("type").get<int>());
 
-      const auto& clampedUVs = m_huenicornCore->setChannelUV(channelId, {x, y}, uvType);
+      const auto& clampedUVs = m_huenicornCore->setChannelUV(channelId, {x, y}, uvCorner);
 
       // TODO : Serialize from JsonSerializer
       json jsonResponse = {

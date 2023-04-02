@@ -37,15 +37,51 @@ namespace Huenicorn
       PendingShutdown
     };
 
-    // Constructor
+    /**
+     * @brief Channel constructor
+     * 
+     * @param active Wether the channel is active or not
+     * @param devices List of devices driven by the channel
+     * @param gammaFactor Gamma factor of the light
+     * @param uvs UVs of the screen portion
+     */
     Channel(bool active, const std::vector<Device>& devices, float gammaFactor, const UVs& uvs = {{0, 0}, {1, 1}});
 
 
     // Getters
+    /**
+     * @brief Returns the current state of the channel
+     * 
+     * @return State Channel state
+     */
     State state() const;
+
+    /**
+     * @brief Returns the UVs of the channel
+     * 
+     * @return const UVs& Channel UVs
+     */
     const UVs& uvs() const;
+
+    /**
+     * @brief Returns the gammaFactor of the channel
+     * 
+     * @return float Channel gamma factor
+     */
+    float gammaFactor() const;
+
+    /**
+     * @brief Returns a list of member devices
+     * 
+     * @return const std::vector<Device>& 
+     */
     const std::vector<Device>& devices() const;
 
+    /**
+     * @brief Returns the exponent factor for gamma
+     * 
+     * @return float Channel gamma factor
+     */
     inline float gammaExponent() const
     {
       float factor = 2.f;
@@ -55,12 +91,35 @@ namespace Huenicorn
 
 
     // Setters
+    /**
+     * @brief Set the channel activity
+     * 
+     * @param active Wether the channel must be active or not
+     */
     void setActive(bool active);
-    UVs& setUV(UV&& uv, UVType uvType);
+
+    /**
+     * @brief Sets the UVs of the channel
+     * 
+     * @param uv UV coordinate to set
+     * @param uvCorner Specified corner
+     * @return UVs& Clamped UVs
+     */
+    UVs& setUV(UV&& uv, UVCorner uvCorner);
+
+    /**
+     * @brief Set the gamma factor 
+     * 
+     * @param gammaFactor Gamma factor to affect
+     */
     void setGammaFactor(float gammaFactor);
-    float gammaFactor() const;
+
 
     // Methods
+    /**
+     * @brief Call to move from pending state to inactive
+     * 
+     */
     void acknowledgeShutdown();
 
 
@@ -70,8 +129,5 @@ namespace Huenicorn
     std::vector<Device> m_devices;
     float m_gammaFactor{0.0};
     UVs m_uvs{};
-    float m_r{0.0};
-    float m_g{0.0};
-    float m_b{0.0};
   };
 }

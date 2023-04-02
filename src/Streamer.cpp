@@ -8,8 +8,8 @@ using namespace std;
 
 namespace Huenicorn
 {
-  Streamer::Streamer(const Credentials& credentials, const std::string& address):
-    m_dtlsClient(credentials, address, PORT)
+  Streamer::Streamer(const Credentials& credentials, const std::string& bridgeAddress):
+    m_dtlsClient(credentials, bridgeAddress, PORT)
   {
     try{
       m_dtlsClient.init();
@@ -20,9 +20,9 @@ namespace Huenicorn
   }
 
 
-  void Streamer::setEntertainmentConfigId(const std::string& entertainmentConfigId)
+  void Streamer::setEntertainmentConfigurationId(const std::string& entertainmentConfigurationId)
   {
-    m_header.setEntertainmentConfigurationId(entertainmentConfigId);
+    m_header.setEntertainmentConfigurationId(entertainmentConfigurationId);
   }
 
 
@@ -33,7 +33,7 @@ namespace Huenicorn
 
     for(const auto channel : channels){
       HuestreamPayload payload;
-      payload.channelId = channel.id;
+      payload.setChannelId(channel.id);
       payload.setR(static_cast<uint16_t>(0xffff * channel.r));
       payload.setG(static_cast<uint16_t>(0xffff * channel.g));
       payload.setB(static_cast<uint16_t>(0xffff * channel.b));

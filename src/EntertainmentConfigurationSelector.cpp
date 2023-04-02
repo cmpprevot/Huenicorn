@@ -10,11 +10,11 @@ using namespace std;
 
 namespace Huenicorn
 {
-  EntertainmentConfigurationSelector::EntertainmentConfigurationSelector(const Credentials& credentials, const std::string& address):
+  EntertainmentConfigurationSelector::EntertainmentConfigurationSelector(const Credentials& credentials, const std::string& bridgeAddress):
   m_credentials(credentials),
-  m_address(address)
+  m_bridgeAddress(bridgeAddress)
   {
-    m_entertainmentConfigurations = ApiTools::loadEntertainmentConfigurations(m_credentials.username(), address);
+    m_entertainmentConfigurations = ApiTools::loadEntertainmentConfigurations(m_credentials.username(), m_bridgeAddress);
   }
 
 
@@ -64,11 +64,11 @@ namespace Huenicorn
     }
 
     // Disable previous configuration
-    if(ApiTools::streamingActive(*m_currentEntertainmentConfiguration, m_credentials.username(), m_address)){
+    if(ApiTools::streamingActive(*m_currentEntertainmentConfiguration, m_credentials.username(), m_bridgeAddress)){
       disableStreaming();
     }
 
-    ApiTools::setStreamingState(*m_currentEntertainmentConfiguration, m_credentials.username(), m_address, true);
+    ApiTools::setStreamingState(*m_currentEntertainmentConfiguration, m_credentials.username(), m_bridgeAddress, true);
 
     return true;
   }
@@ -80,13 +80,6 @@ namespace Huenicorn
       return;
     }
 
-    ApiTools::setStreamingState(*m_currentEntertainmentConfiguration, m_credentials.username(), m_address, false);
-  }
-
-
-  void EntertainmentConfigurationSelector::_clearConfigs()
-  {
-    m_entertainmentConfigurations.clear();
-    m_currentEntertainmentConfiguration = m_entertainmentConfigurations.end();
+    ApiTools::setStreamingState(*m_currentEntertainmentConfiguration, m_credentials.username(), m_bridgeAddress, false);
   }
 }

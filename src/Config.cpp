@@ -21,9 +21,6 @@ namespace Huenicorn
   }
 
 
-  Config::~Config(){}
-
-
   const std::filesystem::path& Config::configFilePath() const
   {
     return m_configFilePath;
@@ -87,28 +84,28 @@ namespace Huenicorn
   void Config::setBridgeAddress(const std::string& bridgeAddress)
   {
     m_bridgeAddress.emplace(bridgeAddress);
-    save();
+    _save();
   }
 
 
   void Config::setCredentials(const std::string& username, const std::string& clientkey)
   {
     m_credentials.emplace(username, clientkey);
-    save();
+    _save();
   }
 
 
   void Config::setProfileName(const std::string& profileName)
   {
     m_profileName.emplace(profileName);
-    save();
+    _save();
   }
 
 
   void Config::setSubsampleWidth(unsigned subsampleWidth)
   {
     m_subsampleWidth = subsampleWidth;
-    save();
+    _save();
   }
 
 
@@ -119,36 +116,7 @@ namespace Huenicorn
     }
 
     m_refreshRate = refreshRate;
-    save();
-  }
-
-
-  void Config::save() const
-  {
-    json jsonOutConfig = {
-      {"subsampleWidth", m_subsampleWidth},
-      {"refreshRate", m_refreshRate},
-      {"restServerPort", m_restServerPort},
-    };
-
-    if(m_bridgeAddress.has_value()){
-      jsonOutConfig["bridgeAddress"] = m_bridgeAddress.value();
-    }
-
-    if(m_credentials.has_value()){
-      jsonOutConfig["credentials"] = JsonSerializer::serialize(m_credentials.value());
-    }
-
-    if(m_profileName.has_value()){
-      jsonOutConfig["profileName"] = m_profileName.value();
-    }
-
-    if(!filesystem::exists(m_configFilePath)){
-      filesystem::create_directories(m_configFilePath.parent_path());
-    }
-
-    ofstream configFile(m_configFilePath);
-    configFile << jsonOutConfig.dump(2) << endl;
+    _save();
   }
 
 
@@ -210,5 +178,34 @@ namespace Huenicorn
     }
 
     return !jsonConfigRoot.empty();
+  }
+
+
+  void Config::_save() const
+  {
+    json jsonOutConfig = {
+      {"subsampleWidth", m_subsampleWidth},
+      {"refreshRate", m_refreshRate},
+      {"restServerPort", m_restServerPort},
+    };
+
+    if(m_bridgeAddress.has_value()){
+      jsonOutConfig["bridgeAddress"] = m_bridgeAddress.value();
+    }
+
+    if(m_credentials.has_value()){
+      jsonOutConfig["credentials"] = JsonSerializer::serialize(m_credentials.value());
+    }
+
+    if(m_profileName.has_value()){
+      jsonOutConfig["profileName"] = m_profileName.value();
+    }
+
+    if(!filesystem::exists(m_configFilePath)){
+      filesystem::create_directories(m_configFilePath.parent_path());
+    }
+
+    ofstream configFile(m_configFilePath);
+    configFile << jsonOutConfig.dump(2) << endl;
   }
 }

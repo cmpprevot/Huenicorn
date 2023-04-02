@@ -7,9 +7,9 @@ using namespace nlohmann;
 
 namespace Huenicorn
 {
-  SetupBackend::SetupBackend(HuenicornCore* core):
+  SetupBackend::SetupBackend(HuenicornCore* huenicornCore):
   IRestServer("webroot"),
-  m_core(core)
+  m_huenicornCore(huenicornCore)
   {
     m_indexFile = "setup.html";
 
@@ -134,7 +134,7 @@ namespace Huenicorn
 
   void SetupBackend::_autoDetectBridge(const SharedSession& session)
   {
-    json jsonResponse = m_core->autoDetectedBridge();
+    json jsonResponse = m_huenicornCore->autoDetectedBridge();
     string response = jsonResponse.dump();
 
     session->close(restbed::OK, response, {
@@ -146,7 +146,7 @@ namespace Huenicorn
   
   void SetupBackend::_configFilePath(const SharedSession& session)
   {
-    json jsonResponse = {{"configFilePath", m_core->configFilePath()}};
+    json jsonResponse = {{"configFilePath", m_huenicornCore->configFilePath()}};
     string response = jsonResponse.dump();
 
     session->close(restbed::OK, response, {
@@ -167,7 +167,7 @@ namespace Huenicorn
 
       string bridgeAddress = jsonBridgeAddressData.at("bridgeAddress");
 
-      json jsonResponse = {{"succeeded", m_core->validateBridgeAddress(bridgeAddress)}};
+      json jsonResponse = {{"succeeded", m_huenicornCore->validateBridgeAddress(bridgeAddress)}};
 
       string response = jsonResponse.dump();
       session->close(restbed::OK, response, {
@@ -189,7 +189,7 @@ namespace Huenicorn
 
       Credentials credentials(jsonCredentials.at("username"), jsonCredentials.at("clientkey"));
 
-      json jsonResponse = {{"succeeded", m_core->validateCredentials(credentials)}};
+      json jsonResponse = {{"succeeded", m_huenicornCore->validateCredentials(credentials)}};
 
       string response = jsonResponse.dump();
       session->close(restbed::OK, response, {
@@ -202,7 +202,7 @@ namespace Huenicorn
 
   void SetupBackend::_registerNewUser(const SharedSession& session)
   {
-    json jsonResponse = m_core->registerNewUser();
+    json jsonResponse = m_huenicornCore->registerNewUser();
     string response = jsonResponse.dump();
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
