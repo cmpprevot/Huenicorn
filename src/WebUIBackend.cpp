@@ -21,6 +21,13 @@ namespace Huenicorn
   {
     {
       auto resource = make_shared<restbed::Resource>();
+      resource->set_path("/webUIStatus");
+      resource->set_method_handler("GET", [this](SharedSession session){_getWebUIStatus(session);});
+      m_service.publish(resource);
+    }
+
+    {
+      auto resource = make_shared<restbed::Resource>();
       resource->set_path("/entertainmentConfigurations");
       resource->set_method_handler("GET", [this](SharedSession session){_getEntertainmentConfigurations(session);});
       m_service.publish(resource);
@@ -104,6 +111,21 @@ namespace Huenicorn
     }
 
     m_webfileBlackList.insert("setup.html");
+  }
+
+
+  void WebUIBackend::_getWebUIStatus(const SharedSession& session) const
+  {
+    json jsonResponse = {
+      {"ready", true},
+    };
+
+    string response = jsonResponse.dump();
+
+    session->close(restbed::OK, response, {
+      {"Content-Length", std::to_string(response.size())},
+      {"Content-Type", "application/json"}
+    });
   }
 
 

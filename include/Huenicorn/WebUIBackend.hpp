@@ -25,6 +25,14 @@ namespace Huenicorn
   private:
     // Handlers
     /**
+     * @brief Handler to check the availability of the webUI
+     * 
+     * @param session Pending HTTP connection
+     */
+    void _getWebUIStatus(const SharedSession& session) const;
+
+
+    /**
      * @brief Handler to get available entertainment configurations
      * 
      * @param session Pending HTTP connection

@@ -48,14 +48,14 @@ class SetupUI
   // Bridge address step
   autoDetectBridge()
   {
-    RequestUtils.get("/autoDetectBridge", this.autoDetectBridgeCallback);
+    let autoDetectBridgePromise = RequestUtils.get("/autoDetectBridge");
+    autoDetectBridgePromise.then((data) => {this.autoDetectBridgeCallback(data)});
+    autoDetectBridgePromise.catch((error) => {log(error);});
   }
 
 
-  autoDetectBridgeCallback(jsonData)
+  autoDetectBridgeCallback(data)
   {
-    let data = JSON.parse(jsonData);
-
     if(data.succeeded){
       document.getElementById("bridgeAddress").value = data.bridgeAddress;
     }
@@ -72,7 +72,9 @@ class SetupUI
     let bridgeAddress = document.getElementById("bridgeAddress").value;
 
     if(bridgeAddress != ""){
-      RequestUtils.put("/validateBridgeAddress", JSON.stringify({bridgeAddress : bridgeAddress}), (data) => {this.validateBridgeAddressCallback(data);});
+      let validateBridgeAddressPromise = RequestUtils.put("/validateBridgeAddress", JSON.stringify({bridgeAddress : bridgeAddress}));
+      validateBridgeAddressPromise.then((data) => {this.validateBridgeAddressCallback(data);});
+      validateBridgeAddressPromise.catch((error) => {log(error);})
     }
     else{
       let errorMessageNode = document.getElementById("bridgeAddressErrorMessage");
@@ -82,10 +84,8 @@ class SetupUI
   }
 
 
-  validateBridgeAddressCallback(jsonData)
+  validateBridgeAddressCallback(data)
   {
-    let data = JSON.parse(jsonData);
-
     if(data.succeeded){
       this.incStep();
     }
@@ -117,13 +117,14 @@ class SetupUI
       return;
     }
 
-    RequestUtils.put("/validateCredentials", JSON.stringify({username : username, clientkey : clientkey}), (data) => {this.validateCredentialsCallback(data);});
+    let validateCredentialsPromise = RequestUtils.put("/validateCredentials", JSON.stringify({username : username, clientkey : clientkey}));
+    validateCredentialsPromise.then((data) => {this.validateCredentialsCallback(data);});
+    validateCredentialsPromise.catch((error) => {log(error);});
   }
 
 
-  validateCredentialsCallback(jsonData)
+  validateCredentialsCallback(data)
   {
-    let data = JSON.parse(jsonData);
 
     if(data.succeeded){
       this._finish();
@@ -139,14 +140,14 @@ class SetupUI
   // Credentials generation step
   registerNewUser()
   {
-    RequestUtils.put("/registerNewUser", null, (data) => {this.registerNewUserCallback(data);});
+    let registerNewUserPromise = RequestUtils.put("/registerNewUser", JSON.stringify(null));
+    registerNewUserPromise.then((data) => {this.registerNewUserCallback(data);});
+    registerNewUserPromise.catch((error) => {log(error);});
   }
 
 
-  registerNewUserCallback(jsonData)
+  registerNewUserCallback(data)
   {
-    let data = JSON.parse(jsonData);
-
     if(data.succeeded){
       this._finish();
     }
@@ -176,7 +177,9 @@ class SetupUI
 
   _finish()
   {
-    RequestUtils.post("/finishSetup", JSON.stringify(null), (data) => {log("Finished");});
+    let finishSetupPromise = RequestUtils.post("/finishSetup", JSON.stringify(null));
+    finishSetupPromise.then((data) => {log("Finished");});
+    finishSetupPromise.catch((error) => {log(error);})
 
     for(let stepNode of this.stepNodes){
       stepNode.style.display = "none";
@@ -192,7 +195,9 @@ class SetupUI
 
   _exit()
   {
-    RequestUtils.post("/abort", JSON.stringify(null), (data) => {});
+    let abortPromise = RequestUtils.post("/abort", JSON.stringify(null));
+    abortPromise.then((data) => {});
+    abortPromise.catch((error) => {log(error);});
 
     for(let stepNode of this.stepNodes){
       stepNode.style.display = "none";
@@ -204,10 +209,12 @@ class SetupUI
 
   _ping()
   {
-    RequestUtils.get("/", () => {
+    let webUIStatusPromise = RequestUtils.get("/webUIStatus");
+    webUIStatusPromise.then((data) => {
       document.getElementById("refreshSection").style.display = "block";
       clearInterval(setupUI.pingFunctionInterval);
     });
+    webUIStatusPromise.catch((error) => {log(error);});
   }
 }
 
