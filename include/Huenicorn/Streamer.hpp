@@ -92,7 +92,7 @@ namespace Huenicorn
         uint8_t a = static_cast<uint8_t>((green >> 8) & 0xff);
         uint8_t b = static_cast<uint8_t>(green & 0xff);
         colorData1[0] = a;
-        colorData2[1] = b;
+        colorData1[1] = b;
       }
 
 
