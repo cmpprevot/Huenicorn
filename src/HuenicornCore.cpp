@@ -471,9 +471,8 @@ namespace Huenicorn
         Color color = ImageProcessing::getDominantColors(subframeImage, 1).front();
 
         glm::vec3 normalized = color.toNormalized();
-        float brightness = 0.3 * normalized.r  + 0.59 * normalized.g + 0.11 * normalized.b;
-        float correctedBrightness = glm::pow(brightness, channel.gammaExponent());
-        vec3 correctedColor = normalized * correctedBrightness;
+        vec3 correctedColor = glm::pow(normalized, glm::vec3(channel.gammaExponent()));
+
         channelStreams.push_back({channelId, correctedColor.r, correctedColor.g, correctedColor.b});
       }
     }
