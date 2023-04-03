@@ -40,7 +40,7 @@ namespace Huenicorn
     m_shmInfo->shmid = shmget(IPC_PRIVATE, m_ximage->bytes_per_line * m_ximage->height, IPC_CREAT | 0777);
 
     m_shmInfo->readOnly = False;
-    m_shmInfo->shmaddr = m_ximage->data = (char*)shmat(m_shmInfo->shmid, 0, 0);
+    m_shmInfo->shmaddr = m_ximage->data = reinterpret_cast<char*>(shmat(m_shmInfo->shmid, 0, 0));
 
     XShmAttach(m_display, m_shmInfo.get());
   }

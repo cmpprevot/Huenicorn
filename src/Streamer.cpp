@@ -29,7 +29,7 @@ namespace Huenicorn
   void Streamer::streamChannels(const ChannelStreams& channels)
   {
     vector<char> requestBuffer;
-    requestBuffer.insert(requestBuffer.end(), (char*)&m_header, (char*)&m_header + sizeof(HuestreamHeader));
+    requestBuffer.insert(requestBuffer.end(), reinterpret_cast<char*>(&m_header), reinterpret_cast<char*>(&m_header) + sizeof(HuestreamHeader));
 
     for(const auto channel : channels){
       HuestreamPayload payload;
@@ -38,7 +38,7 @@ namespace Huenicorn
       payload.setG(static_cast<uint16_t>(0xffff * channel.g));
       payload.setB(static_cast<uint16_t>(0xffff * channel.b));
 
-      requestBuffer.insert(requestBuffer.end(), (char*)&payload, (char*)&payload + sizeof(HuestreamPayload));
+      requestBuffer.insert(requestBuffer.end(), reinterpret_cast<char*>(&payload), reinterpret_cast<char*>(&payload) + sizeof(HuestreamPayload));
     }
 
     m_dtlsClient.send(requestBuffer);
