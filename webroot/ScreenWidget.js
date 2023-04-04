@@ -50,10 +50,7 @@ class Handle
   }
 
 
-  drop()
-  {
-    log("Dropped");
-  }
+  drop(){}
 
 
   setPosition(position, notify = false)
@@ -133,10 +130,7 @@ class GammaHandle
   }
 
 
-  drop()
-  {
-    log("Dropped");
-  }
+  drop(){}
 }
 
 

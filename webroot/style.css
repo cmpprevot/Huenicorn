@@ -32,7 +32,9 @@ h2
   font-size: 20px;
 }
 
-h1, h2{
+
+h1, h2
+{
   margin-top: 0px;
   text-shadow: 0px 0px 50px hsla(var(--rainbowColor), 1.0);
 }
@@ -79,6 +81,7 @@ label
   margin-right: 10px;
 }
 
+
 input[type=text]
 {
   text-align: center;
@@ -99,9 +102,10 @@ input[type=text]
   display: inline-block;
 }
 
+
 .channelList
 {
-  height: 120px;
+  height: 125px;
   width: 300px;
   margin-left: 20px;
   margin-right: 20px;
