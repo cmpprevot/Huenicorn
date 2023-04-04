@@ -273,11 +273,19 @@ namespace Huenicorn
     void _spawnBrowser();
 
 
+
     /**
-     * @brief Main loop calling for processing at given refresh rate
+     * @brief Enables the selected entertainment configuration and loads related profile
      * 
      */
-    void _loop();
+    void _enableEntertainmentConfiguration();
+
+
+    /**
+     * @brief Starts the main loop calling for processing at given refresh rate
+     * 
+     */
+    void _startStreamingLoop();
 
 
     /**

@@ -135,7 +135,7 @@ namespace Huenicorn
       return false;
     }
 
-    m_streamer->setEntertainmentConfigurationId(m_selector->currentEntertainmentConfigurationId());
+    _enableEntertainmentConfiguration();
 
     return true;
   }
@@ -208,7 +208,27 @@ namespace Huenicorn
 
     cout << "Configuration is ready. Feel free to modify it manually by editing " << std::quoted(m_config.configFilePath().string()) << endl;
 
-    _loop();
+    const Credentials& credentials = m_config.credentials().value();
+    const string& bridgeAddress =  m_config.bridgeAddress().value();
+
+    m_selector = make_unique<EntertainmentConfigurationSelector>(credentials, bridgeAddress);
+
+    m_streamer = make_unique<Streamer>(credentials, m_config.bridgeAddress().value());
+
+    unsigned restServerPort = m_config.restServerPort();
+    m_webUIService.server = make_unique<WebUIBackend>(this);
+    m_webUIService.thread.emplace([&](){
+      m_webUIService.server->start(restServerPort);
+    });
+
+    if(!_loadProfile() && !m_openedSetup){
+      thread spawnBrowser([this](){_spawnBrowser();});
+      spawnBrowser.detach();
+    }
+
+    _enableEntertainmentConfiguration();
+
+    _startStreamingLoop();
   }
 
 
@@ -397,33 +417,22 @@ namespace Huenicorn
   }
 
 
-  void HuenicornCore::_loop()
+  void HuenicornCore::_enableEntertainmentConfiguration()
   {
-    unsigned restServerPort = m_config.restServerPort();
-    m_webUIService.server = make_unique<WebUIBackend>(this);
-    m_webUIService.thread.emplace([&](){
-      m_webUIService.server->start(restServerPort);
-    });
-
-    const Credentials& credentials = m_config.credentials().value();
-    const string& bridgeAddress =  m_config.bridgeAddress().value();
-    m_selector = make_unique<EntertainmentConfigurationSelector>(credentials, bridgeAddress);
-
-    if(!_loadProfile() && !m_openedSetup){
-      thread spawnBrowser([this](){_spawnBrowser();});
-      spawnBrowser.detach();
-    }
-
     if(!m_selector->validSelection()){
       cout << "No entertainment configuration was found" << endl;
       return;
     }
 
-    m_streamer = make_unique<Streamer>(credentials, m_config.bridgeAddress().value());
-
     m_streamer->setEntertainmentConfigurationId(m_selector->currentEntertainmentConfigurationId());
-    // Todo : Check if handshake went well before proceding
 
+    json jsonProfile = json::parse(ifstream(_profilePath()));
+    _initChannels(jsonProfile);
+  }
+
+
+  void HuenicornCore::_startStreamingLoop()
+  {
     m_tickSynchronizer = make_unique<TickSynchronizer>(1.0f / static_cast<float>(m_config.refreshRate()));
 
     m_tickSynchronizer->start();

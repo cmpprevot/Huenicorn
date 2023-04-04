@@ -270,6 +270,7 @@ class WebUI
     this.entertainmentConfigurationsSelectNode.value = currentEntertainmentConfigurationId;
   }
 
+
   _manageChannel(channelId)
   {
     for(let loopChannelId of Object.keys(this.activeChannels)){
@@ -307,12 +308,11 @@ class WebUI
 
   _setEntertainmentConfiguration(entertaimentConfigurationId)
   {
-    log(entertaimentConfigurationId);
     let promise = RequestUtils.put("/setEntertainmentConfiguration", JSON.stringify(entertaimentConfigurationId));
-    promise.then((displayInfo) => {
-      // RELOAD !!
-      log("Reloading data", displayInfo);
-
+    promise.then((entertainmentConfigurationData) => {
+      this._refreshChannelsLists(entertainmentConfigurationData.channels)
+      this.screenWidget.showPreview();
+      this.screenWidget.showWidgets(false);
     });
     promise.catch((error) => {log(error);});
   }

@@ -218,7 +218,8 @@ namespace Huenicorn
 
       json jsonResponse = {
         {"succeeded", succeeded},
-        {"entertainmentConfigurationId", entertainmentConfigurationId}
+        {"entertainmentConfigurationId", entertainmentConfigurationId},
+        {"channels", JsonSerializer::serialize(m_huenicornCore->channels())}
       };
 
       string response = jsonResponse.dump();
