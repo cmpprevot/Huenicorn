@@ -77,7 +77,7 @@ namespace Huenicorn
      * 
      * @return const std::string& Current entertainment configuration ID
      */
-    const std::string& currentEntertinmentConfigurationId() const;
+    std::optional<std::string> currentEntertainmentConfigurationId() const;
 
 
     /**
@@ -248,14 +248,24 @@ namespace Huenicorn
     std::filesystem::path _profilePath() const;
 
 
-    // Private methods
     /**
      * @brief Loads the last profile
      * 
-     * @return true Profile was found and loaded
-     * @return false Profile could not be loaded
+     * @return Loaded profile. Empty if not found
      */
-    bool _loadProfile();
+    std::optional<nlohmann::json> _getProfile();
+
+
+    // Private methods
+
+    /**
+     * @brief Initializes config and profile
+     * 
+     * @return true Succeeded to load a suitable configuration
+     * @return false Failed to load a suitable configuration
+     */
+    bool _initSettings();
+
 
 
     /**
@@ -273,12 +283,12 @@ namespace Huenicorn
     void _spawnBrowser();
 
 
-
     /**
-     * @brief Enables the selected entertainment configuration and loads related profile
+     * @brief Enables the selected entertainment configuration, recreates streamer  and loads related profile
      * 
+     * @param entertainmentConfigurationId ID of the entertainment configuration to enable
      */
-    void _enableEntertainmentConfiguration();
+    void _enableEntertainmentConfiguration(const std::string& entertainmentConfigurationId);
 
 
     /**
@@ -315,7 +325,6 @@ namespace Huenicorn
     Channels m_channels;
 
     // Service and flags
-    bool m_openedSetup{false};
     ThreadedRestService m_webUIService;
 
     //  Image Processing

@@ -134,7 +134,7 @@ namespace Huenicorn
     const auto request = session->get_request();
 
     auto entertainmentConfigurations = JsonSerializer::serialize(m_huenicornCore->entertainmentConfigurations());
-    string currentEntertainmentConfigurationId = m_huenicornCore->currentEntertinmentConfigurationId();
+    string currentEntertainmentConfigurationId = m_huenicornCore->currentEntertainmentConfigurationId().value();
 
     json jsonResponse = {
       {"entertainmentConfigurations", entertainmentConfigurations},

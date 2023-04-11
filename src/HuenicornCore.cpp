@@ -49,7 +49,7 @@ namespace Huenicorn
   }
 
 
-  const std::string& HuenicornCore::currentEntertinmentConfigurationId() const
+  std::optional<std::string> HuenicornCore::currentEntertainmentConfigurationId() const
   {
     return m_selector->currentEntertainmentConfigurationId();
   }
@@ -135,7 +135,7 @@ namespace Huenicorn
       return false;
     }
 
-    _enableEntertainmentConfiguration();
+    _enableEntertainmentConfiguration(entertainmentConfigurationId);
 
     return true;
   }
@@ -176,57 +176,13 @@ namespace Huenicorn
 
   void HuenicornCore::start()
   {
-    unsigned port = m_config.restServerPort();
-
-    if(!m_config.initialSetupOk()){
-      cout << "Starting setup backend" << endl;
-
-      SetupBackend sb(this);
-      sb.start(port);
-
-      if(sb.aborted()){
-        cout << "Initial setup was aborted" << endl;
-        return;
-      }
-
-      cout << "Finished setup" << endl;
-      m_openedSetup = true;
-    }
-
-    if(!m_config.initialSetupOk()){
-      cout << "There are errors in the config file" << endl;
+    if(!_initSettings()){
+      cout << "Could not load suitable entertainment configuration." << endl;
       return;
+
+      // TODO : Add tool to create entertainment configurations inside Huenicorn
+      // so the official application would no longer be a requirement
     }
-
-    if(m_config.refreshRate() == 0){
-      m_config.setRefreshRate(m_grabber->displayRefreshRate());
-    }
-
-    if(m_config.subsampleWidth() == 0){
-      m_config.setSubsampleWidth(m_grabber->subsampleResolutionCandidates().back().x);
-    }
-
-    cout << "Configuration is ready. Feel free to modify it manually by editing " << std::quoted(m_config.configFilePath().string()) << endl;
-
-    const Credentials& credentials = m_config.credentials().value();
-    const string& bridgeAddress =  m_config.bridgeAddress().value();
-
-    m_selector = make_unique<EntertainmentConfigurationSelector>(credentials, bridgeAddress);
-
-    m_streamer = make_unique<Streamer>(credentials, m_config.bridgeAddress().value());
-
-    unsigned restServerPort = m_config.restServerPort();
-    m_webUIService.server = make_unique<WebUIBackend>(this);
-    m_webUIService.thread.emplace([&](){
-      m_webUIService.server->start(restServerPort);
-    });
-
-    if(!_loadProfile() && !m_openedSetup){
-      thread spawnBrowser([this](){_spawnBrowser();});
-      spawnBrowser.detach();
-    }
-
-    _enableEntertainmentConfiguration();
 
     _startStreamingLoop();
   }
@@ -305,10 +261,13 @@ namespace Huenicorn
       return;
     }
 
-    nlohmann::json profile = json{
-      {"entertainmentConfigId", m_selector->currentEntertainmentConfigurationId()},
-      {"channels", JsonSerializer::serialize(m_channels)}
-    };
+    nlohmann::json profile;
+    if(m_selector->validSelection()){
+      profile = json{
+        {"entertainmentConfigurationId", m_selector->currentEntertainmentConfigurationId().value()},
+        {"channels", JsonSerializer::serialize(m_channels)}
+      };
+    }
 
     if(!m_config.profileName().has_value()){
       m_config.setProfileName("profile");
@@ -330,36 +289,88 @@ namespace Huenicorn
   }
 
 
-  bool HuenicornCore::_loadProfile()
+  optional<json> HuenicornCore::_getProfile()
   {
     filesystem::path profilePath = _profilePath();
     json jsonProfile = json::object();
 
-    string entertainmentConfigId = {};
-    bool foundProfile = false;
-
     if(!profilePath.empty() && filesystem::exists(profilePath) && filesystem::is_regular_file(profilePath)){
       ifstream profileFile(profilePath);
-      jsonProfile = json::parse(profileFile);
-
-      if(jsonProfile.contains("entertainmentConfigId")){
-        entertainmentConfigId = jsonProfile.at("entertainmentConfigId");
-        foundProfile = true;
-      }
-    }
-    
-    if(!m_selector->selectEntertainementConfiguration(entertainmentConfigId)){
-      cout << "Invalid entertainment config selection" << endl;
-      return false;
+      return json::parse(profileFile);
     }
 
-    _initChannels(jsonProfile);
-
-    return foundProfile;
+    return nullopt;
   }
 
 
-  void HuenicornCore::_initChannels(const nlohmann::json& jsonProfile)
+  bool HuenicornCore::_initSettings()
+  {
+    unsigned port = m_config.restServerPort();
+    bool openedSetup = false;
+
+    if(!m_config.initialSetupOk()){
+      cout << "Starting setup backend" << endl;
+
+      SetupBackend sb(this);
+      sb.start(port);
+
+      if(sb.aborted()){
+        cout << "Initial setup was aborted" << endl;
+        return false;
+      }
+
+      cout << "Finished setup" << endl;
+      openedSetup = true;
+    }
+
+    if(!m_config.initialSetupOk()){
+      cout << "There are errors in the config file" << endl;
+      return false;
+    }
+
+    if(m_config.refreshRate() == 0){
+      m_config.setRefreshRate(m_grabber->displayRefreshRate());
+    }
+
+    if(m_config.subsampleWidth() == 0){
+      m_config.setSubsampleWidth(m_grabber->subsampleResolutionCandidates().back().x);
+    }
+
+    cout << "Configuration is ready. Feel free to modify it manually by editing " << std::quoted(m_config.configFilePath().string()) << endl;
+
+    const Credentials& credentials = m_config.credentials().value();
+    const string& bridgeAddress =  m_config.bridgeAddress().value();
+
+    m_selector = make_unique<EntertainmentConfigurationSelector>(credentials, bridgeAddress);
+
+    unsigned restServerPort = m_config.restServerPort();
+    m_webUIService.server = make_unique<WebUIBackend>(this);
+    m_webUIService.thread.emplace([&](){
+      m_webUIService.server->start(restServerPort);
+    });
+
+    string entertainmentConfigurationId = {};
+    auto optJsonProfile = _getProfile();
+
+    if(optJsonProfile.has_value()){
+      const auto& jsonProfile = optJsonProfile.value();
+      if(jsonProfile.contains("entertainmentConfigurationId")){
+        entertainmentConfigurationId = jsonProfile.at("entertainmentConfigurationId");
+      }
+    }
+
+    _enableEntertainmentConfiguration(entertainmentConfigurationId);
+
+    if(!optJsonProfile.has_value() && !openedSetup){
+      thread spawnBrowser([this](){_spawnBrowser();});
+      spawnBrowser.detach();
+    }
+
+    return true;
+  }
+
+
+  void HuenicornCore::_initChannels(const nlohmann::json& jsonChannels)
   {
     const string& username = m_config.credentials().value().username();
     const string& bridgeAddress =  m_config.bridgeAddress().value();
@@ -370,24 +381,22 @@ namespace Huenicorn
 
     for(const auto& [id, channel] : m_selector->currentEntertainmentConfiguration().channels()){
       bool found = false;
-      const auto& members = ApiTools::matchDevices(entertainmentConfigurationsChannels.at(m_selector->currentEntertainmentConfigurationId()).at(id), devices);
-      if(jsonProfile.contains("channels")){
-        for(const auto& jsonProfileChannel : jsonProfile.at("channels")){
-          if(jsonProfileChannel.at("channelId") == id){
-            bool active = jsonProfileChannel.at("active");
-            json jsonUVs = jsonProfileChannel.at("uvs");
-            float uvAx = jsonUVs.at("uvA").at("x");
-            float uvAy = jsonUVs.at("uvA").at("y");
-            float uvBx = jsonUVs.at("uvB").at("x");
-            float uvBy = jsonUVs.at("uvB").at("y");
+      const auto& members = ApiTools::matchDevices(entertainmentConfigurationsChannels.at(m_selector->currentEntertainmentConfigurationId().value()).at(id), devices);
+      for(const auto& jsonProfileChannel : jsonChannels){
+        if(jsonProfileChannel.at("channelId") == id){
+          bool active = jsonProfileChannel.at("active");
+          json jsonUVs = jsonProfileChannel.at("uvs");
+          float uvAx = jsonUVs.at("uvA").at("x");
+          float uvAy = jsonUVs.at("uvA").at("y");
+          float uvBx = jsonUVs.at("uvB").at("x");
+          float uvBy = jsonUVs.at("uvB").at("y");
 
-            UVs uvs = {{uvAx, uvAy}, {uvBx, uvBy}};
-            float gammaFactor = jsonProfileChannel.at("gammaFactor");
-            channels.emplace(id, Channel{active, members, gammaFactor, uvs});
+          UVs uvs = {{uvAx, uvAy}, {uvBx, uvBy}};
+          float gammaFactor = jsonProfileChannel.at("gammaFactor");
+          channels.emplace(id, Channel{active, members, gammaFactor, uvs});
 
-            found = true;
-            break;
-          }
+          found = true;
+          break;
         }
       }
 
@@ -417,17 +426,28 @@ namespace Huenicorn
   }
 
 
-  void HuenicornCore::_enableEntertainmentConfiguration()
+  void HuenicornCore::_enableEntertainmentConfiguration(const std::string& entertainmentConfigurationId)
   {
-    if(!m_selector->validSelection()){
-      cout << "No entertainment configuration was found" << endl;
+    if(!m_selector->selectEntertainementConfiguration(entertainmentConfigurationId)){
       return;
     }
 
-    m_streamer->setEntertainmentConfigurationId(m_selector->currentEntertainmentConfigurationId());
+    const Credentials& credentials = m_config.credentials().value();
 
-    json jsonProfile = json::parse(ifstream(_profilePath()));
-    _initChannels(jsonProfile);
+    m_streamer = make_unique<Streamer>(credentials, m_config.bridgeAddress().value());
+    m_streamer->setEntertainmentConfigurationId(m_selector->currentEntertainmentConfigurationId().value());
+
+    auto profilePath = _profilePath();
+    json jsonChannels = json::object();
+
+    if(filesystem::is_regular_file(profilePath)){
+      json jsonProfile = json::parse(ifstream(_profilePath()));
+      if(jsonProfile.contains("channels")){
+        jsonChannels = jsonProfile.at("channels");
+      }
+    }
+
+    _initChannels(jsonChannels);
   }
 
 
@@ -486,7 +506,9 @@ namespace Huenicorn
       }
     }
 
-    m_streamer->streamChannels(channelStreams);
+    if(m_streamer.get()){
+      m_streamer->streamChannels(channelStreams);
+    }
   }
 
 

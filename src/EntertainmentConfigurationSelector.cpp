@@ -18,9 +18,13 @@ namespace Huenicorn
   }
 
 
-  const std::string& EntertainmentConfigurationSelector::currentEntertainmentConfigurationId() const
+  std::optional<std::string> EntertainmentConfigurationSelector::currentEntertainmentConfigurationId() const
   {
-    return m_currentEntertainmentConfiguration->first;
+    if(!validSelection()){
+      return nullopt;
+    }
+
+    return {m_currentEntertainmentConfiguration->first};
   }
 
 
@@ -45,14 +49,15 @@ namespace Huenicorn
   bool EntertainmentConfigurationSelector::selectEntertainementConfiguration(const std::string& entertainmentConfigurationId)
   {
     if(m_entertainmentConfigurations.size() == 0){
+      cout << "No entertainment configuration could be found yet. Please register one through the official Philips Hue application in order to power it with Huenicorn" << endl;
       return false;
     }
 
     disableStreaming();
 
     if(entertainmentConfigurationId.empty()){
-      cout << "Fallback selection" << endl;
       m_currentEntertainmentConfiguration = m_entertainmentConfigurations.begin();
+      cout << "Fallback selection " << m_currentEntertainmentConfiguration->first << endl;
     }
     else{
       m_currentEntertainmentConfiguration = m_entertainmentConfigurations.find(entertainmentConfigurationId);

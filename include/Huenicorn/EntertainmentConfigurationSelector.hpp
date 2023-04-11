@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <optional>
 
 #include <Huenicorn/Credentials.hpp>
 #include <Huenicorn/EntertainmentConfiguration.hpp>
@@ -25,9 +26,9 @@ namespace Huenicorn
     /**
      * @brief Returns the currently selected entertainment configuration ID
      * 
-     * @return const std::string& current entertainment configuration ID
+     * @return std::optional<std::string> current entertainment configuration ID
      */
-    const std::string& currentEntertainmentConfigurationId() const;
+    std::optional<std::string> currentEntertainmentConfigurationId() const;
 
 
     /**
