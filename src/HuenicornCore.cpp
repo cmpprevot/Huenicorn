@@ -434,8 +434,11 @@ namespace Huenicorn
 
     const Credentials& credentials = m_config.credentials().value();
 
-    m_streamer = make_unique<Streamer>(credentials, m_config.bridgeAddress().value());
-    m_streamer->setEntertainmentConfigurationId(m_selector->currentEntertainmentConfigurationId().value());
+    {
+      lock_guard lock(m_streamerMutex);
+      m_streamer = make_unique<Streamer>(credentials, m_config.bridgeAddress().value());
+      m_streamer->setEntertainmentConfigurationId(m_selector->currentEntertainmentConfigurationId().value());
+    }
 
     auto profilePath = _profilePath();
     json jsonChannels = json::object();
@@ -506,8 +509,11 @@ namespace Huenicorn
       }
     }
 
-    if(m_streamer.get()){
-      m_streamer->streamChannels(channelStreams);
+    {
+      lock_guard lock(m_streamerMutex);
+      if(m_streamer.get()){
+        m_streamer->streamChannels(channelStreams);
+      }
     }
   }
 

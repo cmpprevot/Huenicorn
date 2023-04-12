@@ -321,8 +321,11 @@ namespace Huenicorn
 
     //  API structure wrapper
     std::unique_ptr<EntertainmentConfigurationSelector> m_selector;
-    std::unique_ptr<Streamer> m_streamer;
     Channels m_channels;
+
+    // Streamer
+    std::mutex m_streamerMutex;
+    std::unique_ptr<Streamer> m_streamer;
 
     // Service and flags
     ThreadedRestService m_webUIService;

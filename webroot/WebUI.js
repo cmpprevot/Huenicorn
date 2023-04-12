@@ -308,13 +308,19 @@ class WebUI
 
   _setEntertainmentConfiguration(entertaimentConfigurationId)
   {
+    this._showLoading(true, "Switching configuration...");
     let promise = RequestUtils.put("/setEntertainmentConfiguration", JSON.stringify(entertaimentConfigurationId));
+
     promise.then((entertainmentConfigurationData) => {
       this._refreshChannelsLists(entertainmentConfigurationData.channels)
       this.screenWidget.showPreview();
       this.screenWidget.showWidgets(false);
+      this._showLoading(false);
     });
-    promise.catch((error) => {log(error);});
+    promise.catch((error) => {
+      log(error);
+      this._showLoading(false);
+    });
   }
 
 
@@ -368,5 +374,23 @@ class WebUI
         document.getElementById("stoppedInfoSection").style.display = "block";
       }
     });
+  }
+
+
+  _showLoading(show, loadingText = null)
+  {
+    let loadingInfoSectionNode = document.getElementById("loadingInfoSection");
+
+    if(show){
+      this.overlay.style.display = "block";
+      loadingInfoSectionNode.style.display = "block";
+      if(loadingText !== null){
+        document.getElementById("loadingTextInfo").innerHTML = loadingText;
+      }
+    }
+    else{
+      this.overlay.style.display = "none";
+      loadingInfoSectionNode.style.display = "none";
+    }
   }
 }
