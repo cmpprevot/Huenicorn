@@ -22,8 +22,17 @@ namespace Huenicorn
      */
     WebUIBackend(HuenicornCore* HuenicornCore);
 
-  private:
     // Handlers
+  protected:
+    /**
+     * @brief Returns the version of the backend project
+     * 
+     * @param session Pending HTTP connection
+     */
+    void _getVersion(const SharedSession& session) const override;
+
+
+  private:
     /**
      * @brief Handler to check the availability of the webUI
      * 

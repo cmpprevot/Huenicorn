@@ -54,7 +54,16 @@ namespace Huenicorn
     void _spawnBrowser();
 
 
+  protected:
     // Handlers
+    /**
+     * @brief Returns the version of the backend project
+     * 
+     * @param session Pending HTTP connection
+     */
+    void _getVersion(const SharedSession& session) const override;
+
+  private:
     /**
      * @brief Completes Huenicorn setup and stops setup backend server
      * 

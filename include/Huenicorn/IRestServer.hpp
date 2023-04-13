@@ -50,6 +50,13 @@ namespace Huenicorn
         resource->set_method_handler("GET", [this](SharedSession session){_getWebFile(session);});
         m_service.publish(resource);
       }
+  
+      {
+        auto resource = std::make_shared<restbed::Resource>();
+        resource->set_path("/version");
+        resource->set_method_handler("GET", [this](SharedSession session){_getVersion(session);});
+        m_service.publish(resource);
+      }
     }
 
 
@@ -148,6 +155,14 @@ namespace Huenicorn
 
 
     // Handlers
+    /**
+     * @brief Returns the version of the backend project
+     * 
+     * @param session Pending HTTP connection
+     */
+    virtual void _getVersion(const SharedSession& session) const = 0;
+
+
     /**
      * @brief Web filesystem handler
      * 

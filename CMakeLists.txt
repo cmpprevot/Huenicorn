@@ -1,19 +1,16 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(Huenicorn VERSION 0.1.0)
+
+set(PROJECT_NAME huenicorn)
+set(BINARY_NAME huenicorn)
+
+project(${PROJECT_NAME} VERSION 1.0.0)
 
 
 find_package(OpenCV REQUIRED)
 find_package(CURL REQUIRED)
 
-include_directories(
-  ${OpenCV_INCLUDE_DIRS}
-  include
-)
 
-
-set(BinName huenicorn)
-
-add_executable(${BinName}
+add_executable(${BINARY_NAME}
   src/main.cpp
   src/ApiTools.cpp
   src/Channel.cpp
@@ -53,12 +50,21 @@ add_executable(${BinName}
   include/Huenicorn/X11Grabber.hpp
 )
 
-set_target_properties(${BinName} PROPERTIES CXX_STANDARD 20)
 
-target_link_libraries(${BinName} PUBLIC X11 Xext Xrandr ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp restbed mbedtls mbedcrypto mbedx509)
+target_include_directories(${BINARY_NAME} PUBLIC
+  ${OpenCV_INCLUDE_DIRS}
+  include
+)
 
 
-target_compile_options(${BinName} PRIVATE
+set_target_properties(${BINARY_NAME} PROPERTIES CXX_STANDARD 20)
+target_link_libraries(${BINARY_NAME} PUBLIC X11 Xext Xrandr ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp restbed mbedtls mbedcrypto mbedx509)
+
+
+target_compile_definitions(${BINARY_NAME} PUBLIC PROJECT_VERSION=${PROJECT_VERSION})
+
+
+target_compile_options(${BINARY_NAME} PRIVATE
   -Werror
   -Wall
   -Wextra
@@ -68,7 +74,7 @@ target_compile_options(${BinName} PRIVATE
   -Wno-deprecated-copy
 )
 
-
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+  ${CMAKE_SOURCE_DIR}/webroot $<TARGET_FILE_DIR:${PROJECT_NAME}>/webroot
+)

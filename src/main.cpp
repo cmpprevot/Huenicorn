@@ -5,6 +5,11 @@
 
 #include <pwd.h>
 
+#define xstr(s) preprocess_str(s)
+#define preprocess_str(s) #s
+static constexpr std::string Version = xstr(PROJECT_VERSION);
+
+
 using namespace std;
 
 
@@ -24,7 +29,7 @@ class Application
 public:
   void start()
   {
-    m_core = make_unique<Huenicorn::HuenicornCore>(getConfigRoot());
+    m_core = make_unique<Huenicorn::HuenicornCore>(Version, getConfigRoot());
     m_applicationThread.emplace([&](){
       m_core->start();
     });
@@ -64,6 +69,8 @@ void signalHandler(int signal)
 
 int main()
 {
+  cout << "Starting Huenicorn version " << Version << endl;
+
   signal(SIGTERM, signalHandler);
   signal(SIGINT, signalHandler);
   signal(SIGTSTP, signalHandler);

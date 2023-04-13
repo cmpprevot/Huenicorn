@@ -66,15 +66,19 @@ Once you are satisfied with the layout, you can save it as a profile and it will
 
 Huenicorn can be shut down through the web interface or by sending a termination signal.
 
+## Website
+* [Huenicorn.org](http://huenicorn.org)
 
 ## Authors
 
 OpenJowel
 
-
 ## Version History
 
-* Initial Release
+* 1.0.0
+  * Refactor to implement real-time color streaming through Hue API V2
+* 0.0.0
+  * Initial implementation using Hue HTTP API
 
 ## License
 

@@ -114,6 +114,21 @@ namespace Huenicorn
   }
 
 
+  void WebUIBackend::_getVersion(const SharedSession& session) const
+  {
+    json jsonResponse = {
+      {"version", m_huenicornCore->version()},
+    };
+
+    string response = jsonResponse.dump();
+
+    session->close(restbed::OK, response, {
+      {"Content-Length", std::to_string(response.size())},
+      {"Content-Type", "application/json"}
+    });
+  }
+
+
   void WebUIBackend::_getWebUIStatus(const SharedSession& session) const
   {
     json jsonResponse = {

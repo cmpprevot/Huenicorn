@@ -18,11 +18,18 @@ using namespace std;
 
 namespace Huenicorn
 {
-  HuenicornCore::HuenicornCore(const std::filesystem::path& configRoot):
+  HuenicornCore::HuenicornCore(const std::string& version, const std::filesystem::path& configRoot):
+  m_version(version),
   m_configRoot(configRoot),
   m_config(m_configRoot),
   m_grabber(make_unique<X11Grabber>(&m_config))
   {}
+
+
+  const std::string& HuenicornCore::version() const
+  {
+    return m_version;
+  }
 
 
   const std::filesystem::path HuenicornCore::configFilePath() const

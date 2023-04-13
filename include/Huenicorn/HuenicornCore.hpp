@@ -34,12 +34,21 @@ namespace Huenicorn
     /**
      * @brief HuenicornCore constructor
      * 
-     * @param configRoot 
+     * @param version Current version of Huenicorn
+     * @param configRoot Path to the configuration directory
      */
-    HuenicornCore(const std::filesystem::path& configRoot);
+    HuenicornCore(const std::string& version, const std::filesystem::path& configRoot);
 
 
     // Getters
+    /**
+     * @brief Returns the current version of Huenicorn
+     * 
+     * @return const std::string& Current version of Huenicorn
+     */
+    const std::string& version() const;
+
+
     /**
      * @brief Returns the path of the configuration file
      * 
@@ -313,6 +322,7 @@ namespace Huenicorn
 
 
     // Attributes
+    const std::string& m_version;
     std::filesystem::path m_configRoot;
     Config m_config;
 
