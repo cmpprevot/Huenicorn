@@ -47,17 +47,13 @@ namespace Huenicorn
       std::ostringstream response;
       request.setOpt(new curlpp::options::WriteStream(&response));
 
+      json jsonResponse = {};
       try{
         request.perform();
+        jsonResponse = json::parse(response.str());
       }
       catch(const curlpp::LibcurlRuntimeError& e){
         cout << e.what() << endl;
-      }
-
-      json jsonResponse = {};
-
-      try{
-        jsonResponse = json::parse(response.str());
       }
       catch(const json::exception& e){
         cout << e.what() << endl;
