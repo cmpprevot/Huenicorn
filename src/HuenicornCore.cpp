@@ -473,8 +473,15 @@ namespace Huenicorn
 
       if(!m_tickSynchronizer->sync()){
         const auto& lastExcess = m_tickSynchronizer->lastExcess();
-        cout << "Scheduled interval has been exceeded of " << lastExcess.extra << " (" << lastExcess.rate * 100 << "%)." << endl;
-        cout << "Please reduce refreshRate if this warning persists." << endl;
+        float percentage = lastExcess.rate * 100;
+        ostringstream warningMessage;
+        warningMessage << "Scheduled interval has been exceeded of ";
+        warningMessage << lastExcess.extra;
+        warningMessage << " (";
+        warningMessage << percentage;
+        warningMessage << "%).";
+        cout << warningMessage.str() << endl;
+        cout << "Please reduce refresh rate if this warning persists." << endl;
       }
     }
 
