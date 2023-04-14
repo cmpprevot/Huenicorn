@@ -95,6 +95,7 @@ namespace Huenicorn
       }
 
       m_settings->set_port(port);
+      m_settings->set_bind_address("127.0.0.1");
 
       _onStart();
 
