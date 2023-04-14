@@ -7,6 +7,18 @@ Free screen synchronizer for your Philips Hue™ devices
 
 Huenicorn allows you to stream the dominant colors of your computer monitor to your Hue lightbulbs.
 
+
+## Project status
+Branch ApiV2Streaming has been merged on master.
+Previous HTTP-based version has been moved to Legacy branch.
+
+Huenicorn 1.0.0 is landing very soon. This refactor changes everything by running through the Hue V2 entertainment API. This fixes the latency issues of the (now) legacy version.
+
+Huenicorn 1.0.0 will be out as soon the last known bugs are fixed. We are now in Release Candidate versions.
+
+Thank you very much for your patience, comments and contributions.
+
+
 ## Getting Started
 
 * Before using Huenicorn, you need to register your Hue devices on your Hue Bridge through the official applications provided by Philips
@@ -36,7 +48,7 @@ cmake ..
 make
 ```
 
-The output is a standalone executable called huenicorn
+The output is a standalone executable called huenicorn.
 When running Huenicorn, make sure that the "webroot" directory is in the cwd (current working directory).
 
 ### Executing program
@@ -69,16 +81,17 @@ Huenicorn can be shut down through the web interface or by sending a termination
 ## Website
 * [Huenicorn.org](http://huenicorn.org)
 
-## Authors
-
-OpenJowel
 
 ## Version History
 
-* 1.0.0
-  * Refactor to implement real-time color streaming through Hue API V2
-* 0.0.0
+* 1.0.0-rc1
+  * Implements real-time color streaming through Hue API V2
+* 0.0.0 (Legacy)
   * Initial implementation using Hue HTTP API
+
+## Authors
+
+OpenJowel
 
 ## License
 
@@ -86,5 +99,5 @@ This project is licensed under the GNU GPLv3 License - see the LICENSE.txt file 
 
 ## Acknowledgments
 
-* [RGB D65 conversion]https://gist.github.com/popcorn245/30afa0f98eea1c2fd34d
-* [Huestacean]https://github.com/BradyBrenot/huestacean
+* [RGB D65 conversion] https://gist.github.com/popcorn245/30afa0f98eea1c2fd34d
+* [Huestacean] https://github.com/BradyBrenot/huestacean
