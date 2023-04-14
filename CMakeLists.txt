@@ -4,6 +4,13 @@ set(PROJECT_NAME huenicorn)
 set(BINARY_NAME huenicorn)
 
 project(${PROJECT_NAME} VERSION 1.0.0)
+set(RC_NUMBER 1)
+
+set(DISPLAYED_VERSION ${PROJECT_VERSION})
+
+if(RC_NUMBER)
+  set(DISPLAYED_VERSION ${DISPLAYED_VERSION}-rc${RC_NUMBER})
+endif()
 
 
 find_package(OpenCV REQUIRED)
@@ -61,7 +68,7 @@ set_target_properties(${BINARY_NAME} PROPERTIES CXX_STANDARD 20)
 target_link_libraries(${BINARY_NAME} PUBLIC X11 Xext Xrandr ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp restbed mbedtls mbedcrypto mbedx509)
 
 
-target_compile_definitions(${BINARY_NAME} PUBLIC PROJECT_VERSION=${PROJECT_VERSION})
+target_compile_definitions(${BINARY_NAME} PUBLIC PROJECT_VERSION=${DISPLAYED_VERSION})
 
 
 target_compile_options(${BINARY_NAME} PRIVATE
