@@ -152,11 +152,10 @@ input[type=text]
 
 #versionSection
 {
-  font-size: 0.5em;
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  font-size: 0.6em;
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
   z-index: -1;
   text-shadow: 0px 0px 5px hsla(var(--rainbowColor), 1.0);
 }

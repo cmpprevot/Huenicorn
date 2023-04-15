@@ -1,33 +1,33 @@
 # Huenicorn
 
-Free screen synchronizer for your Philips Hue™ devices
+A free ambilight driver for your Philips Hue™ devices
 
 
 ## Description
 
-Huenicorn allows you to stream the dominant colors of your computer monitor to your Hue lightbulbs.
+Huenicorn allows you to stream the dominant colors of your computer monitor to your Philips Hue lightbulbs. It provides an easy user interface to setup and manage the lights you want to use.
 
+### Screenshot
+
+![Screenshot](screenshots/HuenicornFullWebUI.png)
+*<center>Huenicorn Light Manager user interface</center>*
 
 ## Project status
-Branch ApiV2Streaming has been merged on master.
-Previous HTTP-based version has been moved to Legacy branch.
-
-Huenicorn 1.0.0 is landing very soon. This refactor changes everything by running through the Hue V2 entertainment API. This fixes the latency issues of the (now) legacy version.
-
-Huenicorn 1.0.0 will be out as soon the last known bugs are fixed. We are now in Release Candidate versions.
+Huenicorn 1.0.0 is now ready and available.
+This initial version powers your lights through the Philips Hue V2 entertainment API, solving the latency issues of the (now) legacy version.
+Good old HTTP-based version has been moved to Legacy branch.
 
 Thank you very much for your patience, comments and contributions.
 
 
 ## Getting Started
 
-* Before using Huenicorn, you need to register your Hue devices on your Hue Bridge through the official applications provided by Philips
+* Before using Huenicorn, you need to define some entertainment area on your Hue bridge through the official application provided by Philips.
 
 ### Requirements
 
-* Gnu/Linux system running through X11 graphics session
-* Philips Hue Bridge
-* Philips Hue lamps
+* Gnu/Linux system running X11 graphics session
+* Philips Hue bridge with registered lamps
 
 ### Dependencies
 
@@ -35,6 +35,7 @@ Thank you very much for your patience, comments and contributions.
 * [OpenCV](https://github.com/opencv/opencv)
 * [CurlPP](https://github.com/jpbarrette/curlpp)
 * [Restbed](https://github.com/Corvusoft/restbed)
+* [Mbed-TLS](https://github.com/Mbed-TLS/mbedtls)
 
 ### Compiling Huenicorn
 
@@ -48,42 +49,55 @@ cmake ..
 make
 ```
 
-The output is a standalone executable called huenicorn.
+The output is a standalone executable called "huenicorn".
 When running Huenicorn, make sure that the "webroot" directory is in the cwd (current working directory).
 
 ### Executing program
 
-* Run the executable in the way you prefer (Terminal if you want some textual feedback)
-* Open your favorite web browser at http://127.0.0.1:8080 (Browser will spawn automatically for the initial setup and as long as no light profile has been saved)
+* Run the executable named "huenicorn" in the way you prefer (Terminal if you want some text feedback)
+* Open your favorite web browser at http://127.0.0.1:8080
+Browser will spawn automatically for the initial setup and as long as no light profile has been saved
 
 #### Initial setup
 
-* Follow the web wizard to register Huenicorn on the Hue Bridge
+When executed for the first time, Huenicorn spawns the setup page in your favorite browser. It consists of a step-by-step wizard to locate your Hue bridge on the network and register an user on it.
 
-Upon setup proper termination, Huenicorn will resume in its ordinary execution workflow.
-<br>
+Upon setup proper setup termination, Huenicorn will resume in its ordinary execution workflow.
+
 The webpage can then be refreshed to reach the Light Manager interface.
 
 #### Ordinary execution worflow
 
-At startup, Huenicorn will look for a saved profile and compute the assigned colors to lights.
+At startup, Huenicorn will look for a saved profile and start its color streaming execution.
 
-If you want to assign lights to some portions of your screen, open the web interface and drag'n'drop the available lights from the left list to the right one
+If you want to assign lights to some portions of your screen, open the web interface and drag'n'drop the available lights from the left list to the right one.
 
 When a synced light is selected in the list, its portion of allocated screen can be adjusted in the screen partitioning section.
 
 Once you are satisfied with the layout, you can save it as a profile and it will be automatically reloaded for further executions.
+
+As long as no profile has been saved, light management interface will spawn automatically at startup.
+
+#### Configuration files
+The configuration files can be found in your home directory at ~/.config/huenicorn/
+config.json contains the bridge-related configuration.
+profile.json contains the saved channels geometry for an enteraintment configuration.
+
+The data structure of these files is JSON.
+
 
 #### Shutting down
 
 Huenicorn can be shut down through the web interface or by sending a termination signal.
 
 ## Website
-* [Huenicorn.org](http://huenicorn.org)
+Additionnal information and news can be found on [Huenicorn.org](http://huenicorn.org), the official website of the project.
 
 
-## Version History
+## Version history
 
+* 1.0.0
+  * First stable release
 * 1.0.0-rc1
   * Implements real-time color streaming through Hue API V2
 * 0.0.0 (Legacy)
@@ -95,7 +109,7 @@ OpenJowel
 
 ## License
 
-This project is licensed under the GNU GPLv3 License - see the LICENSE.txt file for details
+Huenicorn is licensed under the GNU GPLv3 License. see the [LICENSE.txt](LICENSE.txt) file for details.
 
 ## Acknowledgments
 

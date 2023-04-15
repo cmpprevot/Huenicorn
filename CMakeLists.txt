@@ -4,7 +4,7 @@ set(PROJECT_NAME huenicorn)
 set(BINARY_NAME huenicorn)
 
 project(${PROJECT_NAME} VERSION 1.0.0)
-set(RC_NUMBER 1)
+#set(RC_NUMBER 1)
 
 set(DISPLAYED_VERSION ${PROJECT_VERSION})
 
@@ -81,7 +81,26 @@ target_compile_options(${BINARY_NAME} PRIVATE
   -Wno-deprecated-copy
 )
 
+# Copy webroot to build
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_directory
   ${CMAKE_SOURCE_DIR}/webroot $<TARGET_FILE_DIR:${PROJECT_NAME}>/webroot
+)
+
+# Copy readme to build
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+  ${CMAKE_SOURCE_DIR}/README.md $<TARGET_FILE_DIR:${PROJECT_NAME}>/README.md
+)
+
+# Copy screenshots to build
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+  ${CMAKE_SOURCE_DIR}/screenshots $<TARGET_FILE_DIR:${PROJECT_NAME}>/screenshots
+)
+
+# Copy license to build
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+  ${CMAKE_SOURCE_DIR}/LICENSE.txt $<TARGET_FILE_DIR:${PROJECT_NAME}>/LICENSE.txt
 )
