@@ -138,7 +138,7 @@ namespace Huenicorn
 
   bool HuenicornCore::setEntertainmentConfiguration(const std::string& entertainmentConfigurationId)
   {
-    if(!m_selector->selectEntertainementConfiguration(entertainmentConfigurationId)){
+    if(!m_selector->selectEntertainmentConfiguration(entertainmentConfigurationId)){
       return false;
     }
 
@@ -435,7 +435,7 @@ namespace Huenicorn
 
   void HuenicornCore::_enableEntertainmentConfiguration(const std::string& entertainmentConfigurationId)
   {
-    if(!m_selector->selectEntertainementConfiguration(entertainmentConfigurationId)){
+    if(!m_selector->selectEntertainmentConfiguration(entertainmentConfigurationId)){
       return;
     }
 

@@ -22,11 +22,11 @@ namespace Huenicorn
 
       if(entertainmentConfigurationResponse.at("errors").size() == 0){
         // Listing entertainment configurations
-        for(const json& jsonEntertainentConfiguration : entertainmentConfigurationResponse.at("data")){
-          string confId = jsonEntertainentConfiguration.at("id");
-          string confName = jsonEntertainentConfiguration.at("metadata").at("name");
+        for(const json& jsonEntertainmentConfiguration : entertainmentConfigurationResponse.at("data")){
+          string confId = jsonEntertainmentConfiguration.at("id");
+          string confName = jsonEntertainmentConfiguration.at("metadata").at("name");
 
-          const json& lightServices = jsonEntertainentConfiguration.at("light_services");
+          const json& lightServices = jsonEntertainmentConfiguration.at("light_services");
 
           unordered_map<string, Device> lights;
           
@@ -41,7 +41,7 @@ namespace Huenicorn
           }
 
           Channels channels;
-          for(const auto& jsonChannel : jsonEntertainentConfiguration.at("channels")){
+          for(const auto& jsonChannel : jsonEntertainmentConfiguration.at("channels")){
             channels.insert({jsonChannel.at("channel_id").get<uint8_t>(), {false, {}, 0.f}});
           }
 
@@ -117,16 +117,16 @@ namespace Huenicorn
     }
 
 
-    void setStreamingState(const EntertainmentConfigurationEntry& entertrainmentConfigurationEntry, const string& username, const string& bridgeAddress, bool active)
+    void setStreamingState(const EntertainmentConfigurationEntry& entertainmentConfigurationEntry, const string& username, const string& bridgeAddress, bool active)
     {
       json jsonBody = {
         {"action", active ? "start" : "stop"},
-        {"metadata", {{"name", entertrainmentConfigurationEntry.second.name()}}}
+        {"metadata", {{"name", entertainmentConfigurationEntry.second.name()}}}
       };
 
       RequestUtils::Headers headers = {{"hue-application-key", username}};
 
-      string url = "https://" + bridgeAddress + "/clip/v2/resource/entertainment_configuration/" + entertrainmentConfigurationEntry.first;
+      string url = "https://" + bridgeAddress + "/clip/v2/resource/entertainment_configuration/" + entertainmentConfigurationEntry.first;
 
       RequestUtils::sendRequest(url, "PUT", jsonBody.dump(), headers);
     }

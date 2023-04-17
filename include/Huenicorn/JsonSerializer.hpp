@@ -32,7 +32,7 @@ namespace Huenicorn
 
 
     /**
-     * @brief Serializes EntertainentConfigurations to JSON
+     * @brief Serializes EntertainmentConfigurations to JSON
      * 
      * @param entertainmentConfigurations entertainmentConfigurations to serialize
      * @return nlohmann::json Serialized entertainmentConfigurations

@@ -57,7 +57,7 @@ namespace Huenicorn
     /**
      * @brief Set the streaming state of the entertainment configuration on the Hue bridge
      * 
-     * @param entertainmentConfigurationEntry Entertaiment configuration to manage
+     * @param entertainmentConfigurationEntry Entertainment configuration to manage
      * @param username Username credential for the HTTPS request
      * @param bridgeAddress Address of the Hue bridge
      * @param active True for active, false for inactive
@@ -65,7 +65,7 @@ namespace Huenicorn
     void setStreamingState(const EntertainmentConfigurationEntry& entertainmentConfigurationEntry, const std::string& username, const std::string& bridgeAddress, bool active);
 
     /**
-     * @brief Returns the streaming state of the entertaiment configuration entry
+     * @brief Returns the streaming state of the entertainment configuration entry
      * 
      * @param entertainmentConfigurationEntry 
      * @param username Username credential for the HTTPS request
