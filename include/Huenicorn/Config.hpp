@@ -49,6 +49,14 @@ namespace Huenicorn
 
 
     /**
+     * @brief Returns the registered bound ip address for the backend
+     * 
+     * @return const std::string& Bound ip address
+     */
+    const std::string& boundBackendIP() const;
+
+
+    /**
      * @brief Returns the registered address of the Hue bridge
      * 
      * @return const std::optional<std::string>& Registered address of the Hue bridge
@@ -166,6 +174,7 @@ namespace Huenicorn
     // Attributes
     std::filesystem::path m_configFilePath;
     int m_restServerPort{8080};
+    std::string m_boundBackendIP{"0.0.0.0"};
     std::optional<std::string> m_bridgeAddress;
     std::optional<Credentials> m_credentials;
     std::optional<std::string> m_profileName;

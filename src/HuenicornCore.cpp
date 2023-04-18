@@ -313,13 +313,14 @@ namespace Huenicorn
   bool HuenicornCore::_initSettings()
   {
     unsigned port = m_config.restServerPort();
+    const std::string& boundBackendIP = m_config.boundBackendIP();
     bool openedSetup = false;
 
     if(!m_config.initialSetupOk()){
       cout << "Starting setup backend" << endl;
 
       SetupBackend sb(this);
-      sb.start(port);
+      sb.start(port, boundBackendIP);
 
       if(sb.aborted()){
         cout << "Initial setup was aborted" << endl;
@@ -353,7 +354,7 @@ namespace Huenicorn
     unsigned restServerPort = m_config.restServerPort();
     m_webUIService.server = make_unique<WebUIBackend>(this);
     m_webUIService.thread.emplace([&](){
-      m_webUIService.server->start(restServerPort);
+      m_webUIService.server->start(restServerPort, boundBackendIP);
     });
 
     string entertainmentConfigurationId = {};

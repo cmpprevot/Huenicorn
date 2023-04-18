@@ -22,8 +22,17 @@ namespace Huenicorn
      */
     WebUIBackend(HuenicornCore* HuenicornCore);
 
-    // Handlers
+
   protected:
+    // Overrides
+    /**
+     * @brief Overriden routine to prompt message
+     * 
+     */
+    void _onStart() override;
+
+
+    // Handlers
     /**
      * @brief Returns the version of the backend project
      * 

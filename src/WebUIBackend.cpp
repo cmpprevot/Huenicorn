@@ -114,6 +114,12 @@ namespace Huenicorn
   }
 
 
+  void WebUIBackend::_onStart()
+  {
+    cout << "Started web service on port " << m_settings->get_port() << endl;
+  }
+
+
   void WebUIBackend::_getVersion(const SharedSession& session) const
   {
     json jsonResponse = {

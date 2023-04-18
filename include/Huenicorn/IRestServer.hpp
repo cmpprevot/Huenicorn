@@ -88,17 +88,16 @@ namespace Huenicorn
      * @return true REST server started successfully
      * @return false REST server is already running
      */
-    bool start(unsigned port)
+    bool start(unsigned port, const std::string& boundBackendIP)
     {
       if(running()){
         return false;
       }
 
       m_settings->set_port(port);
-      m_settings->set_bind_address("127.0.0.1");
+      m_settings->set_bind_address(boundBackendIP);
 
       _onStart();
-
       m_service.start(m_settings);
 
       return true;
