@@ -10,6 +10,10 @@
 
 namespace Huenicorn
 {
+  /**
+   * @brief Main configuration parameters to be stored and loaded in a persistent way
+   * 
+   */
   class Config
   {
   public:

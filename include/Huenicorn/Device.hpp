@@ -6,6 +6,10 @@
 
 namespace Huenicorn
 {
+  /**
+   * @brief Device data structure
+   * 
+   */
   struct Device
   {
     std::string id;

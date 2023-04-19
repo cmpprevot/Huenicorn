@@ -6,6 +6,10 @@ namespace Huenicorn
 {
   using UV = glm::vec2;
 
+  /**
+   * @brief Normalized screen coordinates
+   * 
+   */
   struct UVs
   {
     UV min;
@@ -13,6 +17,10 @@ namespace Huenicorn
   };
 
 
+  /**
+   * @brief Flag to identify corner
+   * 
+   */
   enum UVCorner
   {
     TopLeft = 0,

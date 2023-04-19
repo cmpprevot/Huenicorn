@@ -17,6 +17,10 @@
 
 namespace Huenicorn
 {
+  /**
+   * @brief Wrapper around Mbed-TLS library to provide TLS v1.2 connection to Hue bridge
+   * 
+   */
   class DtlsClient
   {
     // Constants

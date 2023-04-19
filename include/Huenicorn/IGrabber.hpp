@@ -10,6 +10,11 @@ namespace Huenicorn
 {
   class Config;
 
+
+  /**
+   * @brief Abstract class to implement for screen capture
+   * 
+   */
   class IGrabber
   {
   public:
@@ -19,6 +24,11 @@ namespace Huenicorn
     using Resolutions = std::vector<Resolution>;
     using RefreshRate = unsigned;
 
+
+    /**
+     * @brief Structure containing display resolution and refresh rate information
+     * 
+     */
     struct DisplayInfo
     {
       Resolution resolution;
@@ -64,9 +74,9 @@ namespace Huenicorn
     /**
      * @brief Takes a screen capture and returns a subsample of it as bitmap
      * 
-     * @param imageData Subsample of screen capture
+     * @param cvImage Subsample of screen capture
      */
-    virtual void grabFrameSubsample(cv::Mat& imageData) = 0;
+    virtual void grabFrameSubsample(cv::Mat& cvImage) = 0;
 
 
     /**

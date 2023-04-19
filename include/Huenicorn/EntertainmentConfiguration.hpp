@@ -16,6 +16,10 @@ namespace Huenicorn
   using EntertainmentConfigurationEntry = std::pair<std::string, EntertainmentConfiguration>;
 
 
+  /**
+   * @brief Wrapper around Hue Entertainment Configuration
+   * 
+   */
   class EntertainmentConfiguration
   {
   public:

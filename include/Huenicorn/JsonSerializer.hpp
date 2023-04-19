@@ -11,6 +11,10 @@
 
 namespace Huenicorn
 {
+  /**
+   * @brief Provides json serialization functions for data structures
+   * 
+   */
   namespace JsonSerializer
   {
     /**

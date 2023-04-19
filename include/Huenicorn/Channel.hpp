@@ -16,6 +16,10 @@ namespace Huenicorn
   using Channels = std::unordered_map<uint8_t, Channel>;
 
 
+  /**
+   * @brief Channel structure matching Hue streaming protocol
+   * 
+   */
   struct ChannelStream
   {
     uint8_t id;
@@ -26,6 +30,10 @@ namespace Huenicorn
   using ChannelStreams = std::vector<ChannelStream>;
 
 
+  /**
+   * @brief Wrapper around Hue Channel extended with UV and Gamma control
+   * 
+   */
   class Channel
   {
   public:

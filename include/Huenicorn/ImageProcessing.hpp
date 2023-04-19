@@ -11,6 +11,10 @@ namespace Huenicorn
 {
   using Colors = std::vector<Color>;
 
+  /**
+   * @brief Provides image manipulation functions
+   * 
+   */
   namespace ImageProcessing
   {
     /**

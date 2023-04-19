@@ -9,6 +9,10 @@
 
 namespace Huenicorn
 {
+  /**
+   * @brief Abstract class to implement for REST service
+   * 
+   */
   class IRestServer
   {
   protected:
@@ -85,6 +89,7 @@ namespace Huenicorn
      * @brief Starts the REST server and triggers _onStart event
      * 
      * @param port Listening port of the REST server
+     * @param boundBackendIP IP to bind the backend to
      * @return true REST server started successfully
      * @return false REST server is already running
      */

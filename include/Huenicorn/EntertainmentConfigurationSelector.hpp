@@ -9,6 +9,10 @@
 
 namespace Huenicorn
 {
+  /**
+   * @brief Selector tool for Entertaimnent Configurations
+   * 
+   */
   class EntertainmentConfigurationSelector
   {
   public:

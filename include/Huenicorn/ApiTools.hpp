@@ -16,6 +16,10 @@ namespace Huenicorn
   using EntertainmentConfigurationsChannels = std::unordered_map<std::string, ChannelsMembersIds>;
 
 
+  /**
+   * @brief Provides wrappers around the Hue bridge API
+   * 
+   */
   namespace ApiTools
   {
     /**

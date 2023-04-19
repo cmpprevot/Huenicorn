@@ -12,6 +12,10 @@ namespace Huenicorn
   std::vector<unsigned char> stringToBytes(const std::string& string);
 
 
+  /**
+   * @brief Wrapper around Hue bridge user authentication data
+   * 
+   */
   class Credentials
   {
   public:
