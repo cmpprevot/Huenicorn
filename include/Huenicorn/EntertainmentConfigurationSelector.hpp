@@ -10,7 +10,7 @@
 namespace Huenicorn
 {
   /**
-   * @brief Selector tool for Entertaimnent Configurations
+   * @brief Selector tool for Entertainment Configurations
    * 
    */
   class EntertainmentConfigurationSelector
