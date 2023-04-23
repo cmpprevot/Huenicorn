@@ -21,6 +21,22 @@ using namespace std;
 
 namespace Huenicorn
 {
+  static void debugCallback(void* ctx, int level, const char* file, int line, const char* str)
+  {
+    const char* p, *basename;
+    (void)ctx;
+
+    for(p = basename = file; *p != '\0'; p++){
+      if(*p == '/' || *p == '\\'){
+        basename = p + 1;
+      }
+    }
+
+    mbedtls_printf("%s:%04d: |%d| %s", basename, line, level, str);
+  }
+
+
+
   DtlsClient::DtlsClient(const Credentials& credentials, const std::string& address, const std::string& port):
     m_credentials(credentials),
     m_address(address),
@@ -39,6 +55,7 @@ namespace Huenicorn
     mbedtls_debug_set_threshold(4);
 
     _initMembers();
+    //_initDebug();
     _initRNG();
     _initConnection();
     _initSSL();
@@ -48,7 +65,7 @@ namespace Huenicorn
 
   bool DtlsClient::send(const std::vector<char>& requestBuffer)
   {
-    int result = mbedtls_ssl_write(&m_ssl, (unsigned char *)requestBuffer.data(), requestBuffer.size());
+    int result = mbedtls_ssl_write(&m_ssl, reinterpret_cast<const unsigned char*>(requestBuffer.data()), requestBuffer.size());
     return (
       result == MBEDTLS_ERR_SSL_WANT_READ ||
       result == MBEDTLS_ERR_SSL_WANT_WRITE ||
@@ -67,6 +84,12 @@ namespace Huenicorn
   }
 
 
+  void DtlsClient::_initDebug()
+  {
+    mbedtls_ssl_conf_dbg(&m_conf, debugCallback, NULL);
+  }
+
+
   void DtlsClient::_initRNG()
   {
     string pers = "dtls_client";
@@ -75,12 +98,12 @@ namespace Huenicorn
       &m_ctrDrbg,
       mbedtls_entropy_func,
       &m_entropy,
-      (const unsigned char*)pers.data(),
+      reinterpret_cast<const unsigned char*>(pers.data()),
       pers.length()
     );
 
     if(result != 0){
-      throw runtime_error("mbedtls_ctr_drbg_seed returned: " + result);
+      throw runtime_error("mbedtls_ctr_drbg_seed returned: " + std::to_string(result));
     }
   }
 
@@ -95,7 +118,7 @@ namespace Huenicorn
     );
 
     if(result != 0){
-      throw runtime_error("mbedtls_net_connect failed with code: " + result);
+      throw runtime_error("mbedtls_net_connect failed with code: " + std::to_string(result));
     }
   }
 
@@ -113,7 +136,7 @@ namespace Huenicorn
     );
 
     if(result != 0){
-      throw runtime_error("mbedtls_ssl_config_defaults failed with code: " + result);
+      throw runtime_error("mbedtls_ssl_config_defaults failed with code: " + std::to_string(result));
     }
 
     mbedtls_ssl_conf_authmode(&m_conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
@@ -123,30 +146,28 @@ namespace Huenicorn
     result = mbedtls_ssl_setup(&m_ssl, &m_conf);
 
     if(result != 0){
-      throw runtime_error("mbedtls_ssl_setup failed with code: " + result);
+      throw runtime_error("mbedtls_ssl_setup failed with code: " + std::to_string(result));
     }
 
     result = mbedtls_ssl_conf_psk(
       &m_conf,
-      (const unsigned char*)pskRawArray.data(),
+      reinterpret_cast<const unsigned char*>(pskRawArray.data()),
       pskRawArray.size() * sizeof(unsigned char),
-      (const unsigned char*)pskIdRawArray.data(),
+      reinterpret_cast<const unsigned char*>(pskIdRawArray.data()),
       pskIdRawArray.size() * sizeof(unsigned char)
     );
 
     if(result != 0){
-      throw runtime_error("mbedtls_ssl_conf_psk failed with code: " + result);
+      throw runtime_error("mbedtls_ssl_conf_psk failed with code: " + std::to_string(result));
     }
 
-    int ciphers[2];
-    ciphers[0] = MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256;
-    ciphers[1] = 0;
-    mbedtls_ssl_conf_ciphersuites(&m_conf, ciphers);
-
+    m_ciphers.push_back(MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256);
+    m_ciphers.push_back(0);
+    mbedtls_ssl_conf_ciphersuites(&m_conf, m_ciphers.data());
     result = mbedtls_ssl_set_hostname(&m_ssl, Hostname.c_str());
 
     if(result != 0){
-      throw runtime_error("mbedtls_ssl_set_hostname failed with code: " + result);
+      throw runtime_error("mbedtls_ssl_set_hostname failed with code: " + std::to_string(result));
     }
 
     mbedtls_ssl_set_bio(
@@ -182,7 +203,7 @@ namespace Huenicorn
     }
 
     if(result != 0){
-      throw runtime_error("mbedtls_ssl_handshake failed with code: " +  result);
+      throw runtime_error("mbedtls_ssl_handshake failed with code: " + std::to_string(result));
     }
 
     cout << "Dtls handshake successful" << endl;

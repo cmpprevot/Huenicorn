@@ -67,6 +67,13 @@ namespace Huenicorn
 
 
     /**
+     * @brief Initializes debug messages for Mbed-TLS
+     * 
+     */
+    void _initDebug();
+
+
+    /**
      * @brief Initializes the random number generator
      * 
      */
@@ -104,6 +111,8 @@ namespace Huenicorn
     const Credentials m_credentials;
     const std::string m_address;
     const std::string m_port;
+
+    std::vector<int> m_ciphers;
 
     // MbedTLS
     mbedtls_net_context m_serverFd;
