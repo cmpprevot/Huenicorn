@@ -20,6 +20,10 @@
 
 namespace Huenicorn
 {
+  /**
+   * @brief Main execution scope of Huenicorn that handles application components and executes streaming loop.
+   * 
+   */
   class HuenicornCore
   {
     // Type definitions

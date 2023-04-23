@@ -24,6 +24,10 @@ filesystem::path getConfigRoot()
 }
 
 
+/**
+ * @brief Wrapper around threaded application
+ * 
+ */
 class Application
 {
 public:

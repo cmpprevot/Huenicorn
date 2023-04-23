@@ -306,10 +306,10 @@ class WebUI
   }
 
 
-  _setEntertainmentConfiguration(entertaimentConfigurationId)
+  _setEntertainmentConfiguration(entertainmentConfigurationId)
   {
     this._showLoading(true, "Switching configuration...");
-    let promise = RequestUtils.put("/setEntertainmentConfiguration", JSON.stringify(entertaimentConfigurationId));
+    let promise = RequestUtils.put("/setEntertainmentConfiguration", JSON.stringify(entertainmentConfigurationId));
 
     promise.then((entertainmentConfigurationData) => {
       this._refreshChannelsLists(entertainmentConfigurationData.channels)

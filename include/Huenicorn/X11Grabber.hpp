@@ -8,8 +8,13 @@
 #include <X11/Xlib.h>
 #include <X11/extensions/XShm.h>
 
+
 namespace Huenicorn
 {
+  /**
+   * @brief Image data structure
+   * 
+   */
   struct ImageData
   {
     std::vector<uint8_t> pixels;
@@ -19,6 +24,10 @@ namespace Huenicorn
   };
 
 
+  /**
+   * @brief X11 implementation of screen grabber
+   * 
+   */
   class X11Grabber : public IGrabber
   {
   public:
@@ -61,7 +70,7 @@ namespace Huenicorn
      * 
      * @param imageData Subsample of screen capture
      */
-    virtual void grabFrameSubsample(cv::Mat& cvImage) override;
+    virtual void grabFrameSubsample(cv::Mat& imageData) override;
 
 
   private:

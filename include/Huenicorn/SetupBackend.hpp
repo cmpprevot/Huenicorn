@@ -9,6 +9,11 @@ namespace Huenicorn
 {
   class HuenicornCore;
 
+
+  /**
+   * @brief REST service handling requests for Huenicorn initial setup
+   * 
+   */
   class SetupBackend : public IRestServer
   {
   public:

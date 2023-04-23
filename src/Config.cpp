@@ -39,6 +39,12 @@ namespace Huenicorn
   }
 
 
+  const std::string& Config::boundBackendIP() const
+  {
+    return m_boundBackendIP;
+  }
+
+
   unsigned Config::refreshRate() const
   {
     return m_refreshRate;
@@ -123,6 +129,7 @@ namespace Huenicorn
   bool Config::_loadConfigFile()
   {
     json jsonConfigRoot = json::object();
+    bool requireSave = false;
 
     if(filesystem::exists(m_configFilePath)){
       jsonConfigRoot = json::parse(std::ifstream(m_configFilePath));
@@ -132,7 +139,14 @@ namespace Huenicorn
       m_restServerPort = jsonConfigRoot.at("restServerPort");
     }
     else{
-      cout << "Missing 'restServerPort' in config. Falling back to " << m_restServerPort << endl;
+      requireSave = true;
+    }
+
+    if(jsonConfigRoot.contains("boundBackendIP")){
+      m_boundBackendIP = jsonConfigRoot.at("boundBackendIP");
+    }
+    else{
+      requireSave = true;
     }
 
     bool ready = true;
@@ -177,18 +191,25 @@ namespace Huenicorn
       m_refreshRate = jsonConfigRoot.at("refreshRate");
     }
 
+    if(requireSave){
+      _save();
+    }
+
     return !jsonConfigRoot.empty();
   }
 
 
   void Config::_save() const
   {
+    // Parameter that can safelty take a default value
     json jsonOutConfig = {
       {"subsampleWidth", m_subsampleWidth},
       {"refreshRate", m_refreshRate},
       {"restServerPort", m_restServerPort},
+      {"boundBackendIP", m_boundBackendIP}
     };
 
+    // Parameters that require user inputs
     if(m_bridgeAddress.has_value()){
       jsonOutConfig["bridgeAddress"] = m_bridgeAddress.value();
     }

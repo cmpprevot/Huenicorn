@@ -46,7 +46,7 @@ namespace Huenicorn
   }
 
 
-  bool EntertainmentConfigurationSelector::selectEntertainementConfiguration(const std::string& entertainmentConfigurationId)
+  bool EntertainmentConfigurationSelector::selectEntertainmentConfiguration(const std::string& entertainmentConfigurationId)
   {
     if(m_entertainmentConfigurations.size() == 0){
       cout << "No entertainment configuration could be found yet. Please register one through the official Philips Hue application in order to power it with Huenicorn" << endl;

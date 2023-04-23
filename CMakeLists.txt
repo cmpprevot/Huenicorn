@@ -3,8 +3,12 @@ cmake_minimum_required(VERSION 3.0.0)
 set(PROJECT_NAME huenicorn)
 set(BINARY_NAME huenicorn)
 
-project(${PROJECT_NAME} VERSION 1.0.0)
+project(${PROJECT_NAME} VERSION 1.0.1)
 #set(RC_NUMBER 1)
+
+
+set(BUILD_DOCUMENTATION FALSE CACHE BOOL "Build documentation")
+
 
 set(DISPLAYED_VERSION ${PROJECT_VERSION})
 
@@ -80,6 +84,35 @@ target_compile_options(${BINARY_NAME} PRIVATE
   -Wno-deprecated-declarations
   -Wno-deprecated-copy
 )
+
+
+if(${BUILD_DOCUMENTATION})
+  # Initializing Doxygen
+  find_package(Doxygen REQUIRED dot OPTIONAL_COMPONENTS mscgen dia)
+
+  # Defining Doxyfile path
+  set(doxyfile_in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.doxygen)
+
+  # Setting Doxyfile properties
+  set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc)
+  set(DOXYGEN_EXTRACT_ALL YES)
+  set(DOXYGEN_FULL_PATH_NAMES NO)
+
+  # Generating doxyfile
+  doxygen_add_docs(
+    doxygen
+    ${PROJECT_SOURCE_DIR}
+    COMMENT "Generate man pages"
+  )
+
+  # Building Doxygen documentation
+  add_custom_target(documentationBuild ALL
+    COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile_in}
+    COMMENT "Generating API documentation with Doxygen"
+    VERBATIM
+  )
+endif(${BUILD_DOCUMENTATION})
+
 
 # Copy webroot to build
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD

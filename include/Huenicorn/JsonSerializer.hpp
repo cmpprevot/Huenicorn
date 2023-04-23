@@ -11,6 +11,10 @@
 
 namespace Huenicorn
 {
+  /**
+   * @brief Provides json serialization functions for data structures
+   * 
+   */
   namespace JsonSerializer
   {
     /**
@@ -32,7 +36,7 @@ namespace Huenicorn
 
 
     /**
-     * @brief Serializes EntertainentConfigurations to JSON
+     * @brief Serializes EntertainmentConfigurations to JSON
      * 
      * @param entertainmentConfigurations entertainmentConfigurations to serialize
      * @return nlohmann::json Serialized entertainmentConfigurations

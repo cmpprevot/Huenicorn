@@ -8,6 +8,11 @@ namespace Huenicorn
 {
   class HuenicornCore;
 
+
+  /**
+   * @brief REST service handling requests for light management
+   * 
+   */
   class WebUIBackend : public IRestServer
   {
     // Type definitions
@@ -20,10 +25,19 @@ namespace Huenicorn
      * 
      * @param huenicornCore Pointer to Huenicorn core
      */
-    WebUIBackend(HuenicornCore* HuenicornCore);
+    WebUIBackend(HuenicornCore* huenicornCore);
+
+
+  protected:
+    // Overrides
+    /**
+     * @brief Overriden routine to prompt message
+     * 
+     */
+    void _onStart() override;
+
 
     // Handlers
-  protected:
     /**
      * @brief Returns the version of the backend project
      * 

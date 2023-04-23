@@ -11,6 +11,10 @@ namespace Huenicorn
 {
   static constexpr std::string PORT = "2100";
 
+  /**
+   * @brief Wrapper around UDP requests to submit color data to the bridge
+   * 
+   */
   class Streamer
   {
     struct HuestreamHeader
@@ -21,7 +25,7 @@ namespace Huenicorn
       char reserved1[2] = {0, 0};
       char colorSpace = 0x00;
       char reserved2 = 0;
-      char entertainmentConfiguationId[36];
+      char entertainmentConfigurationId[36];
 
 
       /**
@@ -38,12 +42,12 @@ namespace Huenicorn
       /**
        * @brief Sets the entertainmentConfigurationId field
        * 
-       * @param _entertainmentConfiguationId 
+       * @param _entertainmentConfigurationId Id of the entertainment configuration to set
        */
-      void setEntertainmentConfigurationId(const std::string& _entertainmentConfiguationId)
+      void setEntertainmentConfigurationId(const std::string& _entertainmentConfigurationId)
       {
-        for(int i = 0; const char& idChar : _entertainmentConfiguationId){
-          entertainmentConfiguationId[i++] = idChar;
+        for(int i = 0; const char& idChar : _entertainmentConfigurationId){
+          entertainmentConfigurationId[i++] = idChar;
         }
       }
     };

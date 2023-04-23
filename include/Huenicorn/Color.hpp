@@ -8,6 +8,10 @@
 
 namespace Huenicorn
 {
+  /**
+   * @brief Color data structure providing conversion and manipulation methods
+   * 
+   */
   class Color
   {
   public:

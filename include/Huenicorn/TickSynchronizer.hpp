@@ -22,11 +22,17 @@ namespace Huenicorn
     using Duration = TimeUnit;
     using TimePoint = std::chrono::time_point<ClockType, TimeUnit>;
 
+
+    /**
+     * @brief Time statistics for exceeded time
+     * 
+     */
     struct Excess
     {
       Duration extra;
       float rate;
     };
+
 
   // Constructors / Destructor
     /**

@@ -9,6 +9,10 @@
 
 namespace Huenicorn
 {
+  /**
+   * @brief Selector tool for Entertainment Configurations
+   * 
+   */
   class EntertainmentConfigurationSelector
   {
   public:
@@ -40,7 +44,7 @@ namespace Huenicorn
 
 
     /**
-     * @brief Returns a list of available entertaiment configurations
+     * @brief Returns a list of available entertainment configurations
      * 
      * @return const EntertainmentConfigurations& entertainment configurations
      */
@@ -64,7 +68,7 @@ namespace Huenicorn
      * @return true Entertainment configuration was selected successfully
      * @return false Entertainment configuration could not be selected
      */
-    bool selectEntertainementConfiguration(const std::string& entertainmentConfigurationId);
+    bool selectEntertainmentConfiguration(const std::string& entertainmentConfigurationId);
 
 
     /**

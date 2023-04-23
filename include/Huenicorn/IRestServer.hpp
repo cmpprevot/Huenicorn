@@ -9,6 +9,10 @@
 
 namespace Huenicorn
 {
+  /**
+   * @brief Abstract class to implement for REST service
+   * 
+   */
   class IRestServer
   {
   protected:
@@ -85,20 +89,20 @@ namespace Huenicorn
      * @brief Starts the REST server and triggers _onStart event
      * 
      * @param port Listening port of the REST server
+     * @param boundBackendIP IP to bind the backend to
      * @return true REST server started successfully
      * @return false REST server is already running
      */
-    bool start(unsigned port)
+    bool start(unsigned port, const std::string& boundBackendIP)
     {
       if(running()){
         return false;
       }
 
       m_settings->set_port(port);
-      m_settings->set_bind_address("127.0.0.1");
+      m_settings->set_bind_address(boundBackendIP);
 
       _onStart();
-
       m_service.start(m_settings);
 
       return true;

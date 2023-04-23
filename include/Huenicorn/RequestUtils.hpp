@@ -7,6 +7,10 @@
 
 namespace Huenicorn
 {
+  /**
+   * @brief Provides an abstraction around HTTP requests and returns JSON data structs
+   * 
+   */
   namespace RequestUtils
   {
     using Headers = std::multimap<std::string, std::string>;

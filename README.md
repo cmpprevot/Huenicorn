@@ -2,23 +2,26 @@
 
 A free ambilight driver for your Philips Hue™ devices
 
-
 ## Description
 
-Huenicorn allows you to stream the dominant colors of your computer monitor to your Philips Hue lightbulbs. It provides an easy user interface to setup and manage the lights you want to use.
+Huenicorn is a free ambilight driver for Gnu/Linux.
+In other words, Huenicorn allows you to extend the colorful atmosphere of your computer screen to your Hue light bulbs in real-time.
+Huenicorn provides a simple web interface to assign specific portions of screen to the light bulbs you desire and save the settings for a further entertainment session.
 
 ### Screenshot
 
 ![Screenshot](screenshots/HuenicornFullWebUI.png)
-*<center>Huenicorn Light Manager user interface</center>*
+*Huenicorn Light Manager user interface*
 
 ## Project status
-Huenicorn 1.0.0 is now ready and available.
-This initial version powers your lights through the Philips Hue V2 entertainment API, solving the latency issues of the (now) legacy version.
-Good old HTTP-based version has been moved to Legacy branch.
 
-Thank you very much for your patience, comments and contributions.
+Huenicorn 1.0.1 is now ready and available.
 
+This revision brings
+
+* Fix for an important reliability bug on release mode for some compilers
+* Better documentation (with available Doxygen generation routine in CMake)
+* Small UI changes
 
 ## Getting Started
 
@@ -36,12 +39,13 @@ Thank you very much for your patience, comments and contributions.
 * [CurlPP](https://github.com/jpbarrette/curlpp)
 * [Restbed](https://github.com/Corvusoft/restbed)
 * [Mbed-TLS](https://github.com/Mbed-TLS/mbedtls)
+* [GLM](https://github.com/g-truc/glm)
 
 ### Compiling Huenicorn
 
 Make sure the abovementionned are installed (preferably through your system's package manager)
 
-```
+```bash
 git clone https://gitlab.com/openjowelsofts/huenicorn.git
 cd huenicorn
 mkdir build && cd build
@@ -55,8 +59,9 @@ When running Huenicorn, make sure that the "webroot" directory is in the cwd (cu
 ### Executing program
 
 * Run the executable named "huenicorn" in the way you prefer (Terminal if you want some text feedback)
-* Open your favorite web browser at http://127.0.0.1:8080
+* Open your favorite web browser at [127.0.0.1:8080](http://127.0.0.1:8080)
 Browser will spawn automatically for the initial setup and as long as no light profile has been saved
+(Service port can be edited in configuration. Default is 8080)
 
 #### Initial setup
 
@@ -78,30 +83,65 @@ Once you are satisfied with the layout, you can save it as a profile and it will
 
 As long as no profile has been saved, light management interface will spawn automatically at startup.
 
-#### Configuration files
+### Configuration files
+
 The configuration files can be found in your home directory at ~/.config/huenicorn/
 config.json contains the bridge-related configuration.
 profile.json contains the saved channels geometry for an enteraintment configuration.
 
 The data structure of these files is JSON.
 
+#### config.json
+
+  This file contains some parameters that can be manually edited after initial setup.
+
+* **boundBackendIP**:  (String) IP address to bind the service on
+* **bridgeAddress**:  (String) Address of the Philips Hue bridge
+* **credentials**:
+  * **clientkey**: (String) 32 hexadecimal characters key provided by initial setup
+  * **username**: (String) Base64 or UUID username provided by initial setup
+* **profile**:  (String) Name of the current user-defined light profile
+* **refreshRate**:  (Unsigned) Screen capture and light update frequency
+* **restServerPort**:  (Unsigned) Port on which the web UI must respond
+* **subsampleWidth**:  (Unsigned) Width of the treated image subsample
+
+#### profile.json
+
+This file contains a list of channels related to an entertainment configuration.
+
+* **Channels**: (Array) List of entertainment configuration channels
+  * **active**: (Boolean) Wether the channel is active or not
+  * **channelId**: (Unsigned) Index of the channel in the entertainment configuration
+  * **devices**: (Object) List of devices for the channel
+    * **id**: (String) UUID of the device
+    * **name**: (String) User-defined name of the device
+    * **id**: (String) Manufacturer-defined name of the device
+  * **gammaFactor**: (Float) Light brightness modifier
+  * **uvs**: (Object) Pair of coorinates for sub image treatment
+    * **uvA**: (Object) Top-left corner coordinate
+      * **x**: (Float) x coordinate
+      * **y**: (Float) y coordinate
+    * **uvB**: (Object) Bottom-reft corner coordinate
+      * **x**: (Float) x coordinate
+      * **y**: (Float) y coordinate
+* **entertainmentConfigurationId**: (String) UUID of the related entertainment configuration
 
 #### Shutting down
 
 Huenicorn can be shut down through the web interface or by sending a termination signal.
 
 ## Website
-Additionnal information and news can be found on [Huenicorn.org](http://huenicorn.org), the official website of the project.
 
+Additionnal information and news can be found on [Huenicorn.org](http://huenicorn.org), the official website of the project.
 
 ## Version history
 
+* 1.0.1
+  * Better reliability and documentation
 * 1.0.0
   * First stable release
-* 1.0.0-rc1
-  * Implements real-time color streaming through Hue API V2
 * 0.0.0 (Legacy)
-  * Initial implementation using Hue HTTP API
+  * Initial (slow) implementation using Hue HTTP API
 
 ## Authors
 
@@ -113,5 +153,5 @@ Huenicorn is licensed under the GNU GPLv3 License. see the [LICENSE.txt](LICENSE
 
 ## Acknowledgments
 
-* [RGB D65 conversion] https://gist.github.com/popcorn245/30afa0f98eea1c2fd34d
-* [Huestacean] https://github.com/BradyBrenot/huestacean
+* [RGB D65 conversion](https://gist.github.com/popcorn245/30afa0f98eea1c2fd34d)
+* [Huestacean](https://github.com/BradyBrenot/huestacean)

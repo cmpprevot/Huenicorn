@@ -10,6 +10,10 @@
 
 namespace Huenicorn
 {
+  /**
+   * @brief Main configuration parameters to be stored and loaded in a persistent way
+   * 
+   */
   class Config
   {
   public:
@@ -46,6 +50,14 @@ namespace Huenicorn
      * @return int Registered REST port
      */
     int restServerPort() const;
+
+
+    /**
+     * @brief Returns the registered bound ip address for the backend
+     * 
+     * @return const std::string& Bound ip address
+     */
+    const std::string& boundBackendIP() const;
 
 
     /**
@@ -166,6 +178,7 @@ namespace Huenicorn
     // Attributes
     std::filesystem::path m_configFilePath;
     int m_restServerPort{8080};
+    std::string m_boundBackendIP{"0.0.0.0"};
     std::optional<std::string> m_bridgeAddress;
     std::optional<Credentials> m_credentials;
     std::optional<std::string> m_profileName;
