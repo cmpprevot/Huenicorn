@@ -209,7 +209,7 @@ namespace Huenicorn
         contentType = m_contentTypes.at(extension);
       }
 
-      std::fstream webFile(webFileFullPath);
+      std::ifstream webFile(webFileFullPath);
       std::string response = std::string(std::istreambuf_iterator<char>(webFile), std::istreambuf_iterator<char>());
 
       std::multimap<std::string, std::string> headers{
