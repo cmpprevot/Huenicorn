@@ -20,6 +20,7 @@ Huenicorn 1.0.1 is now ready and available.
 This revision brings
 
 * Fix for an important reliability bug on release mode for some compilers
+* Add config parameter to bind REST backend to given IP
 * Better documentation (with available Doxygen generation routine in CMake)
 * Small UI changes
 
