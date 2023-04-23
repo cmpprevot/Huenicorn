@@ -15,11 +15,13 @@ Huenicorn provides a simple web interface to assign specific portions of screen 
 
 ## Project status
 
-Huenicorn 1.0.0 is now ready and available.
-This initial version powers your lights through the Philips Hue V2 entertainment API, solving the latency issues of the (now) legacy version.
-Good old HTTP-based version has been moved to Legacy branch.
+Huenicorn 1.0.1 is now ready and available.
 
-Thank you very much for your patience, comments and contributions.
+This revision brings
+
+* Fix for an important reliability bug on release mode for some compilers
+* Better documentation (with available Doxygen generation routine in CMake)
+* Small UI changes
 
 ## Getting Started
 
@@ -134,6 +136,8 @@ Additionnal information and news can be found on [Huenicorn.org](http://huenicor
 
 ## Version history
 
+* 1.0.1
+  * Better reliability and documentation
 * 1.0.0
   * First stable release
 * 0.0.0 (Legacy)
