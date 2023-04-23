@@ -93,6 +93,7 @@ The data structure of these files is JSON.
 
   This file contains some parameters that can be manually edited after initial setup.
 
+* **boundBackendIP**:  (String) IP address to bind the service on
 * **bridgeAddress**:  (String) Address of the Philips Hue bridge
 * **credentials**:
   * **clientkey**: (String) 32 hexadecimal characters key provided by initial setup
