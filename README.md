@@ -21,6 +21,7 @@ This revision brings
 
 * Fix for an important reliability bug on release mode for some compilers
 * Add config parameter to bind REST backend to given IP
+* Fix webroot file access
 * Better documentation (with available Doxygen generation routine in CMake)
 * Small UI changes
 
