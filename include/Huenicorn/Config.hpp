@@ -36,7 +36,7 @@ namespace Huenicorn
 
 
     /**
-     * @brief Returns wether the required fields were registered
+     * @brief Returns whether the required fields were registered
      * 
      * @return true Required fileds were all provided
      * @return false Some required fields were not provided

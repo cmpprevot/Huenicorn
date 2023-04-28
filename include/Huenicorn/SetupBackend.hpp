@@ -35,7 +35,7 @@ namespace Huenicorn
 
   // Getters
     /**
-     * @brief Returns wether the setup was aborted or not
+     * @brief Returns whether the setup was aborted or not
      * 
      * @return true Setup was aborted
      * @return false Setup was completed

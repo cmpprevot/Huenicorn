@@ -48,7 +48,7 @@ namespace Huenicorn
     /**
      * @brief Channel constructor
      * 
-     * @param active Wether the channel is active or not
+     * @param active Whether the channel is active or not
      * @param devices List of devices driven by the channel
      * @param gammaFactor Gamma factor of the light
      * @param uvs UVs of the screen portion
@@ -102,7 +102,7 @@ namespace Huenicorn
     /**
      * @brief Set the channel activity
      * 
-     * @param active Wether the channel must be active or not
+     * @param active Whether the channel must be active or not
      */
     void setActive(bool active);
 

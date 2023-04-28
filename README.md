@@ -111,7 +111,7 @@ The data structure of these files is JSON.
 This file contains a list of channels related to an entertainment configuration.
 
 * **Channels**: (Array) List of entertainment configuration channels
-  * **active**: (Boolean) Wether the channel is active or not
+  * **active**: (Boolean) whether the channel is active or not
   * **channelId**: (Unsigned) Index of the channel in the entertainment configuration
   * **devices**: (Object) List of devices for the channel
     * **id**: (String) UUID of the device

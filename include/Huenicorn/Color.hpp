@@ -151,7 +151,7 @@ namespace Huenicorn
 
 
     /**
-     * @brief Returns wether the XY color coordinates fits in gammut
+     * @brief Returns whether the XY color coordinates fits in gammut
      * 
      * @param xy 
      * @param gamutCoordinates 

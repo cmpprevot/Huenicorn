@@ -73,7 +73,7 @@ namespace Huenicorn
 
     // Getters
     /**
-     * @brief Returns wether the REST server is running or not
+     * @brief Returns whether the REST server is running or not
      * 
      * @return true REST server is running
      * @return false REST server is not running

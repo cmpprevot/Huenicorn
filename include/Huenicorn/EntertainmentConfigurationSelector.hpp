@@ -52,7 +52,7 @@ namespace Huenicorn
 
 
     /**
-     * @brief Returns wether the current entertainment configuration is valid or not
+     * @brief Returns whether the current entertainment configuration is valid or not
      * 
      * @return true Current entertainment configuration is valid
      * @return false Current entertainment configuration is not valid
