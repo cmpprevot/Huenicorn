@@ -1,6 +1,6 @@
 # Huenicorn
 
-A free ambilight driver for your Philips Hue™ devices
+A free Philips Hue™ screen synchronizer for Gnu/Linux
 
 ## Description
 
@@ -45,7 +45,7 @@ This revision brings
 
 ### Compiling Huenicorn
 
-Make sure the abovementionned are installed (preferably through your system's package manager)
+Make sure the abovementionned libraries are installed (preferably through your system's package manager)
 
 ```bash
 git clone https://gitlab.com/openjowelsofts/huenicorn.git
@@ -56,7 +56,7 @@ make
 ```
 
 The output is a standalone executable called "huenicorn".
-When running Huenicorn, make sure that the "webroot" directory is in the cwd (current working directory).
+When running Huenicorn, make sure that the ```webroot``` directory is in the cwd (current working directory).
 
 ### Executing program
 
@@ -89,7 +89,7 @@ As long as no profile has been saved, light management interface will spawn auto
 
 The configuration files can be found in your home directory at ~/.config/huenicorn/
 config.json contains the bridge-related configuration.
-profile.json contains the saved channels geometry for an enteraintment configuration.
+profile.json contains the saved channels geometry for an entertainment configuration.
 
 The data structure of these files is JSON.
 

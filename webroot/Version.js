@@ -1,4 +1,4 @@
-function getVesion()
+function getVersion()
 {
   let versionPromise = RequestUtils.get("/version");
   versionPromise.then((data) => {
@@ -10,4 +10,4 @@ function getVesion()
   versionPromise.catch((error) => {log(error);});
 }
 
-getVesion();
+getVersion();
