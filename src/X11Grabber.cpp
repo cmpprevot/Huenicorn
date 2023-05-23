@@ -104,13 +104,16 @@ namespace Huenicorn
     cv::Mat image;
     if(m_imageData->bitsPerPixel > 24){
       image = cv::Mat(m_imageData->height, m_imageData->width, CV_8UC4, m_imageData->pixels.data());
-      cv::cvtColor(image, image, cv::COLOR_RGBA2RGB);
     }
     else{
       image = cv::Mat(m_imageData->height, m_imageData->width, CV_8UC3, m_imageData->pixels.data());
     }
 
     ImageProcessing::rescale(image, m_config->subsampleWidth());
+
+    if(image.channels() == 4){
+      cv::cvtColor(image, image, cv::COLOR_RGBA2RGB);
+    }
 
     cvImage = std::move(image);
   }
