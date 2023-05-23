@@ -10,20 +10,17 @@ Huenicorn provides a simple web interface to assign specific portions of screen 
 
 ### Screenshot
 
-![Screenshot](screenshots/HuenicornFullWebUI.png)
-*Huenicorn Light Manager user interface*
+| ![Screenshot](screenshots/HuenicornFullWebUI.png) |
+|:--:|
+| *Caption: Huenicorn Light Manager user interface* |
 
 ## Project status
 
-Huenicorn 1.0.1 is now ready and available.
+Huenicorn 1.0.2 is available.
 
 This revision brings
 
-* Fix for an important reliability bug on release mode for some compilers
-* Add config parameter to bind REST backend to given IP
-* Fix webroot file access
-* Better documentation (with available Doxygen generation routine in CMake)
-* Small UI changes
+* Significant CPU workload reduction
 
 ## Getting Started
 
