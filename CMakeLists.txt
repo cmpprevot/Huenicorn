@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.5.0)
 
 set(PROJECT_NAME huenicorn)
 set(BINARY_NAME huenicorn)
@@ -8,6 +8,7 @@ project(${PROJECT_NAME} VERSION 1.0.3)
 
 
 set(BUILD_DOCUMENTATION FALSE CACHE BOOL "Build documentation")
+set(BUILD_TESTS FALSE CACHE BOOL "Build tests")
 
 
 set(DISPLAYED_VERSION ${PROJECT_VERSION})
@@ -21,6 +22,16 @@ find_package(OpenCV REQUIRED)
 find_package(CURL REQUIRED)
 
 
+# Begin Wayland dependencies
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+find_package(Gio REQUIRED)
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(LIBGLIB REQUIRED glib-2.0 gio-2.0)
+pkg_search_module(LIB_PIPEWIRE REQUIRED libpipewire-0.3)
+# End Wayland dependencies
+
+
 add_executable(${BINARY_NAME}
   src/main.cpp
   src/ApiTools.cpp
@@ -32,14 +43,17 @@ add_executable(${BINARY_NAME}
   src/HuenicornCore.cpp
   src/ImageProcessing.cpp
   src/JsonSerializer.cpp
+  src/PipewireGrabber.cpp # Wayland
   src/Streamer.cpp
   src/RequestUtils.cpp
   src/SetupBackend.cpp
   src/TickSynchronizer.cpp
   src/WebUIBackend.cpp
   src/X11Grabber.cpp
+  src/XdgDesktopPortal.cpp # Wayland
   include/Huenicorn/ApiTools.hpp
   include/Huenicorn/Channel.hpp
+  include/Huenicorn/ColorUtils.hpp
   include/Huenicorn/Color.hpp
   include/Huenicorn/Config.hpp
   include/Huenicorn/Credentials.hpp
@@ -52,6 +66,7 @@ add_executable(${BINARY_NAME}
   include/Huenicorn/ImageProcessing.hpp
   include/Huenicorn/IRestServer.hpp
   include/Huenicorn/JsonSerializer.hpp
+  include/Huenicorn/PipewireGrabber.hpp # Wayland
   include/Huenicorn/RequestUtils.hpp
   include/Huenicorn/SetupBackend.hpp
   include/Huenicorn/Streamer.hpp
@@ -59,17 +74,27 @@ add_executable(${BINARY_NAME}
   include/Huenicorn/UV.hpp
   include/Huenicorn/WebUIBackend.hpp
   include/Huenicorn/X11Grabber.hpp
+  include/Huenicorn/XdgDesktopPortal.hpp # Wayland
 )
 
 
 target_include_directories(${BINARY_NAME} PUBLIC
   ${OpenCV_INCLUDE_DIRS}
+  # Begin wayland dependencies
+  ${LIB_PIPEWIRE_INCLUDE_DIRS}
+  # End wayland dependencies
   include
 )
 
 
 set_target_properties(${BINARY_NAME} PROPERTIES CXX_STANDARD 20)
-target_link_libraries(${BINARY_NAME} PUBLIC X11 Xext Xrandr ${OpenCV_LIBS} ${CURL_LIBRARIES} curlpp restbed mbedtls mbedcrypto mbedx509)
+target_link_libraries(${BINARY_NAME} PUBLIC X11 Xext Xrandr ${OpenCV_LIBS} ${CURL_LIBRARIES}
+  # Begin wayland dependencies
+  GIO::GIO
+  ${LIB_PIPEWIRE_LIBRARIES}
+  ${LIBGLIB_LIBRARIES}
+  # End wayland dependencies
+curlpp restbed mbedtls mbedcrypto mbedx509)
 
 
 target_compile_definitions(${BINARY_NAME} PUBLIC PROJECT_VERSION=${DISPLAYED_VERSION})
@@ -84,6 +109,11 @@ target_compile_options(${BINARY_NAME} PRIVATE
   -Wno-deprecated-declarations
   -Wno-deprecated-copy
 )
+
+
+if(${BUILD_TESTS})
+  include(tests/AddTests.cmake)
+endif(${BUILD_TESTS})
 
 
 if(${BUILD_DOCUMENTATION})

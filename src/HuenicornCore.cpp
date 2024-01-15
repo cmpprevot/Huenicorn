@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include <Huenicorn/X11Grabber.hpp>
+#include <Huenicorn/PipewireGrabber.hpp>
 #include <Huenicorn/ImageProcessing.hpp>
 #include <Huenicorn/RequestUtils.hpp>
 #include <Huenicorn/SetupBackend.hpp>
@@ -22,7 +23,11 @@ namespace Huenicorn
   m_version(version),
   m_configRoot(configRoot),
   m_config(m_configRoot),
+  /*/ TODO : Runtime detection
   m_grabber(make_unique<X11Grabber>(&m_config))
+  /*/
+  m_grabber(make_unique<PipewireGrabber>(&m_config))
+  //*/
   {}
 
 
@@ -496,6 +501,11 @@ namespace Huenicorn
   void HuenicornCore::_processFrame()
   {
     m_grabber->grabFrameSubsample(m_cvImage);
+    if(!m_cvImage.data){
+      // Grabbers with asynchronous capture may produce slower than the core consumes
+      return;
+    }
+
     cv::Mat subframeImage;
     ChannelStreams channelStreams;
 
