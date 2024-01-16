@@ -47,7 +47,7 @@ if(${X11_FOUND})
   )
 endif()
 
-if(LIB_PIPEWIRE_FOUND AND GIO_FOUND)
+if(LIB_PIPEWIRE_FOUND AND GIO_FOUND AND GLIB_FOUND)
   set(PIPEWIRE_GRABBER_AVAILABLE TRUE)
   message("Able to build Pipewire Grabber !")
 
