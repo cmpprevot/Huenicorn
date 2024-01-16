@@ -53,7 +53,6 @@ add_executable(${BINARY_NAME}
   src/XdgDesktopPortal.cpp # Wayland
   include/Huenicorn/ApiTools.hpp
   include/Huenicorn/Channel.hpp
-  include/Huenicorn/ColorUtils.hpp
   include/Huenicorn/Color.hpp
   include/Huenicorn/Config.hpp
   include/Huenicorn/Credentials.hpp
