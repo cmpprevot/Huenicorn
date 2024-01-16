@@ -47,7 +47,7 @@ if(${X11_FOUND})
   )
 endif()
 
-if(LIB_PIPEWIRE_FOUND AND GIO_FOUND AND GLIB_FOUND)
+if(LIB_PIPEWIRE_FOUND AND GIO_FOUND AND LIBGLIB_FOUND)
   set(PIPEWIRE_GRABBER_AVAILABLE TRUE)
   message("Able to build Pipewire Grabber !")
 
@@ -121,10 +121,11 @@ target_link_libraries(${BINARY_NAME} PUBLIC
 )
 
 if(X11_GRABBER_AVAILABLE)
+  target_compile_definitions(${BINARY_NAME} PUBLIC X11_GRABBER_AVAILABLE=1)
   target_sources(${BINARY_NAME} PRIVATE
     ${X11_GRABBER_SOURCES}
   )
-  
+
   target_link_libraries(${BINARY_NAME} PUBLIC
     X11::X11
     X11::Xext
@@ -134,6 +135,7 @@ endif()
 
 
 if(PIPEWIRE_GRABBER_AVAILABLE)
+  target_compile_definitions(${BINARY_NAME} PUBLIC PIPEWIRE_GRABBER_AVAILABLE=1)
   target_sources(${BINARY_NAME} PRIVATE
     ${PIPEWIRE_GRABBER_SOURCES}
   )

@@ -280,6 +280,14 @@ namespace Huenicorn
     bool _initSettings();
 
 
+    /**
+     * Brief Initializes a grabber based on the graphical session
+     * 
+     * @return true Relevant grabber was found and initialized
+     * @return false could not initialize a grabber
+    */
+    bool _initGrabber();
+
 
     /**
      * @brief Initializes the channels based on the profile settings

@@ -3,8 +3,12 @@
 #include <iostream>
 #include <fstream>
 
+#ifdef X11_GRABBER_AVAILABLE
 #include <Huenicorn/X11Grabber.hpp>
+#endif
+#ifdef PIPEWIRE_GRABBER_AVAILABLE
 #include <Huenicorn/PipewireGrabber.hpp>
+#endif
 #include <Huenicorn/ImageProcessing.hpp>
 #include <Huenicorn/RequestUtils.hpp>
 #include <Huenicorn/SetupBackend.hpp>
@@ -22,12 +26,7 @@ namespace Huenicorn
   HuenicornCore::HuenicornCore(const std::string& version, const std::filesystem::path& configRoot):
   m_version(version),
   m_configRoot(configRoot),
-  m_config(m_configRoot),
-  /*/ TODO : Runtime detection
-  m_grabber(make_unique<X11Grabber>(&m_config))
-  /*/
-  m_grabber(make_unique<PipewireGrabber>(&m_config))
-  //*/
+  m_config(m_configRoot)
   {}
 
 
@@ -194,6 +193,11 @@ namespace Huenicorn
 
       // TODO : Add tool to create entertainment configurations inside Huenicorn
       // so the official application would no longer be a requirement
+    }
+
+    if(!_initGrabber()){
+      cout << "Could not start any grabber" << endl;
+      return;
     }
 
     _startStreamingLoop();
@@ -380,6 +384,39 @@ namespace Huenicorn
     }
 
     return true;
+  }
+
+
+  bool HuenicornCore::_initGrabber()
+  {
+    string sessionType = std::getenv("XDG_SESSION_TYPE");
+
+    try{
+#ifdef PIPEWIRE_GRABBER_AVAILABLE
+    if(sessionType == "wayland"){
+      m_grabber = make_unique<PipewireGrabber>(&m_config);
+      cout << "Started Pipewire grabber." << endl;
+      return true;
+    }
+#endif
+
+#ifdef X11_GRABBER_AVAILABLE
+    if(sessionType == "x11"){
+      m_grabber = make_unique<X11Grabber>(&m_config);
+      cout << "Started X11 grabber." << endl;
+      return true;
+    }
+#endif
+    }
+    catch(const std::exception& e){
+      cout << e.what() << endl;
+    }
+
+    if(!m_grabber){
+      cout << "Could not find a compatible grabber for your graphic session." << endl;
+    }
+
+    return false;
   }
 
 
