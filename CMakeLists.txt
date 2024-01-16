@@ -18,18 +18,51 @@ if(RC_NUMBER)
 endif()
 
 
+find_package(PkgConfig REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(CURL REQUIRED)
+find_package(MbedTLS REQUIRED)
 
 
-# Begin Wayland dependencies
+# Check grabber-related libraries
+# Begin X11-related
+find_package(X11)
+# End X11-related
+
+# Begin Pipewire-related
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
-find_package(Gio REQUIRED)
-find_package(PkgConfig REQUIRED)
+find_package(Gio)
+pkg_search_module(LIB_PIPEWIRE OPTIONAL libpipewire-0.3)
+pkg_check_modules(LIBGLIB glib-2.0 gio-2.0)
+# End Pipewire-related
 
-pkg_check_modules(LIBGLIB REQUIRED glib-2.0 gio-2.0)
-pkg_search_module(LIB_PIPEWIRE REQUIRED libpipewire-0.3)
-# End Wayland dependencies
+
+if(${X11_FOUND})
+  set(X11_GRABBER_AVAILABLE TRUE)
+  message("Able to build X11 Grabber !")
+
+  set(X11_GRABBER_SOURCES
+    src/X11Grabber.cpp
+    include/Huenicorn/X11Grabber.hpp
+  )
+endif()
+
+if(LIB_PIPEWIRE_FOUND AND GIO_FOUND)
+  set(PIPEWIRE_GRABBER_AVAILABLE TRUE)
+  message("Able to build Pipewire Grabber !")
+
+  set(PIPEWIRE_GRABBER_SOURCES
+    src/PipewireGrabber.cpp
+    src/XdgDesktopPortal.cpp
+    include/Huenicorn/PipewireGrabber.hpp
+    include/Huenicorn/XdgDesktopPortal.hpp
+  )
+endif()
+
+
+if(NOT (PIPEWIRER_GRABBER_AVAILABLE OR X11_GRABBER_AVAILABLE))
+  message(FATAL_ERROR "Missing dependencies to compile a least one grabber")
+endif()
 
 
 add_executable(${BINARY_NAME}
@@ -43,14 +76,11 @@ add_executable(${BINARY_NAME}
   src/HuenicornCore.cpp
   src/ImageProcessing.cpp
   src/JsonSerializer.cpp
-  src/PipewireGrabber.cpp # Wayland
   src/Streamer.cpp
   src/RequestUtils.cpp
   src/SetupBackend.cpp
   src/TickSynchronizer.cpp
   src/WebUIBackend.cpp
-  src/X11Grabber.cpp
-  src/XdgDesktopPortal.cpp # Wayland
   include/Huenicorn/ApiTools.hpp
   include/Huenicorn/Channel.hpp
   include/Huenicorn/Color.hpp
@@ -65,38 +95,61 @@ add_executable(${BINARY_NAME}
   include/Huenicorn/ImageProcessing.hpp
   include/Huenicorn/IRestServer.hpp
   include/Huenicorn/JsonSerializer.hpp
-  include/Huenicorn/PipewireGrabber.hpp # Wayland
   include/Huenicorn/RequestUtils.hpp
   include/Huenicorn/SetupBackend.hpp
   include/Huenicorn/Streamer.hpp
   include/Huenicorn/TickSynchronizer.hpp
   include/Huenicorn/UV.hpp
   include/Huenicorn/WebUIBackend.hpp
-  include/Huenicorn/X11Grabber.hpp
-  include/Huenicorn/XdgDesktopPortal.hpp # Wayland
 )
 
+target_compile_definitions(${BINARY_NAME} PUBLIC PROJECT_VERSION=${DISPLAYED_VERSION})
+
+set_target_properties(${BINARY_NAME} PROPERTIES CXX_STANDARD 20)
 
 target_include_directories(${BINARY_NAME} PUBLIC
   ${OpenCV_INCLUDE_DIRS}
-  # Begin wayland dependencies
-  ${LIB_PIPEWIRE_INCLUDE_DIRS}
-  # End wayland dependencies
   include
 )
 
+target_link_libraries(${BINARY_NAME} PUBLIC
+  ${OpenCV_LIBS}
+  ${CURL_LIBRARIES}
+  curlpp
+  restbed
+  MbedTLS::mbedtls
+)
 
-set_target_properties(${BINARY_NAME} PROPERTIES CXX_STANDARD 20)
-target_link_libraries(${BINARY_NAME} PUBLIC X11 Xext Xrandr ${OpenCV_LIBS} ${CURL_LIBRARIES}
-  # Begin wayland dependencies
-  GIO::GIO
-  ${LIB_PIPEWIRE_LIBRARIES}
-  ${LIBGLIB_LIBRARIES}
-  # End wayland dependencies
-curlpp restbed mbedtls mbedcrypto mbedx509)
+if(X11_GRABBER_AVAILABLE)
+  target_sources(${BINARY_NAME} PRIVATE
+    ${X11_GRABBER_SOURCES}
+  )
+  
+  target_link_libraries(${BINARY_NAME} PUBLIC
+    X11::X11
+    X11::Xext
+    X11::Xrandr
+  )
+endif()
 
 
-target_compile_definitions(${BINARY_NAME} PUBLIC PROJECT_VERSION=${DISPLAYED_VERSION})
+if(PIPEWIRE_GRABBER_AVAILABLE)
+  target_sources(${BINARY_NAME} PRIVATE
+    ${PIPEWIRE_GRABBER_SOURCES}
+  )
+  
+  target_include_directories(${BINARY_NAME} PUBLIC
+    ${LIB_PIPEWIRE_INCLUDE_DIRS}
+    ${GIO_INCLUDE_DIRS}
+    ${GLIB_INCLUDE_DIRS}
+  )
+
+  target_link_libraries(${BINARY_NAME} PUBLIC
+    GIO::GIO
+    ${LIB_PIPEWIRE_LIBRARIES}
+    ${LIBGLIB_LIBRARIES}
+  )
+endif()
 
 
 target_compile_options(${BINARY_NAME} PRIVATE
