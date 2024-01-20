@@ -19,9 +19,10 @@ endif()
 
 
 find_package(PkgConfig REQUIRED)
-find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED COMPONENTS imgproc)
 find_package(CURL REQUIRED)
 find_package(MbedTLS REQUIRED)
+find_package(nlohmann_json 3.2.0 REQUIRED)
 
 
 # Check grabber-related libraries
@@ -118,6 +119,7 @@ target_link_libraries(${BINARY_NAME} PUBLIC
   curlpp
   restbed
   MbedTLS::mbedtls
+  nlohmann_json::nlohmann_json
 )
 
 if(X11_GRABBER_AVAILABLE)
