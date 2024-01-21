@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.0)
 set(PROJECT_NAME huenicorn)
 set(BINARY_NAME huenicorn)
 
-project(${PROJECT_NAME} VERSION 1.0.3)
+project(${PROJECT_NAME} VERSION 1.0.4)
 #set(RC_NUMBER 1)
 
 
@@ -22,10 +22,12 @@ endif()
 find_package(PkgConfig REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS imgproc)
 find_package(CURL REQUIRED)
-find_package(MbedTLS REQUIRED)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 find_library(RESTBED_LIBS restbed REQUIRED)
 find_library(CURLPP_LIBS curlpp REQUIRED)
+find_library(MBEDTLS_LIBS mbedtls REQUIRED)
+find_library(MBEDTLS_X509 mbedx509 REQUIRED)
+find_library(MBEDTLS_CRYPTO mbedcrypto REQUIRED)
 
 
 # Check grabber-related libraries
@@ -121,7 +123,9 @@ target_link_libraries(${BINARY_NAME} PUBLIC
   ${CURL_LIBRARIES}
   ${CURLPP_LIBS}
   ${RESTBED_LIBS}
-  MbedTLS::mbedtls
+  ${MBEDTLS_LIBS}
+  ${MBEDTLS_X509}
+  ${MBEDTLS_CRYPTO}
   nlohmann_json::nlohmann_json
 )
 
