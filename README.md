@@ -6,7 +6,7 @@ A free Philips Hue™ screen synchronizer for Gnu/Linux
 
 Huenicorn is a free ambilight driver for Gnu/Linux.
 In other words, Huenicorn allows you to extend the colorful atmosphere of your computer screen to your Hue light bulbs in real-time.
-Huenicorn provides a simple web interface to assign specific portions of screen to the light bulbs you desire and save the settings for a further entertainment session.
+Huenicorn provides a simple web interface to assign specific portions of screen to the light bulbs you desire and save the settings for further entertainment sessions.
 
 ### Screenshot
 
@@ -16,11 +16,12 @@ Huenicorn provides a simple web interface to assign specific portions of screen 
 
 ## Project status
 
-Huenicorn 1.0.3 is available.
+Huenicorn 1.0.4 is available.
 
 This revision brings
 
-* Switch Mbed-TLS to new major version
+* Wayland support
+* Automatic grabber selection for X.org / Wayland sessions
 
 ## Getting Started
 
@@ -28,17 +29,18 @@ This revision brings
 
 ### Requirements
 
-* Gnu/Linux system running X11 graphics session
+* Gnu/Linux system running with graphics sessions based on X.org or Wayland
 * Philips Hue bridge with registered lamps
 
 ### Dependencies
 
-* X11
+* [X.Org](https://xorg.freedesktop.org) or [Wayland](https://wayland.freedesktop.org)
 * [OpenCV](https://github.com/opencv/opencv)
 * [CurlPP](https://github.com/jpbarrette/curlpp)
 * [Restbed](https://github.com/Corvusoft/restbed)
 * [Mbed-TLS](https://github.com/Mbed-TLS/mbedtls)
 * [GLM](https://github.com/g-truc/glm)
+* [nlohmann-json](https://github.com/nlohmann/json)
 
 
 <details>
@@ -56,9 +58,10 @@ Follow the build instructions in their respective README files and copy them to 
 
 </details>
 
-### Compiling Huenicorn
+### Building Huenicorn
 
-Make sure the abovementionned libraries are installed (preferably through your system's package manager)
+Make sure the abovementionned dependencies are installed (preferably through your system's package manager)
+
 
 ```bash
 git clone https://gitlab.com/openjowelsofts/huenicorn.git
@@ -87,6 +90,16 @@ Upon setup proper setup termination, Huenicorn will resume in its ordinary execu
 The webpage can then be refreshed to reach the Light Manager interface.
 
 #### Ordinary execution worflow
+
+<details>
+  <summary>Wayland-specific step</summary>
+  <br/>
+
+  At initialization, the grabber will ask you to select some source through a screen sharing portal. Pick the desired screen and validate by clicking "Share".
+</details>
+<br/>
+
+Huenicorn will automatically select a the suitable screen-grabber for the graphic session.
 
 At startup, Huenicorn will look for a saved profile and start its color streaming execution.
 
@@ -150,6 +163,8 @@ Huenicorn can be shut down through the web interface or by sending a termination
 Additionnal information and news can be found on [Huenicorn.org](http://huenicorn.org), the official website of the project.
 
 ## Version history
+* 1.0.4
+- * Adding support for Wayland graphic sessions
 * 1.0.3
 - * Moving to Mbed-TLS 3.4
 * 1.0.2
@@ -167,9 +182,11 @@ OpenJowel
 
 ## License
 
-Huenicorn is licensed under the GNU GPLv3 License. see the [LICENSE.txt](LICENSE.txt) file for details.
+Huenicorn is licensed under the GNU GPLv3 License. See the [LICENSE.txt](LICENSE.txt) file for details.
 
 ## Acknowledgments
 
+* [XDG portal screencast](https://codeberg.org/metamuffin/xdg-dp-start/src/branch/master/xdg-dp-start.c)
+* [Pipewire documentation](https://docs.pipewire.org/page_tutorial5.html)
 * [RGB D65 conversion](https://gist.github.com/popcorn245/30afa0f98eea1c2fd34d)
 * [Huestacean](https://github.com/BradyBrenot/huestacean)
