@@ -18,11 +18,14 @@ if(RC_NUMBER)
 endif()
 
 
+# Check mandatory libraries
 find_package(PkgConfig REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS imgproc)
 find_package(CURL REQUIRED)
 find_package(MbedTLS REQUIRED)
 find_package(nlohmann_json 3.2.0 REQUIRED)
+find_library(RESTBED_LIBS restbed REQUIRED)
+find_library(CURLPP_LIBS curlpp REQUIRED)
 
 
 # Check grabber-related libraries
@@ -116,8 +119,8 @@ target_include_directories(${BINARY_NAME} PUBLIC
 target_link_libraries(${BINARY_NAME} PUBLIC
   ${OpenCV_LIBS}
   ${CURL_LIBRARIES}
-  curlpp
-  restbed
+  ${CURLPP_LIBS}
+  ${RESTBED_LIBS}
   MbedTLS::mbedtls
   nlohmann_json::nlohmann_json
 )
