@@ -68,8 +68,6 @@ namespace Huenicorn
 
     static void _pipewireThread(XdgDesktopPortal::Capture* capture, PipewireData* pw);
 
-    void _startPipewireThread();
-
     void _teardownPipewire();
 
     void _stop();

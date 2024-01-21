@@ -22,11 +22,20 @@ namespace Huenicorn
   IGrabber(config)
   {
     m_pwData.config = config;
-    _startPipewireThread();
+    auto readyFuture = m_capture.fdReadyPromise.get_future();
 
-    std::cout << "Waiting for grabber initialization" << std::endl;
-    auto readyFuture = m_pwData.ready.get_future();
+    m_xdgThread.emplace(_initCapture, &m_capture);
+
     readyFuture.wait();
+
+    if(!readyFuture.get()){
+      m_capture.updateXdgContext = false;
+      m_xdgThread.value().join();
+      m_xdgThread.reset();
+      throw std::runtime_error("Failed to select source");
+    }
+
+    m_pipewireThread.emplace(_pipewireThread, &m_capture, &m_pwData);
   }
 
 
@@ -58,9 +67,10 @@ namespace Huenicorn
   void PipewireGrabber::_onCoreInfoCallback(void* userData, const pw_core_info* info)
   {
     (void)userData;
+    (void)info;
     //PipewireData* pw = static_cast<PipewireData*>(userData);
     //update_pw_versions(pw, info->version);
-    std::cout << info->version << std::endl;
+    //std::cout << info->version << std::endl;
   }
 
 
@@ -151,24 +161,21 @@ namespace Huenicorn
 
   void PipewireGrabber::_initCapture(XdgDesktopPortal::Capture* capture)
   {
-    pw_init(NULL, NULL);
     screencastPortalDesktopCaptureCreate(capture, XdgDesktopPortal::CaptureType::Monitor, true);
 
+    GMainLoop* gmain = g_main_loop_new(NULL, FALSE);
+
     while(capture->updateXdgContext){
-      g_main_context_iteration(NULL, false);
+      g_main_context_iteration(g_main_loop_get_context(gmain), false);
     }
+
+    g_main_loop_unref(gmain);
   }
 
 
   void PipewireGrabber::_pipewireThread(XdgDesktopPortal::Capture* capture, PipewireData* pw)
   {
-    std::promise<bool> readyPromise;
-    auto readyFuture = readyPromise.get_future();
-    capture->readyPromise = std::move(readyPromise);
-
-    readyFuture.wait();
-
-    capture->updateXdgContext = false;
+    pw_init(NULL, NULL);
 
     pw_core_events coreEvents;
     coreEvents.version = PW_VERSION_CORE_EVENTS;
@@ -177,9 +184,9 @@ namespace Huenicorn
     coreEvents.error = _onCoreErrorCallback;
 
     pw_stream_events streamEvents;
-    streamEvents .version = PW_VERSION_STREAM_EVENTS;
-    streamEvents .param_changed = _onStreamParamChanged;
-    streamEvents .process = _onStreamProcess;
+    streamEvents.version = PW_VERSION_STREAM_EVENTS;
+    streamEvents.param_changed = _onStreamParamChanged;
+    streamEvents.process = _onStreamProcess;
 
     pw->loop = pw_thread_loop_new("PipeWire thread loop", NULL);
     pw->context = pw_context_new(pw_thread_loop_get_loop(pw->loop), NULL, 0);
@@ -192,9 +199,10 @@ namespace Huenicorn
 
     auto core = pw_context_connect_fd(pw->context, fcntl(capture->pwFd, F_DUPFD_CLOEXEC, 5), NULL, 0);
     if(!core){
-      std::cout << "Error creating PipeWire core:";
+      std::cout << "Pipewire core creation error : Could not connect fd" << std::endl;
       pw_thread_loop_unlock(pw->loop);
-      throw std::runtime_error("Could not connect fd");
+
+      return;
     }
 
 #pragma GCC diagnostic push
@@ -266,13 +274,6 @@ namespace Huenicorn
   }
 
 
-  void PipewireGrabber::_startPipewireThread()
-  {
-    m_xdgThread.emplace(_initCapture, &m_capture);
-    m_pipewireThread.emplace(_pipewireThread, &m_capture, &m_pwData);
-  }
-
-
   void PipewireGrabber::_teardownPipewire()
   {
     pw_thread_loop_lock(m_pwData.loop);
@@ -294,6 +295,8 @@ namespace Huenicorn
       close(m_capture.pwFd);
       m_capture.pwFd = 0;
     }
+
+    pw_deinit();
   }
 
 
@@ -304,10 +307,17 @@ namespace Huenicorn
 
     // Stop XdgPortal
     XdgDesktopPortal::screencastPortalCaptureDestroy(&m_capture);
-    m_capture.updateXdgContext = false; // Juat making sure
 
     // Waiting for thread to finish
-    m_pipewireThread.value().join();
-    m_xdgThread.value().join();
+    if(m_pipewireThread.has_value()){
+      m_pipewireThread.value().join();
+      m_pipewireThread.reset();
+    }
+
+    if(m_xdgThread.has_value()){
+      m_capture.updateXdgContext = false; // Making sure
+      m_xdgThread.value().join();
+      m_xdgThread.reset();
+    }
   }
 }

@@ -290,6 +290,12 @@ namespace Huenicorn
 
 
     /**
+     * Brief Initializes the web UI
+    */
+    void _initWebUI();
+
+
+    /**
      * @brief Initializes the channels based on the profile settings
      * 
      * @param jsonProfile Data from the user-defined profile

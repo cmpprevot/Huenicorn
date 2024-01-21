@@ -4,6 +4,7 @@
   As I spent days to do try to achieve the same result in a less concise way, I feel more confident using this one and give it some personnal changes
 */
 
+#include <iostream>
 #include <future>
 #include <string>
 #include <algorithm>
@@ -221,8 +222,7 @@ namespace Huenicorn
       */
 
       capture->pwFd = pwFd;
-
-      capture->readyPromise.set_value(true);
+      capture->fdReadyPromise.set_value(true);
     }
 
 
@@ -252,7 +252,9 @@ namespace Huenicorn
       g_variant_get(parameters, "(u@a{sv})", &response, &result);
 
       if(response != 0){
-        throw std::runtime_error("failed to start screencast, denied or cancelled by user");
+        std::cout << "Failed to start screencast, denied or cancelled by user." << std::endl;
+        capture->fdReadyPromise.set_value(false);
+        return;
       }
 
       g_autoptr(GVariant) streams = g_variant_lookup_value(result, "streams", G_VARIANT_TYPE_ARRAY);
@@ -262,7 +264,7 @@ namespace Huenicorn
 
       size_t n_streams = g_variant_iter_n_children(&iter);
       if(n_streams != 1){
-        throw std::runtime_error("received more than one stream when only one was expected. this is probably a bug in the desktop portal implementation you are using.");
+        std::cout << "received more than one stream when only one was expected. this is probably a bug in the desktop portal implementation you are using." << std::endl;
       }
 
       g_autoptr(GVariant) streamProperties = NULL;
@@ -273,13 +275,15 @@ namespace Huenicorn
 
     void onStartedCallback(GObject* source, GAsyncResult* res, void* userData)
     {
-      (void)userData;
+      DbusCallData* call = static_cast<DbusCallData*>(userData);
+      Capture* capture = call->capture;
 
       g_autoptr(GError) error = NULL;
       g_autoptr(GVariant) result = g_dbus_proxy_call_finish(G_DBUS_PROXY(source), res, &error);
       if(error){
         if(!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED)){
-          throw std::runtime_error("error selecting screencast source: " + std::string(error->message));
+          std::cout << "error selecting screencast source: " + std::string(error->message) << std::endl;
+          capture->fdReadyPromise.set_value(false);
         }
         return;
       }
@@ -288,14 +292,19 @@ namespace Huenicorn
 
     void start(Capture* capture)
     {
-      StringPair pathAndToken = portalCreatePath(CreatePathTokenType::Request);
-      DbusCallData* call = subscribeToSignal(capture, pathAndToken.first.c_str(), onStartResponseReceivedCallback);
+      try{
+        StringPair pathAndToken = portalCreatePath(CreatePathTokenType::Request);
+        DbusCallData* call = subscribeToSignal(capture, pathAndToken.first.c_str(), onStartResponseReceivedCallback);
 
-      GVariantBuilder builder;
-      g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
-      g_variant_builder_add(&builder, "{sv}", "handle_token", g_variant_new_string(pathAndToken.second.c_str()));
+        GVariantBuilder builder;
+        g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
+        g_variant_builder_add(&builder, "{sv}", "handle_token", g_variant_new_string(pathAndToken.second.c_str()));
 
-      g_dbus_proxy_call(getScreencastPortalProxy(), "Start", g_variant_new("(osa{sv})", capture->sessionHandle, "", &builder), G_DBUS_CALL_FLAGS_NONE, -1, capture->cancellable, onStartedCallback, call);
+        g_dbus_proxy_call(getScreencastPortalProxy(), "Start", g_variant_new("(osa{sv})", capture->sessionHandle, "", &builder), G_DBUS_CALL_FLAGS_NONE, -1, capture->cancellable, onStartedCallback, call);
+      }
+      catch(const std::exception& e){
+        std::cout << e.what() << std::endl;
+      }
     }
 
 

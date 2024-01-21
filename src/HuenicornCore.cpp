@@ -200,6 +200,8 @@ namespace Huenicorn
       return;
     }
 
+    _initWebUI();
+
     _startStreamingLoop();
   }
 
@@ -360,12 +362,6 @@ namespace Huenicorn
 
     m_selector = make_unique<EntertainmentConfigurationSelector>(credentials, bridgeAddress);
 
-    unsigned restServerPort = m_config.restServerPort();
-    m_webUIService.server = make_unique<WebUIBackend>(this);
-    m_webUIService.thread.emplace([&](){
-      m_webUIService.server->start(restServerPort, boundBackendIP);
-    });
-
     string entertainmentConfigurationId = {};
     auto optJsonProfile = _getProfile();
 
@@ -410,6 +406,7 @@ namespace Huenicorn
     }
     catch(const std::exception& e){
       cout << e.what() << endl;
+      return false;
     }
 
     if(!m_grabber){
@@ -417,6 +414,17 @@ namespace Huenicorn
     }
 
     return false;
+  }
+
+
+  void HuenicornCore::_initWebUI()
+  {
+    unsigned restServerPort = m_config.restServerPort();
+    const std::string& boundBackendIP = m_config.boundBackendIP();
+    m_webUIService.server = make_unique<WebUIBackend>(this);
+    m_webUIService.thread.emplace([&](){
+      m_webUIService.server->start(restServerPort, boundBackendIP);
+    });
   }
 
 

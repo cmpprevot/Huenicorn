@@ -48,7 +48,7 @@ namespace Huenicorn
       uint32_t pwNode;
       uint32_t pwFd;
       char cursorVisible;
-      std::promise<bool> readyPromise;
+      std::promise<bool> fdReadyPromise;
       bool updateXdgContext{true};
     };
 
