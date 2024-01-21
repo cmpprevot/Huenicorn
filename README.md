@@ -36,15 +36,33 @@ This revision brings
 
 * [X.Org](https://xorg.freedesktop.org) or [Wayland](https://wayland.freedesktop.org)
 * [OpenCV](https://github.com/opencv/opencv)
-* [CurlPP](https://github.com/jpbarrette/curlpp)
 * [Restbed](https://github.com/Corvusoft/restbed)
 * [Mbed-TLS](https://github.com/Mbed-TLS/mbedtls)
 * [GLM](https://github.com/g-truc/glm)
 * [nlohmann-json](https://github.com/nlohmann/json)
+* [CurlPP](https://github.com/jpbarrette/curlpp)
 
+
+#### Dependencies intallation
+<details>
+
+<summary>ArchLinux</summary>
+
+```bash
+  # In the unlikely case you don't have one of them already:
+  sudo pacman -S xorg-server
+  # And/or
+  sudo pacman -S wayland glib2 pipewire
+
+  # Mandatory
+  sudo pacman -S opencv mbedtls glm nlohmann-json
+  # Some more dependencies from AUR
+  yay -S restbed libcurlpp
+```
+</details>
 
 <details>
-<summary>Dependencies on OpenSUSE Tumbleweed</summary>
+<summary>OpenSUSE Tumbleweed</summary>
 <br/>
 
 These dependencies needed to be installed on OpenSUSE Tumbleweed 20231011 to build and run Huenicorn:  
@@ -58,10 +76,40 @@ Follow the build instructions in their respective README files and copy them to 
 
 </details>
 
+<details>
+<summary>Ubuntu >= 22.04</summary>
+
+```bash
+# Add this repository for mbedtls, opencv
+sudo add apt-repository universe
+sudo apt-get update
+
+# For X.Org support:
+sudo apt-get install libx11-dev libxext-dev
+
+# For Wayland support:
+sudo apt-get install libglib2.0-dev libpipewire-0.3-dev 
+
+
+# Mandatory libraries
+sudo apt-get install build-essential libopencv-dev libglm-dev libcurl4-openssl-dev nlohmann-json3-dev libmbedtls-dev
+
+# Restbed has to be compiled from the source repository because the package version is outdated:
+
+git clone --recursive https://github.com/corvusoft/restbed.git
+cd restbed
+mkdir build && cd build
+cmake -DBUILD_SSL=OFF -DBUILD_TESTS=OFF ..
+sudo make install
+sudo cp ../distribution/library/librestbed.* /usr/lib
+sudo cp -r ../distribution/include/* /usr/include
+```
+
+Earlier versions of Ubuntu are not officially supported. Please refer to [This post](https://gitlab.com/openjowelsofts/huenicorn/-/issues/5#note_1700387996) if you still want to give it a try.
+
+</details>
+
 ### Building Huenicorn
-
-Make sure the abovementionned dependencies are installed (preferably through your system's package manager)
-
 
 ```bash
 git clone https://gitlab.com/openjowelsofts/huenicorn.git
