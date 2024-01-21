@@ -103,7 +103,15 @@ cmake -DBUILD_SSL=OFF -DBUILD_TESTS=OFF ..
 sudo make install
 sudo cp ../distribution/library/librestbed.* /usr/lib
 sudo cp -r ../distribution/include/* /usr/include
+
+# Make sure to use gcc/g++ v12
+sudo apt install gcc-12 g++-12
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 12
+sudo update-alternatives --set gcc /usr/bin/gcc-12
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 12
+sudo update-alternatives --set g++ /usr/bin/g++-12
 ```
+
 
 Earlier versions of Ubuntu are not officially supported. Please refer to [This post](https://gitlab.com/openjowelsofts/huenicorn/-/issues/5#note_1700387996) if you still want to give it a try.
 
