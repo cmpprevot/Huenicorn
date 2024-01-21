@@ -81,7 +81,7 @@ Follow the build instructions in their respective README files and copy them to 
 
 ```bash
 # Add this repository for mbedtls, opencv
-sudo add apt-repository universe
+sudo add-apt-repository universe
 sudo apt-get update
 
 # For X.Org support:
