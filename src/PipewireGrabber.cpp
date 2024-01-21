@@ -35,6 +35,7 @@ namespace Huenicorn
       throw std::runtime_error("Failed to select source");
     }
 
+    // TODO : check if a thread for this is really necessary
     m_pipewireThread.emplace(_pipewireThread, &m_capture, &m_pwData);
   }
 

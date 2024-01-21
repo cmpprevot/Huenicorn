@@ -15,13 +15,15 @@ namespace Huenicorn
 {
   namespace XdgDesktopPortal
   {
+    // Type definitions
     using StringPair = std::pair<std::string, std::string>;
 
+    // Enums
     enum CaptureType
     {
       Monitor = 1 << 0,
-      Window = 1 << 1,
-      Virtual = 1 << 2,
+      //Window = 1 << 1,
+      //Virtual = 1 << 2,
     };
 
 
@@ -40,6 +42,7 @@ namespace Huenicorn
     };
 
 
+    // Structures
     struct Capture
     {
       CaptureType captureType;
@@ -62,6 +65,7 @@ namespace Huenicorn
     };
 
 
+    // Functions
     void ensureConnection();
     std::string getSenderName();
     GDBusConnection* portalGetDbusConnection();

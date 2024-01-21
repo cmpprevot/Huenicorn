@@ -25,9 +25,6 @@ namespace Huenicorn
     const std::string objectPath = "/org/freedesktop/portal/desktop";
     const std::string busName = "org.freedesktop.portal.Desktop";
 
-    // Type definitions
-    using StringPair = std::pair<std::string, std::string>;
-
 
     // Implementations
     void ensureConnection()
