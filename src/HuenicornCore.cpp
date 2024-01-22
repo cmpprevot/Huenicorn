@@ -187,12 +187,11 @@ namespace Huenicorn
 
   void HuenicornCore::start()
   {
-    if(!_initSettings()){
-      cout << "Could not load suitable entertainment configuration." << endl;
-      return;
 
-      // TODO : Add tool to create entertainment configurations inside Huenicorn
-      // so the official application would no longer be a requirement
+    if(!m_config.initialSetupOk()){
+      if(!_runInitialSetup()){
+        return;
+      }
     }
 
     if(!_initGrabber()){
@@ -201,6 +200,14 @@ namespace Huenicorn
     }
 
     _initWebUI();
+
+    if(!_initSettings()){
+      cout << "Could not load suitable entertainment configuration." << endl;
+      return;
+
+      // TODO : Add tool to create entertainment configurations inside Huenicorn
+      // so the official application would no longer be a requirement
+    }
 
     _startStreamingLoop();
   }
@@ -323,30 +330,6 @@ namespace Huenicorn
 
   bool HuenicornCore::_initSettings()
   {
-    unsigned port = m_config.restServerPort();
-    const std::string& boundBackendIP = m_config.boundBackendIP();
-    bool openedSetup = false;
-
-    if(!m_config.initialSetupOk()){
-      cout << "Starting setup backend" << endl;
-
-      SetupBackend sb(this);
-      sb.start(port, boundBackendIP);
-
-      if(sb.aborted()){
-        cout << "Initial setup was aborted" << endl;
-        return false;
-      }
-
-      cout << "Finished setup" << endl;
-      openedSetup = true;
-    }
-
-    if(!m_config.initialSetupOk()){
-      cout << "There are errors in the config file" << endl;
-      return false;
-    }
-
     if(m_config.refreshRate() == 0){
       m_config.setRefreshRate(m_grabber->displayRefreshRate());
     }
@@ -374,10 +357,31 @@ namespace Huenicorn
 
     _enableEntertainmentConfiguration(entertainmentConfigurationId);
 
-    if(!optJsonProfile.has_value() && !openedSetup){
+    if(!optJsonProfile.has_value() && !m_openedSetup){
       thread spawnBrowser([this](){_spawnBrowser();});
       spawnBrowser.detach();
     }
+
+    return true;
+  }
+
+
+  bool HuenicornCore::_runInitialSetup()
+  {
+    cout << "Starting setup backend" << endl;
+    unsigned port = m_config.restServerPort();
+    const std::string& boundBackendIP = m_config.boundBackendIP();
+
+    SetupBackend sb(this);
+    sb.start(port, boundBackendIP);
+
+    if(sb.aborted()){
+      cout << "Initial setup was aborted" << endl;
+      return false;
+    }
+
+    cout << "Finished setup" << endl;
+    m_openedSetup = true;
 
     return true;
   }
@@ -419,12 +423,17 @@ namespace Huenicorn
 
   void HuenicornCore::_initWebUI()
   {
+    std::promise<bool> readyWebUIPromise;
+    auto readyWebUIFuture = readyWebUIPromise.get_future();
+
     unsigned restServerPort = m_config.restServerPort();
     const std::string& boundBackendIP = m_config.boundBackendIP();
     m_webUIService.server = make_unique<WebUIBackend>(this);
     m_webUIService.thread.emplace([&](){
-      m_webUIService.server->start(restServerPort, boundBackendIP);
+      m_webUIService.server->start(restServerPort, boundBackendIP, std::move(readyWebUIPromise));
     });
+
+    readyWebUIFuture.wait();
   }
 
 

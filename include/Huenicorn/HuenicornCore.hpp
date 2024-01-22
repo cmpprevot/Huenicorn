@@ -281,6 +281,15 @@ namespace Huenicorn
 
 
     /**
+     * @brief Starts the initial setup wizard
+     *
+     * @return true Setup finished success
+     * @return false Setup was not completed
+    */
+    bool _runInitialSetup();
+
+
+    /**
      * Brief Initializes a grabber based on the graphical session
      * 
      * @return true Relevant grabber was found and initialized
@@ -345,6 +354,7 @@ namespace Huenicorn
     Config m_config;
 
     bool m_keepLooping;
+    bool m_openedSetup{false};
     std::unique_ptr<TickSynchronizer> m_tickSynchronizer;
 
     //  API structure wrapper

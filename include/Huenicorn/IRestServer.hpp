@@ -110,6 +110,22 @@ namespace Huenicorn
 
 
     /**
+     * @brief (Overload) Starts the REST server and triggers _onStart event
+     * 
+     * @param port Listening port of the REST server
+     * @param boundBackendIP IP to bind the backend to
+     * @param readyPromise Promise to notify readyness to the parent thread
+     * @return true REST server started successfully
+     * @return false REST server is already running
+     */
+    bool start(unsigned port, const std::string& boundBackendIP, std::promise<bool>&& readyPromise)
+    {
+      m_readyWebUIPromise.emplace(std::move(readyPromise));
+      return start(port, boundBackendIP);
+    }
+
+
+    /**
      * @brief Stops the REST server
      * 
      * @return true 
@@ -228,5 +244,6 @@ namespace Huenicorn
     std::unordered_map<std::string, std::string> m_contentTypes;
     std::string m_indexFile{"index.html"};
     std::unordered_set<std::string> m_webfileBlackList;
+    std::optional<std::promise<bool>> m_readyWebUIPromise;
   };
 }

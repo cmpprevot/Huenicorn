@@ -117,6 +117,9 @@ namespace Huenicorn
   void WebUIBackend::_onStart()
   {
     cout << "Started web service on port " << m_settings->get_port() << endl;
+    if(m_readyWebUIPromise.has_value()){
+      m_readyWebUIPromise.value().set_value(true);
+    }
   }
 
 
