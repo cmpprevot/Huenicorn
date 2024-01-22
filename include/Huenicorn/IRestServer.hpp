@@ -1,6 +1,8 @@
 #pragma once
 
 #include <filesystem>
+#include <optional>
+#include <future>
 #include <fstream>
 #include <unordered_set>
 
