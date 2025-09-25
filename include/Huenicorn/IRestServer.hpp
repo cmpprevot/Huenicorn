@@ -1,13 +1,16 @@
 #pragma once
 
 #include <filesystem>
-#include <optional>
-#include <future>
 #include <fstream>
+#include <future>
 #include <unordered_set>
 
-#include <restbed>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#include <crow.h>
+#pragma GCC diagnostic pop
 
+#include <Huenicorn/EmbeddedWebrootFiles.hpp>
 
 namespace Huenicorn
 {
@@ -17,52 +20,39 @@ namespace Huenicorn
    */
   class IRestServer
   {
-  protected:
-    // Type definitions
-    using SharedSession = std::shared_ptr<restbed::Session>;
-
   public:
     // Constructor / Destructor
     /**
      * @brief IRestServer constructor
      * 
-     * @param webRoot Path to the web root directory
+     * @param indexFile Default file to show
      */
-    IRestServer(const std::filesystem::path& webRoot):
-    m_webroot(webRoot)
+    IRestServer(const std::string& indexFile = "index.html"):
+    m_indexFile(indexFile)
     {
-      m_settings = std::make_shared<restbed::Settings>();
-      m_settings->set_default_headers({
-        {"Connection", "close"},
-        {"Access-Control-Allow-Origin", "*"}
-      });
-
       m_contentTypes = {
         {".js", "text/javascript"},
         {".html", "text/html"},
-        {".css", "text/css"}
+        {".css", "text/css"},
+        {".svg", "image/svg+xml"}
       };
 
-      {
-        auto resource = std::make_shared<restbed::Resource>();
-        resource->set_path("/");
-        resource->set_method_handler("GET", [this](SharedSession session){_getWebFile(session);});
-        m_service.publish(resource);
-      }
+      m_app.loglevel(crow::LogLevel::Warning);
 
-      {
-        auto resource = std::make_shared<restbed::Resource>();
-        resource->set_path("/{webFileName: [a-zA-Z0-9]+(\\.)[a-zA-Z0-9]+}");
-        resource->set_method_handler("GET", [this](SharedSession session){_getWebFile(session);});
-        m_service.publish(resource);
-      }
-  
-      {
-        auto resource = std::make_shared<restbed::Resource>();
-        resource->set_path("/version");
-        resource->set_method_handler("GET", [this](SharedSession session){_getVersion(session);});
-        m_service.publish(resource);
-      }
+      CROW_ROUTE(m_app, "/").methods(crow::HTTPMethod::GET)
+      ([this](const crow::request& /*req*/, crow::response& res){
+        _getWebFile(m_indexFile, res);
+      });
+
+      CROW_ROUTE(m_app, "/api/version").methods(crow::HTTPMethod::GET)
+      ([this](const crow::request& /*req*/, crow::response& res){
+        _getVersion(res);
+      });
+
+      CROW_ROUTE(m_app, "/<string>").methods(crow::HTTPMethod::GET)
+      ([this](const crow::request& /*req*/, crow::response& res, const std::string& param){
+        return _getWebFile(param, res);
+      });
     }
 
 
@@ -82,7 +72,7 @@ namespace Huenicorn
      */
     bool running() const
     {
-      return m_service.is_up();
+      return m_running;
     }
 
 
@@ -101,11 +91,14 @@ namespace Huenicorn
         return false;
       }
 
-      m_settings->set_port(port);
-      m_settings->set_bind_address(boundBackendIP);
+      m_app.bindaddr(boundBackendIP);
+      m_app.port(port);
+      m_app.signal_clear();
+
+      m_running = true;
 
       _onStart();
-      m_service.start(m_settings);
+      m_app.run();
 
       return true;
     }
@@ -154,7 +147,8 @@ namespace Huenicorn
         return false;
       }
 
-      m_service.stop();
+      m_app.stop();
+      m_running = false;
       _onStop();
 
       return true;
@@ -179,72 +173,51 @@ namespace Huenicorn
 
     // Handlers
     /**
-     * @brief Returns the version of the backend project
+     * @brief Sends the version of the backend project
      * 
-     * @param session Pending HTTP connection
+     * @param res Pending HTTP connection
      */
-    virtual void _getVersion(const SharedSession& session) const = 0;
+    virtual void _getVersion(crow::response& res) const = 0;
 
 
     /**
-     * @brief Web filesystem handler
+     * @brief Web files handler
      * 
-     * @param session Pending HTTP connection
+     * @param res Pending HTTP connection
      */
-    void _getWebFile(const SharedSession& session) const
+    void _getWebFile(const std::string& filePath, crow::response& res) const
     {
-      const auto request = session->get_request();
-      std::filesystem::path webFileName = request->get_path_parameter("webfileName");
-
-      if(webFileName == ""){
-        webFileName = m_indexFile;
+      std::filesystem::path webFilePath = filePath;
+      if(webFilePath == ""){
+        webFilePath = m_indexFile;
       }
 
-      std::filesystem::path webFileFullPath = m_webroot / webFileName;
+      std::filesystem::path webFileFullPath = webFilePath;
 
-      if(!std::filesystem::exists(m_webroot)){
-        std::string response = "<h1>Error : Could not locate webroot</h1><p>Make sure that the webroot directory figures in the current working directory</p>";
-        std::string contentType = "text/html";
-
-        std::multimap<std::string, std::string> headers{
-          {"Content-Length", std::to_string(response.size())},
-          {"Content-Type", contentType}
-        };
-
-        session->close(restbed::OK, response, headers);
-        return;
+      if(Webroot::embeddedFiles.find(webFileFullPath) == Webroot::embeddedFiles.end() || m_webfileBlackList.contains(webFilePath)){
+        webFileFullPath = "404.html";
       }
 
-      if(!std::filesystem::exists(webFileFullPath) || m_webfileBlackList.contains(webFileName)){
-        webFileName = "404.html";
-        webFileFullPath = m_webroot / webFileName;
-      }
-
-      std::string extension = webFileName.extension().string();
+      std::string extension = webFilePath.extension();
       std::string contentType = "text/plain";
 
       if(m_contentTypes.find(extension) != m_contentTypes.end()){
         contentType = m_contentTypes.at(extension);
       }
 
-      std::ifstream webFile(webFileFullPath);
-      std::string response = std::string(std::istreambuf_iterator<char>(webFile), std::istreambuf_iterator<char>());
+      std::string response = Webroot::embeddedFiles.at(webFilePath);
 
-      std::multimap<std::string, std::string> headers{
-        {"Content-Length", std::to_string(response.size())},
-        {"Content-Type", contentType}
-      };
-
-      session->close(restbed::OK, response, headers);
+      res.set_header("Content-Type", contentType);
+      res.write(response);
+      res.end();
     }
 
 
     // Attributes
-    std::shared_ptr<restbed::Settings> m_settings;
-    restbed::Service m_service;
-    const std::filesystem::path m_webroot;
+    std::string m_indexFile;
+    bool m_running{false};
+    crow::SimpleApp m_app;
     std::unordered_map<std::string, std::string> m_contentTypes;
-    std::string m_indexFile{"index.html"};
     std::unordered_set<std::string> m_webfileBlackList;
     std::optional<std::promise<bool>> m_readyWebUIPromise;
   };

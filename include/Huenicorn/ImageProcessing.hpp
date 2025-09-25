@@ -4,6 +4,7 @@
 
 #include <opencv2/opencv.hpp>
 
+#include <Huenicorn/Interpolation.hpp>
 #include <Huenicorn/Color.hpp>
 
 
@@ -22,8 +23,9 @@ namespace Huenicorn
      * 
      * @param image Input bitmap
      * @param targetWidth Target width of the output bitmap
+     * @param interpolationType Subsampling interpolation type
      */
-    void rescale(cv::Mat& image, int targetWidth);
+    void rescale(cv::Mat& image, int targetWidth, Interpolation::Type interpolationType);
 
 
     /**
@@ -32,18 +34,24 @@ namespace Huenicorn
      * @param sourceImage Input image
      * @param a Top-left coordinates
      * @param b Bottom-right coordinates
-     * @return cv::Mat 
+     * @return cv::Mat Crop of the image
      */
     cv::Mat getSubImage(const cv::Mat& sourceImage, const glm::ivec2& a, const glm::ivec2& b);
 
 
     /**
-     * @brief Get the Dominant Colors object
+     * @brief Get the Dominant Color
      * 
      * @param image Input image
-     * @param k Amount of dominant colors to output
-     * @return Colors List of dominant colors
+     * @return Color Dominant color
      */
-    Colors getDominantColors(cv::Mat& image, unsigned k = 1);
+    Color getDominantColor(cv::Mat& image);
+
+
+    namespace Algorithms
+    {
+      Color kMeans(const cv::Mat& image);
+      Color mean(const cv::Mat& image);
+    }
   };
 }

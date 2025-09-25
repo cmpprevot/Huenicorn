@@ -1,10 +1,11 @@
 #pragma once
 
-#include <optional>
 #include <filesystem>
+#include <optional>
 
 #include <nlohmann/json.hpp>
 
+#include <Huenicorn/Interpolation.hpp>
 #include <Huenicorn/Credentials.hpp>
 
 
@@ -115,6 +116,15 @@ namespace Huenicorn
      */
     unsigned subsampleWidth() const;
 
+
+    /**
+     * @brief Returns the registered subsample interpolation type
+     * 
+     * @return Type of current subsample interpolation
+    */
+    Interpolation::Type interpolation() const;
+
+
     // Setters
     /**
      * @brief Registers Hue bridge address
@@ -127,10 +137,9 @@ namespace Huenicorn
     /**
      * @brief Registers credentials
      * 
-     * @param username Username for the Hue bridge
-     * @param clientkey Client key for the Hue bridge
+     * @param credentials User credentials for the Hue bridge
      */
-    void setCredentials(const std::string& username, const std::string& clientkey);
+    void setCredentials(const Credentials& credentials);
 
 
     /**
@@ -157,6 +166,13 @@ namespace Huenicorn
     void setRefreshRate(unsigned refreshRate);
 
 
+    /**
+     * @brief Registers the interpolation type for subsample
+     * 
+     * @param interpolation Type of interpolation
+    */
+    void setInterpolation(Interpolation::Type interpolation);
+
   private:
     // Private methods
     /**
@@ -177,12 +193,15 @@ namespace Huenicorn
 
     // Attributes
     std::filesystem::path m_configFilePath;
-    int m_restServerPort{8080};
+    int m_restServerPort{8215};
     std::string m_boundBackendIP{"0.0.0.0"};
     std::optional<std::string> m_bridgeAddress;
     std::optional<Credentials> m_credentials;
     std::optional<std::string> m_profileName;
     unsigned m_refreshRate{0};
     unsigned m_subsampleWidth{0};
+    Interpolation::Type m_interpolation{Interpolation::Type::Area};
   };
+
+  void to_json(nlohmann::json& jsonConfig, const Config& config);
 }

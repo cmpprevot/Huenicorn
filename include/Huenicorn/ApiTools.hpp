@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vector>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include <Huenicorn/Device.hpp>
 #include <Huenicorn/EntertainmentConfiguration.hpp>
@@ -12,7 +12,6 @@ namespace Huenicorn
 {
   using MembersIds = std::vector<std::string>;
   using ChannelsMembersIds = std::unordered_map<uint8_t, MembersIds>;
-  using ChannelsMembers = std::unordered_map<uint8_t, std::vector<Device>>;
   using EntertainmentConfigurationsChannels = std::unordered_map<std::string, ChannelsMembersIds>;
 
 

@@ -1,16 +1,16 @@
 #pragma once
 
+#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <stdexcept>
-#include <sstream>
 
+#include <nlohmann/json.hpp>
 
 namespace Huenicorn
 {
   std::vector<unsigned char> hexStringToBytes(const std::string& hexString);
   std::vector<unsigned char> stringToBytes(const std::string& string);
-
 
   /**
    * @brief Wrapper around Hue bridge user authentication data
@@ -18,8 +18,12 @@ namespace Huenicorn
    */
   class Credentials
   {
-  public:
+    public:
     // Constructor
+    Credentials()
+    {}
+
+
     /**
      * @brief Credentials constructor
      * 
@@ -61,10 +65,18 @@ namespace Huenicorn
      */
     std::vector<unsigned char> clientkeyBytes() const;
 
+    friend void from_json(const nlohmann::json& jsonCredentials, Credentials& credentials);
 
   private:
     // Attributes
     std::string m_username;
     std::string m_clientkey;
   };
+
+
+  // Deserialization
+  void from_json(const nlohmann::json& jsonCredentials, Credentials& credentials);
+
+  // Serialization
+  void to_json(nlohmann::json& jsonCredentials, const Credentials& credentials);
 }

@@ -1,39 +1,32 @@
 #include <thread>
-
-#include <Huenicorn/HuenicornCore.hpp>
+#include <memory>
 #include <csignal>
 
-#include <pwd.h>
+#include <Huenicorn/Version.hpp>
+#include <Huenicorn/HuenicornCore.hpp>
+#include <Huenicorn/Logger.hpp>
+#include <Huenicorn/PlatformSelector.hpp>
 
-#define xstr(s) preprocess_str(s)
-#define preprocess_str(s) #s
-static constexpr std::string Version = xstr(PROJECT_VERSION);
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
 
-
-using namespace std;
-
-
-filesystem::path getConfigRoot()
-{
-  const char* homeDir;
-  if((homeDir = getenv("HOME")) == NULL){
-    homeDir = getpwuid(getuid())->pw_dir;
-  }
-
-  return std::filesystem::path(homeDir) / ".config/huenicorn";
-}
 
 
 /**
  * @brief Wrapper around threaded application
  * 
  */
-class Application
+class Application : public QGuiApplication
 {
 public:
+    Application(int &argc, char **argv)
+        : QGuiApplication(argc, argv)
+    {
+        // Ton code ici
+    }
   void start()
   {
-    m_core = make_unique<Huenicorn::HuenicornCore>(Version, getConfigRoot());
+    m_core = std::make_unique<Huenicorn::HuenicornCore>(Huenicorn::Version, Huenicorn::platformAdapter.getConfigFilePath());
     m_applicationThread.emplace([&](){
       m_core->start();
     });
@@ -53,34 +46,45 @@ public:
     m_core->stop();
   }
 
+
 private:
-  unique_ptr<Huenicorn::HuenicornCore> m_core;
-  std::optional<thread> m_applicationThread;
+  std::unique_ptr<Huenicorn::HuenicornCore> m_core;
+  std::optional<std::thread> m_applicationThread;
 };
 
 
-Application app;
+//Application app;
 
 
-void signalHandler(int signal)
+void signalHandler(int signal,Application &app)
 {
   if(signal == SIGTERM || signal == SIGINT || signal == SIGTSTP){
-    cout << "Closing application" << endl;
+    Huenicorn::Logger::log("Closing application");
     app.stop();
   }
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
-  cout << "Starting Huenicorn version " << Version << endl;
+  Huenicorn::Logger::log("Starting Huenicorn version ", Huenicorn::Version);
 
-  signal(SIGTERM, signalHandler);
+  /*signal(SIGTERM, signalHandler);
   signal(SIGINT, signalHandler);
   signal(SIGTSTP, signalHandler);
 
-  app.start();
-  cout << "Huenicorn terminated properly" << endl;
+  app.start();*/
 
-  return 0;
+  Application app(argc, argv);
+
+  QQmlApplicationEngine engine;
+  QObject::connect(
+      &engine,
+      &QQmlApplicationEngine::objectCreationFailed,
+      &app,
+      []() { QCoreApplication::exit(-1); },
+      Qt::QueuedConnection);
+  engine.loadFromModule("huenicorn_UI", "Main");
+
+  return app.exec();
 }

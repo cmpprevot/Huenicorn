@@ -1,11 +1,7 @@
 #include <Huenicorn/EntertainmentConfigurationSelector.hpp>
 
-#include <iostream>
-
 #include <Huenicorn/ApiTools.hpp>
-
-
-using namespace std;
+#include <Huenicorn/Logger.hpp>
 
 
 namespace Huenicorn
@@ -21,7 +17,7 @@ namespace Huenicorn
   std::optional<std::string> EntertainmentConfigurationSelector::currentEntertainmentConfigurationId() const
   {
     if(!validSelection()){
-      return nullopt;
+      return std::nullopt;
     }
 
     return {m_currentEntertainmentConfiguration->first};
@@ -49,7 +45,7 @@ namespace Huenicorn
   bool EntertainmentConfigurationSelector::selectEntertainmentConfiguration(const std::string& entertainmentConfigurationId)
   {
     if(m_entertainmentConfigurations.size() == 0){
-      cout << "No entertainment configuration could be found yet. Please register one through the official Philips Hue application in order to power it with Huenicorn" << endl;
+      Logger::error("No entertainment configuration could be found yet. Please register one through the official Philips Hue application in order to power it with Huenicorn");
       return false;
     }
 
@@ -57,13 +53,13 @@ namespace Huenicorn
 
     if(entertainmentConfigurationId.empty()){
       m_currentEntertainmentConfiguration = m_entertainmentConfigurations.begin();
-      cout << "Fallback selection " << m_currentEntertainmentConfiguration->first << endl;
+      Logger::log("Fallback selection ", m_currentEntertainmentConfiguration->first);
     }
     else{
       m_currentEntertainmentConfiguration = m_entertainmentConfigurations.find(entertainmentConfigurationId);
 
       if(m_currentEntertainmentConfiguration == m_entertainmentConfigurations.end()){
-        cout << "Invalid selection : " << entertainmentConfigurationId << endl;
+        Logger::error("Invalid selection : ", entertainmentConfigurationId);
         return false;
       }
     }

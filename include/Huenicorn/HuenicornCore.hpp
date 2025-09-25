@@ -1,21 +1,22 @@
 #pragma once
 
+#include <filesystem>
 #include <optional>
 #include <thread>
-#include <filesystem>
 
 #include <nlohmann/json.hpp>
 
-#include <Huenicorn/IGrabber.hpp>
-#include <Huenicorn/IRestServer.hpp>
-#include <Huenicorn/TickSynchronizer.hpp>
-#include <Huenicorn/Config.hpp>
-#include <Huenicorn/UV.hpp>
+#include <Huenicorn/ApiTools.hpp>
 #include <Huenicorn/Channel.hpp>
+#include <Huenicorn/Config.hpp>
 #include <Huenicorn/EntertainmentConfiguration.hpp>
 #include <Huenicorn/EntertainmentConfigurationSelector.hpp>
-#include <Huenicorn/ApiTools.hpp>
+#include <Huenicorn/IGrabber.hpp>
+#include <Huenicorn/IRestServer.hpp>
 #include <Huenicorn/Streamer.hpp>
+#include <Huenicorn/TickSynchronizer.hpp>
+#include <Huenicorn/UV.hpp>
+#include <Huenicorn/Interpolation.hpp>
 
 
 namespace Huenicorn
@@ -102,6 +103,14 @@ namespace Huenicorn
 
 
     /**
+     * @brief Returns a map of available subsample interpolations
+     * 
+     * @return const Interpolation::Interpolations& available interpolations
+     */
+    const Interpolation::Interpolations& availableInterpolations() const;
+
+
+    /**
      * @brief Returns a list of subsample resolutions
      * 
      * @return std::vector<glm::ivec2> Subsample resolutions
@@ -134,11 +143,19 @@ namespace Huenicorn
 
 
     /**
+     * @brief Returns the current subsample interpolation type
+     * 
+     * @return Interpolation::Type Subsample interpolation type
+     */
+    Interpolation::Type interpolation() const;
+
+
+    /**
      * @brief Returns the resolved Hue bridge IP address
      * 
      * @return nlohmann::json Object containing Hue bridge address and request status
      */
-    nlohmann::json autoDetectedBridge() const;
+    nlohmann::json autodetectedBridge() const;
 
 
     /**
@@ -196,6 +213,14 @@ namespace Huenicorn
      * @param refreshRate Desired refresh rate for color data streaming
      */
     void setRefreshRate(unsigned refreshRate);
+
+
+    /**
+     * @brief Set the subsample interpolation 
+     * 
+     * @param interpolation Desired interpolation type
+     */
+    void setInterpolation(unsigned interpolation);
 
 
     // Methods
@@ -335,10 +360,10 @@ namespace Huenicorn
 
 
     /**
-     * @brief Computes the channels colors and streams them
+     * @brief Computes the channels colors from grabbed frames and streams them to the bridge
      * 
      */
-    void _processFrame();
+    void _update();
 
 
     /**
@@ -346,6 +371,13 @@ namespace Huenicorn
      * 
      */
     void _shutdown();
+
+
+    /**
+     * @brief Called to match stream m_channelStreams size with m_channels
+     * 
+     */
+    void _updateStreamChannelsSize();
 
 
     // Attributes
@@ -360,6 +392,7 @@ namespace Huenicorn
     //  API structure wrapper
     std::unique_ptr<EntertainmentConfigurationSelector> m_selector;
     Channels m_channels;
+    ChannelStreams m_channelStreams;
 
     // Streamer
     std::mutex m_streamerMutex;
@@ -369,7 +402,7 @@ namespace Huenicorn
     ThreadedRestService m_webUIService;
 
     //  Image Processing
-    std::unique_ptr<IGrabber> m_grabber;
+    SharedGrabber m_grabber;
     cv::Mat m_cvImage;
   };
 }

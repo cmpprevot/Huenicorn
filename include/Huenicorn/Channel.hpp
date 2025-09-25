@@ -5,8 +5,8 @@
 
 #include <glm/exponential.hpp>
 
-#include <Huenicorn/UV.hpp>
 #include <Huenicorn/Device.hpp>
+#include <Huenicorn/UV.hpp>
 
 
 namespace Huenicorn
@@ -138,4 +138,9 @@ namespace Huenicorn
     float m_gammaFactor{0.0};
     UVs m_uvs{};
   };
+
+
+  // Serialization
+  void to_json(nlohmann::json& jsonChannel, const Channel& channel);
+  void to_json(nlohmann::json& jsonChannels, const Channels& channels);
 }

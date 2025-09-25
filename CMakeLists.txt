@@ -1,166 +1,176 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.16)
 
 set(PROJECT_NAME huenicorn)
 set(BINARY_NAME huenicorn)
 
-project(${PROJECT_NAME} VERSION 1.0.4)
-#set(RC_NUMBER 1)
+project(${PROJECT_NAME} VERSION 1.0.11 LANGUAGES CXX)
 
 
 set(BUILD_DOCUMENTATION FALSE CACHE BOOL "Build documentation")
 set(BUILD_TESTS FALSE CACHE BOOL "Build tests")
 
 
-set(DISPLAYED_VERSION ${PROJECT_VERSION})
-
-if(RC_NUMBER)
-  set(DISPLAYED_VERSION ${DISPLAYED_VERSION}-rc${RC_NUMBER})
-endif()
-
-
 # Check mandatory libraries
+find_package(Qt6 REQUIRED COMPONENTS Quick)
 find_package(PkgConfig REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS imgproc)
 find_package(CURL REQUIRED)
+find_package(Crow REQUIRED)
 find_package(nlohmann_json 3.2.0 REQUIRED)
-find_library(RESTBED_LIBS restbed REQUIRED)
-find_library(CURLPP_LIBS curlpp REQUIRED)
 find_library(MBEDTLS_LIBS mbedtls REQUIRED)
 find_library(MBEDTLS_X509 mbedx509 REQUIRED)
 find_library(MBEDTLS_CRYPTO mbedcrypto REQUIRED)
 
-
-# Check grabber-related libraries
-# Begin X11-related
-find_package(X11)
-# End X11-related
-
-# Begin Pipewire-related
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
-find_package(Gio)
-pkg_search_module(LIB_PIPEWIRE OPTIONAL libpipewire-0.3)
-pkg_check_modules(LIBGLIB glib-2.0 gio-2.0)
-# End Pipewire-related
+qt_standard_project_setup(REQUIRES 6.8)
 
 
-if(${X11_FOUND})
-  set(X11_GRABBER_AVAILABLE TRUE)
-  message("Able to build X11 Grabber !")
+# Generate version header
+set(VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/include/Huenicorn/Version.hpp")
 
-  set(X11_GRABBER_SOURCES
-    src/X11Grabber.cpp
-    include/Huenicorn/X11Grabber.hpp
-  )
-endif()
+add_custom_target(generate_version_header DEPENDS ${VERSION_HEADER})
 
-if(LIB_PIPEWIRE_FOUND AND GIO_FOUND AND LIBGLIB_FOUND)
-  set(PIPEWIRE_GRABBER_AVAILABLE TRUE)
-  message("Able to build Pipewire Grabber !")
-
-  set(PIPEWIRE_GRABBER_SOURCES
-    src/PipewireGrabber.cpp
-    src/XdgDesktopPortal.cpp
-    include/Huenicorn/PipewireGrabber.hpp
-    include/Huenicorn/XdgDesktopPortal.hpp
-  )
-endif()
-
-
-if(NOT (PIPEWIRER_GRABBER_AVAILABLE OR X11_GRABBER_AVAILABLE))
-  message(FATAL_ERROR "Missing dependencies to compile a least one grabber")
-endif()
-
-
-add_executable(${BINARY_NAME}
-  src/main.cpp
-  src/ApiTools.cpp
-  src/Channel.cpp
-  src/Config.cpp
-  src/Credentials.cpp
-  src/DtlsClient.cpp
-  src/EntertainmentConfigurationSelector.cpp
-  src/HuenicornCore.cpp
-  src/ImageProcessing.cpp
-  src/JsonSerializer.cpp
-  src/Streamer.cpp
-  src/RequestUtils.cpp
-  src/SetupBackend.cpp
-  src/TickSynchronizer.cpp
-  src/WebUIBackend.cpp
-  include/Huenicorn/ApiTools.hpp
-  include/Huenicorn/Channel.hpp
-  include/Huenicorn/Color.hpp
-  include/Huenicorn/Config.hpp
-  include/Huenicorn/Credentials.hpp
-  include/Huenicorn/Device.hpp
-  include/Huenicorn/DtlsClient.hpp
-  include/Huenicorn/EntertainmentConfiguration.hpp
-  include/Huenicorn/EntertainmentConfigurationSelector.hpp
-  include/Huenicorn/HuenicornCore.hpp
-  include/Huenicorn/IGrabber.hpp
-  include/Huenicorn/ImageProcessing.hpp
-  include/Huenicorn/IRestServer.hpp
-  include/Huenicorn/JsonSerializer.hpp
-  include/Huenicorn/RequestUtils.hpp
-  include/Huenicorn/SetupBackend.hpp
-  include/Huenicorn/Streamer.hpp
-  include/Huenicorn/TickSynchronizer.hpp
-  include/Huenicorn/UV.hpp
-  include/Huenicorn/WebUIBackend.hpp
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/config/Version.hpp.in
+  ${VERSION_HEADER}
 )
 
-target_compile_definitions(${BINARY_NAME} PUBLIC PROJECT_VERSION=${DISPLAYED_VERSION})
+# Generate embedded webroot header
+function(embed_directory TARGET_DIR)
+  file(GLOB_RECURSE WEB_FILES "${TARGET_DIR}/*")
+  set(CONCAT_CONTENT "")
+
+  foreach(DATA_FILE ${WEB_FILES})
+    get_filename_component(KEY ${DATA_FILE} NAME)
+    file(READ ${DATA_FILE} CONTENTS)
+
+    # Escape special characters
+    string(REPLACE "\\" "\\\\" CONTENTS "${CONTENTS}")
+    string(REPLACE "\"" "\\\"" CONTENTS "${CONTENTS}")
+    string(REPLACE "\n" "\\n" CONTENTS "${CONTENTS}")
+
+    set(KEY_VALUE "      {\"${KEY}\", \"${CONTENTS}\"},\n")
+    set(CONCAT_CONTENT "${CONCAT_CONTENT}${KEY_VALUE}")
+  endforeach()
+  set(EMBEDDED_FILES_CONTENT "${EMBEDDED_FILES_CONTENT}${CONCAT_CONTENT}" PARENT_SCOPE)
+endfunction()
+
+set(EMBEDDED_FILES_CONTENT "")
+embed_directory("${CMAKE_SOURCE_DIR}/webroot")
+embed_directory("${CMAKE_SOURCE_DIR}/assets")
+
+
+set(EMBEDDED_WEBROOT_HEADER "${CMAKE_CURRENT_BINARY_DIR}/include/Huenicorn/EmbeddedWebrootFiles.hpp")
+
+
+# Custom command to ensure re-running when files change
+add_custom_command(
+  OUTPUT ${EMBEDDED_WEBROOT_HEADER}
+  COMMAND ${CMAKE_COMMAND} -E echo "Regenerating embedded webroot header..."
+  COMMAND ${CMAKE_COMMAND} -E touch ${EMBEDDED_WEBROOT_HEADER}  # Ensures file gets updated
+  DEPENDS ${WEBROOT_FILES} ${ASSETS_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/config/EmbeddedWebrootFiles.hpp.in
+  COMMENT "Updating EmbeddedWebrootFiles.hpp because webroot or assets changed."
+)
+
+
+add_custom_target(generate_webroot_header DEPENDS ${EMBEDDED_WEBROOT_HEADER})
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/config/EmbeddedWebrootFiles.hpp.in
+  ${EMBEDDED_WEBROOT_HEADER}
+)
+
+# Utilise un chemin relatif et définis QT_RESOURCE_ALIAS :
+set_source_files_properties(
+  src/Main.qml
+  PROPERTIES
+  QT_RESOURCE_ALIAS "src/Main.qml"
+)
+
+# Declare executable
+qt_add_executable(${BINARY_NAME}
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/ApiTools.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Channel.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Credentials.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/CurlHttpClient.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Device.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/DtlsClient.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/DummyGrabber.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/EntertainmentConfiguration.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/EntertainmentConfigurationSelector.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/HttpRequestUtils.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/HuenicornCore.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/ImageProcessing.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Interpolation.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Logger.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/PlatformSelector.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/SetupBackend.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Streamer.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/TickSynchronizer.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/UV.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/WebUIBackend.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/ApiTools.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/Channel.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/Color.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/Config.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/Credentials.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/CurlHttpClient.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/Device.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/DtlsClient.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/DummyGrabber.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/EntertainmentConfiguration.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/EntertainmentConfigurationSelector.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/HttpRequestUtils.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/HuenicornCore.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/IGrabber.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/ImageProcessing.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/Interpolation.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/IRestServer.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/Logger.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/PlatformSelector.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/SetupBackend.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/Streamer.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/TickSynchronizer.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/TimingDefinitions.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/UV.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/WebUIBackend.hpp
+
+  ${VERSION_HEADER}
+  ${EMBEDDED_WEBROOT_HEADER}
+)
+
+qt_add_qml_module(${BINARY_NAME}
+  URI ${PROJECT_NAME}
+  VERSION 1.0
+  QML_FILES
+  src/Main.qml
+)
+
+
+add_dependencies(${PROJECT_NAME} generate_version_header generate_webroot_header)
+
+if(UNIX AND NOT APPLE) # For Gnu/Linux
+  include(cmake/platforms/GnuLinux.cmake)
+endif()
 
 set_target_properties(${BINARY_NAME} PROPERTIES CXX_STANDARD 20)
 
 target_include_directories(${BINARY_NAME} PUBLIC
   ${OpenCV_INCLUDE_DIRS}
   include
+  ${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
 target_link_libraries(${BINARY_NAME} PUBLIC
   ${OpenCV_LIBS}
   ${CURL_LIBRARIES}
-  ${CURLPP_LIBS}
-  ${RESTBED_LIBS}
   ${MBEDTLS_LIBS}
   ${MBEDTLS_X509}
   ${MBEDTLS_CRYPTO}
   nlohmann_json::nlohmann_json
+  Qt6::Quick
 )
-
-if(X11_GRABBER_AVAILABLE)
-  target_compile_definitions(${BINARY_NAME} PUBLIC X11_GRABBER_AVAILABLE=1)
-  target_sources(${BINARY_NAME} PRIVATE
-    ${X11_GRABBER_SOURCES}
-  )
-
-  target_link_libraries(${BINARY_NAME} PUBLIC
-    X11::X11
-    X11::Xext
-    X11::Xrandr
-  )
-endif()
-
-
-if(PIPEWIRE_GRABBER_AVAILABLE)
-  target_compile_definitions(${BINARY_NAME} PUBLIC PIPEWIRE_GRABBER_AVAILABLE=1)
-  target_sources(${BINARY_NAME} PRIVATE
-    ${PIPEWIRE_GRABBER_SOURCES}
-  )
-  
-  target_include_directories(${BINARY_NAME} PUBLIC
-    ${LIB_PIPEWIRE_INCLUDE_DIRS}
-    ${GIO_INCLUDE_DIRS}
-    ${GLIB_INCLUDE_DIRS}
-  )
-
-  target_link_libraries(${BINARY_NAME} PUBLIC
-    GIO::GIO
-    ${LIB_PIPEWIRE_LIBRARIES}
-    ${LIBGLIB_LIBRARIES}
-  )
-endif()
 
 
 target_compile_options(${BINARY_NAME} PRIVATE
@@ -198,35 +208,44 @@ if(${BUILD_DOCUMENTATION})
     COMMENT "Generate man pages"
   )
 
-  # Building Doxygen documentation
-  add_custom_target(documentationBuild ALL
-    COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile_in}
-    COMMENT "Generating API documentation with Doxygen"
-    VERBATIM
-  )
+# Building Doxygen documentation
+add_custom_target(documentationBuild ALL
+  COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile_in}
+  COMMENT "Generating API documentation with Doxygen"
+  VERBATIM
+)
 endif(${BUILD_DOCUMENTATION})
 
-
-# Copy webroot to build
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_directory
-  ${CMAKE_SOURCE_DIR}/webroot $<TARGET_FILE_DIR:${PROJECT_NAME}>/webroot
+include(GNUInstallDirs)
+install(TARGETS ${BINARY_NAME}
+  BUNDLE DESTINATION .
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+
+# Post build commands
 
 # Copy readme to build
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy
-  ${CMAKE_SOURCE_DIR}/README.md $<TARGET_FILE_DIR:${PROJECT_NAME}>/README.md
+  ${CMAKE_CURRENT_SOURCE_DIR}/README.md $<TARGET_FILE_DIR:${PROJECT_NAME}>/README.md
 )
 
 # Copy screenshots to build
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_directory
-  ${CMAKE_SOURCE_DIR}/screenshots $<TARGET_FILE_DIR:${PROJECT_NAME}>/screenshots
+  ${CMAKE_CURRENT_SOURCE_DIR}/screenshots $<TARGET_FILE_DIR:${PROJECT_NAME}>/screenshots
+)
+
+# Copy assets to build
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+  ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
 )
 
 # Copy license to build
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy
-  ${CMAKE_SOURCE_DIR}/LICENSE.txt $<TARGET_FILE_DIR:${PROJECT_NAME}>/LICENSE.txt
+  ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt $<TARGET_FILE_DIR:${PROJECT_NAME}>/LICENSE.txt
 )

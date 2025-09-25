@@ -27,6 +27,8 @@ class WebUI
     this.advancedSettingsNode = document.getElementById("advancedSettings");
     this.availableSubsamplesNode = document.getElementById("availableSubsampleWidths");
     this.availableSubsamplesNode.addEventListener("change", (event) => {this._setSubsampleWidth(parseInt(event.target.value));});
+    this.availableInterpolationsNode = document.getElementById("availableInterpolations");
+    this.availableInterpolationsNode.addEventListener("change", (event) => {this._setInterpolation(parseInt(event.target.value));});
     this.refreshRateInputNode = document.getElementById("refreshRate");
     this.refreshRateInputNode.addEventListener("change", (event) => {this._setRefreshRate(event.target.valueAsNumber);});
 
@@ -48,15 +50,19 @@ class WebUI
 
   initUI()
   {
-    let channelsPromise = RequestUtils.get("/channels");
+    let channelsPromise = RequestUtils.get("/api/channels");
     channelsPromise.then((data) => {this._refreshChannelsLists(data);});
     channelsPromise.catch((error) => {log(error);});
 
-    let displayInfoPromise = RequestUtils.get("/displayInfo");
+    let displayInfoPromise = RequestUtils.get("/api/displayInfo");
     displayInfoPromise.then((data) => {this._displayInfoCallback(data);});
     displayInfoPromise.catch((error) => {log(error);});
 
-    let entertainmentConfigurationsPromise = RequestUtils.get("/entertainmentConfigurations");
+    let interpolationInfoPromise = RequestUtils.get("/api/interpolationInfo");
+    interpolationInfoPromise.then((data) => {this._interpolationInfoCallback(data);});
+    interpolationInfoPromise.catch((error) => {log(error);});
+
+    let entertainmentConfigurationsPromise = RequestUtils.get("/api/entertainmentConfigurations");
     entertainmentConfigurationsPromise.then((data) => {this._entertainmentConfigurationsCallback(data);});
     entertainmentConfigurationsPromise.catch((error) => {log(error);});
   }
@@ -64,7 +70,7 @@ class WebUI
 
   notifyUV(uvData)
   {
-    let uvPromise = RequestUtils.put(`/setChannelUV/${this.screenWidget.currentChannel.channelId}`, JSON.stringify(uvData));
+    let uvPromise = RequestUtils.put(`/api/setChannelUV/${this.screenWidget.currentChannel.channelId}`, JSON.stringify(uvData));
     uvPromise.then((checkedUVs) => {
       this.activeChannels[this.screenWidget.currentChannel.channelId].uvs = checkedUVs;
       this.screenWidget.uvCallback(checkedUVs);
@@ -85,7 +91,7 @@ class WebUI
 
     this.screenWidget.currentChannel.gammaFactor = gammaFactor;
 
-    let promise = RequestUtils.put(`/setChannelGammaFactor/${this.screenWidget.currentChannel.channelId}`, JSON.stringify({gammaFactor : gammaFactor}));
+    let promise = RequestUtils.put(`/api/setChannelGammaFactor/${this.screenWidget.currentChannel.channelId}`, JSON.stringify({gammaFactor : gammaFactor}));
     promise.then((gammaFactorData) => {
       let gammaFactor = gammaFactorData.gammaFactor;
       this.screenWidget.currentChannel.gammaFactor = Utils.truncate(gammaFactor, 2);
@@ -99,23 +105,6 @@ class WebUI
     let showAdvancedSettings = false;
     this.advancedSettingsCheckbox.checked = showAdvancedSettings;
     this._toggleAdvancedDisplay(showAdvancedSettings);
-
-    this.availableSubsamplesNode.innerHTML = "";
-    for(let subsampleCandidate of this.screenWidget.subsampleResolutionCandidates.reverse()){
-      let newOption = document.createElement("option");
-      let width = subsampleCandidate.x;
-      let height = subsampleCandidate.y;
-      let percentage = width / this.screenWidget.width * 100;
-      percentage = MathUtils.roundPrecision(percentage, 2);
-      newOption.innerHTML = width + "x" + height;
-      newOption.innerHTML += ` (${percentage}%)`;
-      newOption.value = width;
-      this.availableSubsamplesNode.appendChild(newOption);
-    }
-    
-    let proportion = parseInt(this.availableSubsamplesNode.value) / this.screenWidget.width;
-    let gradientColor = StyleUtils.greenRedGradient(proportion);
-    this.availableSubsamplesNode.style.color = gradientColor;
   }
 
 
@@ -132,7 +121,7 @@ class WebUI
 
   _setChannelActivity(channelId, active)
   {
-    let promise = RequestUtils.post("/setChannelActivity", JSON.stringify({channelId : channelId, active : active}));
+    let promise = RequestUtils.post(`/api/setChannelActivity/${channelId}`, JSON.stringify({active : active}));
     promise.then((data) => {
       this._refreshChannelsLists(data.channels);
       
@@ -244,12 +233,50 @@ class WebUI
     this.refreshRateInputNode.max = displayInfo.maxRefreshRate;
 
     this.screenWidget.setDimensions(x, y, subsampleWidth);
-    this.screenWidget.setSubsampleCandidates(displayInfo.subsampleResolutionCandidates);
+    let subsampleResolutionCandidates = displayInfo.subsampleResolutionCandidates;
+
+    this.availableSubsamplesNode.innerHTML = "";
+    for(let subsampleCandidate of subsampleResolutionCandidates.reverse()){
+      let newOption = document.createElement("option");
+      let width = subsampleCandidate.x;
+      let height = subsampleCandidate.y;
+      let percentage = width / this.screenWidget.width * 100;
+      percentage = MathUtils.roundPrecision(percentage, 2);
+      newOption.innerHTML = width + "x" + height;
+      newOption.innerHTML += ` (${percentage}%)`;
+      newOption.value = width;
+      this.availableSubsamplesNode.appendChild(newOption);
+    }
+    
+    let proportion = parseInt(this.availableSubsamplesNode.value) / this.screenWidget.width;
+    let gradientColor = StyleUtils.greenRedGradient(proportion);
+    this.availableSubsamplesNode.style.color = gradientColor;
 
     this._initAdvancedSettings();
     this.availableSubsamplesNode.value = subsampleWidth.toString();
   }
 
+
+  _interpolationInfoCallback(interpolationInfo)
+  {
+    let availableInterpolations = interpolationInfo.available;
+
+    this.availableInterpolationsNode.innerHTML = "";
+
+    for(let availableInterpolation of availableInterpolations){
+      let newOption = document.createElement("option");
+
+      let key = Object.keys(availableInterpolation)[0];
+      let value = Object.values(availableInterpolation)[0];
+
+      newOption.innerHTML = key;
+      newOption.value = value;
+
+      this.availableInterpolationsNode.appendChild(newOption);
+    }
+
+    this.availableInterpolationsNode.value = interpolationInfo.current;
+  }
 
   _entertainmentConfigurationsCallback(entertainmentConfigurationsData)
   {
@@ -297,7 +324,7 @@ class WebUI
 
     this.screenWidget.setLegend(ScreenWidget.Legends.none);
 
-    let channelPromise = RequestUtils.get(`/channel/${channelId}`);
+    let channelPromise = RequestUtils.get(`/api/channel/${channelId}`);
     channelPromise.then((channelData) => {
       this.activeChannels[channelId].uvs = channelData.uvs;
       this.screenWidget.initChannelRegion(this.activeChannels[channelId]);
@@ -309,7 +336,7 @@ class WebUI
   _setEntertainmentConfiguration(entertainmentConfigurationId)
   {
     this._showLoading(true, "Switching configuration...");
-    let promise = RequestUtils.put("/setEntertainmentConfiguration", JSON.stringify(entertainmentConfigurationId));
+    let promise = RequestUtils.put("/api/setEntertainmentConfiguration", JSON.stringify(entertainmentConfigurationId));
 
     promise.then((entertainmentConfigurationData) => {
       this._refreshChannelsLists(entertainmentConfigurationData.channels)
@@ -326,7 +353,7 @@ class WebUI
 
   _setSubsampleWidth(subsampleWidth)
   {
-    let promise = RequestUtils.put("/setSubsampleWidth", JSON.stringify(subsampleWidth));
+    let promise = RequestUtils.put("/api/setSubsampleWidth", JSON.stringify(subsampleWidth));
     promise.then((displayInfo) => {
       this.screenWidget.setDimensions(displayInfo.x, displayInfo.y, displayInfo.subsampleWidth);
 
@@ -339,8 +366,15 @@ class WebUI
   }
 
 
+  _setInterpolation(interpolation)
+  {
+    let promise = RequestUtils.put("/api/setInterpolation", JSON.stringify(interpolation));
+    promise.catch((error) => {log(error);});
+  }
+
+
   _setRefreshRate(refreshRate){
-    let promise = RequestUtils.put("/setRefreshRate", JSON.stringify(refreshRate));
+    let promise = RequestUtils.put("/api/setRefreshRate", JSON.stringify(refreshRate));
     promise.then((data) => {this._setRefreshRateCallback(data.refreshRate);});
     promise.catch((error) => {log(error);});
   }
@@ -354,7 +388,7 @@ class WebUI
 
   _saveProfile()
   {
-    RequestUtils.post("/saveProfile", JSON.stringify(null), (data) => {log("Saved profile");});
+    RequestUtils.post("/api/saveProfile", JSON.stringify(null), (data) => {log("Saved profile");});
   }
 
 
@@ -367,7 +401,7 @@ class WebUI
 
   _stop()
   {
-    let promise = RequestUtils.post("/stop", JSON.stringify(null));
+    let promise = RequestUtils.post("/api/stop", JSON.stringify(null));
     promise.then((data) => {
       if(data.succeeded){
         document.getElementById("confirmStopSection").style.display = "none";

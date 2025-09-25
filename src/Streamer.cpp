@@ -1,21 +1,20 @@
 #include <Huenicorn/Streamer.hpp>
 
-#include <iostream>
-
-using namespace glm;
-using namespace std;
+#include <Huenicorn/Logger.hpp>
 
 
 namespace Huenicorn
 {
+  const std::string Streamer::Port = "2100";
+
   Streamer::Streamer(const Credentials& credentials, const std::string& bridgeAddress):
-    m_dtlsClient(credentials, bridgeAddress, PORT)
+    m_dtlsClient(credentials, bridgeAddress, Port)
   {
     try{
       m_dtlsClient.init();
     }
     catch(const std::exception& e){
-      cout << e.what();
+      Logger::error(e.what());
     }
   }
 
@@ -28,7 +27,7 @@ namespace Huenicorn
 
   void Streamer::streamChannels(const ChannelStreams& channels)
   {
-    vector<char> requestBuffer;
+    std::vector<char> requestBuffer;
     requestBuffer.insert(requestBuffer.end(), reinterpret_cast<char*>(&m_header), reinterpret_cast<char*>(&m_header) + sizeof(HuestreamHeader));
 
     for(const auto channel : channels){
