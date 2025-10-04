@@ -141,7 +141,7 @@ qt_add_executable(${BINARY_NAME}
 )
 
 qt_add_qml_module(${BINARY_NAME}
-  URI ${PROJECT_NAME}
+  URI huenicorn_UI
   VERSION 1.0
   QML_FILES
   src/Main.qml
