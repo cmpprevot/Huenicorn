@@ -90,9 +90,7 @@ namespace Huenicorn
 
   void ChannelListModel::reload()
   {
-    beginResetModel();
-
-    m_entries.clear();
+    QVector<Entry> newEntries;
 
     if(m_core && m_core->running()){
       const Channels& channels = m_core->channels();
@@ -123,10 +121,33 @@ namespace Huenicorn
           entry.devices << QString::fromStdString(device.name);
         }
 
-        m_entries.append(entry);
+        newEntries.append(entry);
       }
     }
 
+    // Update in place when the channel list is unchanged: a model reset would
+    // destroy the delegates, which kills the MouseArea grab mid-drag and makes
+    // the zone handles in ScreenArea.qml unusable
+    if(newEntries.size() == m_entries.size()){
+      bool sameChannels = true;
+      for(int i = 0; i < newEntries.size(); ++i){
+        if(newEntries.at(i).channelId != m_entries.at(i).channelId){
+          sameChannels = false;
+          break;
+        }
+      }
+
+      if(sameChannels){
+        m_entries = newEntries;
+        if(!m_entries.isEmpty()){
+          emit dataChanged(index(0), index(m_entries.size() - 1));
+        }
+        return;
+      }
+    }
+
+    beginResetModel();
+    m_entries = newEntries;
     endResetModel();
   }
 }
