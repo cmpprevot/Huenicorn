@@ -5,6 +5,7 @@
 
 #include <glm/common.hpp>
 
+#include <Huenicorn/BridgeAddress.hpp>
 #include <Huenicorn/ImageProcessing.hpp>
 #include <Huenicorn/Interpolation.hpp>
 #include <Huenicorn/Logger.hpp>
@@ -156,7 +157,7 @@ namespace Huenicorn
     std::string deviceType = "huenicorn#" + sessionUsername;
 
     nlohmann::json request = {{"devicetype", deviceType}, {"generateclientkey", true}};
-    auto response = HttpRequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api", "POST", request.dump());
+    auto response = HttpRequestUtils::sendRequest(HttpProtocol + m_config.bridgeAddress().value() + "/api", "POST", request.dump());
 
     if(!response.has_value()){
       return {{"succeeded", false}, {"error", "unreachable bridge"}};
@@ -306,13 +307,9 @@ namespace Huenicorn
 
   bool HuenicornCore::validateBridgeAddress(const std::string& bridgeAddress)
   {
-    std::string sanitizedAddress = bridgeAddress;
+    std::string sanitizedAddress = sanitizeBridgeAddress(bridgeAddress);
 
-    while(sanitizedAddress.back() == '/'){
-      sanitizedAddress.pop_back();
-    }
-
-    auto response = HttpRequestUtils::sendRequest(sanitizedAddress + "/api", "GET", "");
+    auto response = HttpRequestUtils::sendRequest(HttpProtocol + sanitizedAddress + "/api", "GET", "");
     if(!response.has_value()){
       return false;
     }
@@ -325,7 +322,7 @@ namespace Huenicorn
 
   bool HuenicornCore::validateCredentials(const Credentials& credentials)
   {
-    auto response = HttpRequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api/" + credentials.username(), "GET", "");
+    auto response = HttpRequestUtils::sendRequest(HttpProtocol + m_config.bridgeAddress().value() + "/api/" + credentials.username(), "GET", "");
     if(!response.has_value()){
       return false;
     }

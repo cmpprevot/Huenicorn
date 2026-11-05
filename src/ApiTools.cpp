@@ -2,6 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include <Huenicorn/BridgeAddress.hpp>
 #include <Huenicorn/HttpRequestUtils.hpp>
 
 
@@ -17,7 +18,7 @@ namespace Huenicorn
       EntertainmentConfigurations entConfs;
 
       HttpRequestUtils::Headers headers = {{"hue-application-key", username}};
-      std::string entConfUrl = "https://" + bridgeAddress + "/clip/v2/resource/entertainment_configuration";
+      std::string entConfUrl = HttpProtocol + bridgeAddress + "/clip/v2/resource/entertainment_configuration";
       auto entConfResponse = HttpRequestUtils::sendRequest(entConfUrl, "GET", "", headers);
 
       if(entConfResponse.has_value()){
@@ -30,7 +31,7 @@ namespace Huenicorn
           EntertainmentConfiguration entConf = jsonEntConf.get<EntertainmentConfiguration>();
 
           for(auto& [lightId, device] : entConf.devices){
-            std::string lightUrl = "https://" + bridgeAddress + "/clip/v2/resource/light/" + lightId;
+            std::string lightUrl = HttpProtocol + bridgeAddress + "/clip/v2/resource/light/" + lightId;
 
             auto jsonLightData = HttpRequestUtils::sendRequest(lightUrl, "GET", "", headers).value().asJson();
             auto deviceId = device.id;
@@ -55,7 +56,7 @@ namespace Huenicorn
     Devices loadDevices(const std::string& username, const std::string& bridgeAddress)
     {
       HttpRequestUtils::Headers headers = {{"hue-application-key", username}};
-      std::string resourceUrl = "https://" + bridgeAddress + "/clip/v2/resource";
+      std::string resourceUrl = HttpProtocol + bridgeAddress + "/clip/v2/resource";
       auto resourceResponse = HttpRequestUtils::sendRequest(resourceUrl, "GET", "", headers);
 
       Devices devices;
@@ -86,7 +87,7 @@ namespace Huenicorn
     EntertainmentConfigurationsChannels loadEntertainmentConfigurationsChannels(const std::string& username, const std::string& bridgeAddress)
     {
       HttpRequestUtils::Headers headers = {{"hue-application-key", username}};
-      std::string resourceUrl = "https://" + bridgeAddress + "/clip/v2/resource/entertainment_configuration";
+      std::string resourceUrl = HttpProtocol + bridgeAddress + "/clip/v2/resource/entertainment_configuration";
 
       auto entertainmentConfigurationsResponse = HttpRequestUtils::sendRequest(resourceUrl, "GET", "", headers);
 
@@ -131,7 +132,7 @@ namespace Huenicorn
 
       HttpRequestUtils::Headers headers = {{"hue-application-key", username}};
 
-      std::string url = "https://" + bridgeAddress + "/clip/v2/resource/entertainment_configuration/" + entertainmentConfigurationEntry.first;
+      std::string url = HttpProtocol + bridgeAddress + "/clip/v2/resource/entertainment_configuration/" + entertainmentConfigurationEntry.first;
 
       HttpRequestUtils::sendRequest(url, "PUT", jsonBody.dump(), headers);
     }
@@ -142,7 +143,7 @@ namespace Huenicorn
       std::string status;
 
       HttpRequestUtils::Headers headers = {{"hue-application-key", username}};
-      std::string url = "https://" + bridgeAddress + "/clip/v2/resource/entertainment_configuration/" + entertainmentConfigurationEntry.first;
+      std::string url = HttpProtocol + bridgeAddress + "/clip/v2/resource/entertainment_configuration/" + entertainmentConfigurationEntry.first;
       auto entConfResponse = HttpRequestUtils::sendRequest(url, "GET", "", headers);
       if(entConfResponse.has_value()){
         status = entConfResponse.value().asJson().at("data").front().at("status");

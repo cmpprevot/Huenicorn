@@ -1,6 +1,7 @@
 #include <Huenicorn/Platforms/GnuLinux/GnuLinuxAdapter.hpp>
 
 #include <pwd.h>
+#include <stdexcept>
 #include <unistd.h>
 
 #include <Huenicorn/Logger.hpp>
@@ -76,6 +77,8 @@ namespace Huenicorn
     }
 #endif
 
-    return nullptr;
+    throw std::runtime_error(
+      "Unsupported session type: " + sessionType
+    );
   }
 }

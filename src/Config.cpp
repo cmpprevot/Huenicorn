@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 
+#include <Huenicorn/BridgeAddress.hpp>
 #include <Huenicorn/Logger.hpp>
 
 
@@ -188,7 +189,7 @@ namespace Huenicorn
       ready = false;
     }
     else{
-      m_bridgeAddress.emplace(jsonConfigRoot.at("bridgeAddress"));
+      m_bridgeAddress.emplace(sanitizeBridgeAddress(jsonConfigRoot.at("bridgeAddress")));
     }
 
     if(!jsonConfigRoot.contains("credentials")){

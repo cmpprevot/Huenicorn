@@ -97,6 +97,7 @@ set_source_files_properties(
 qt_add_executable(${BINARY_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ApiTools.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/BridgeAddress.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/Channel.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/Credentials.cpp

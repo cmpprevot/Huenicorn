@@ -61,5 +61,6 @@ namespace Huenicorn
     glm::ivec2 m_resolution{16, 9};
     RefreshRate m_refreshRate{60};
     Timing::TimePoint m_startTime;
+    cv::Mat m_frame;
   };
 }
