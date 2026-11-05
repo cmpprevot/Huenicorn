@@ -103,6 +103,12 @@ namespace Huenicorn
   }
 
 
+  int QtController::transitionSmoothing() const
+  {
+    return m_transitionSmoothing;
+  }
+
+
   int QtController::displayWidth() const
   {
     return m_displayWidth;
@@ -280,6 +286,13 @@ namespace Huenicorn
   }
 
 
+  void QtController::setTransitionSmoothing(int transitionSmoothing)
+  {
+    m_core->setTransitionSmoothing(static_cast<float>(transitionSmoothing));
+    _refreshDisplayInfo();
+  }
+
+
   void QtController::setInterpolation(int interpolation)
   {
     m_core->setInterpolation(static_cast<unsigned>(interpolation));
@@ -381,6 +394,7 @@ namespace Huenicorn
     m_subsampleWidth = static_cast<int>(m_core->subsampleWidth());
     m_refreshRate = static_cast<int>(m_core->refreshRate());
     m_maxRefreshRate = static_cast<int>(m_core->maxRefreshRate());
+    m_transitionSmoothing = static_cast<int>(m_core->transitionSmoothing());
 
     emit displayInfoChanged();
   }

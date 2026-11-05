@@ -34,6 +34,7 @@ namespace Huenicorn
     Q_PROPERTY(int subsampleWidth READ subsampleWidth NOTIFY displayInfoChanged)
     Q_PROPERTY(int refreshRate READ refreshRate NOTIFY displayInfoChanged)
     Q_PROPERTY(int maxRefreshRate READ maxRefreshRate NOTIFY displayInfoChanged)
+    Q_PROPERTY(int transitionSmoothing READ transitionSmoothing NOTIFY displayInfoChanged)
     Q_PROPERTY(int displayWidth READ displayWidth NOTIFY displayInfoChanged)
     Q_PROPERTY(int displayHeight READ displayHeight NOTIFY displayInfoChanged)
     Q_PROPERTY(QVariantList interpolations READ interpolations NOTIFY interpolationInfoChanged)
@@ -63,6 +64,7 @@ namespace Huenicorn
     int subsampleWidth() const;
     int refreshRate() const;
     int maxRefreshRate() const;
+    int transitionSmoothing() const;
     int displayWidth() const;
     int displayHeight() const;
     QVariantList interpolations() const;
@@ -106,6 +108,7 @@ namespace Huenicorn
     Q_INVOKABLE bool setChannelGammaFactor(int channelId, double gammaFactor);
     Q_INVOKABLE void setSubsampleWidth(int subsampleWidth);
     Q_INVOKABLE void setRefreshRate(int refreshRate);
+    Q_INVOKABLE void setTransitionSmoothing(int transitionSmoothing);
     Q_INVOKABLE void setInterpolation(int interpolation);
     Q_INVOKABLE void saveProfile();
     Q_INVOKABLE void quit();
@@ -161,6 +164,7 @@ namespace Huenicorn
     int m_subsampleWidth{0};
     int m_refreshRate{0};
     int m_maxRefreshRate{0};
+    int m_transitionSmoothing{0};
     int m_displayWidth{0};
     int m_displayHeight{0};
     QVariantList m_interpolations;

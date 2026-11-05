@@ -75,6 +75,11 @@ namespace Huenicorn
       _setInterpolation(req, res);
     });
 
+    CROW_ROUTE(m_app, "/api/setTransitionSmoothing").methods(crow::HTTPMethod::PUT)
+    ([this](const crow::request& req, crow::response& res){
+      _setTransitionSmoothing(req, res);
+    });
+
     CROW_ROUTE(m_app, "/api/setChannelActivity/<int>").methods(crow::HTTPMethod::POST)
     ([this](const crow::request& req, crow::response& res, int channelId){
       _setChannelActivity(req, res, channelId);
@@ -186,7 +191,8 @@ namespace Huenicorn
       {"subsampleWidth", m_huenicornCore->subsampleWidth()},
       {"subsampleResolutionCandidates", jsonSubsampleCandidates},
       {"selectedRefreshRate", m_huenicornCore->refreshRate()},
-      {"maxRefreshRate", m_huenicornCore->maxRefreshRate()}
+      {"maxRefreshRate", m_huenicornCore->maxRefreshRate()},
+      {"selectedTransitionSmoothing", m_huenicornCore->transitionSmoothing()}
     };
 
     std::string response = jsonDisplayInfo.dump();
@@ -340,6 +346,23 @@ namespace Huenicorn
     };
 
     std::string response = jsonInterpolation.dump();
+    res.set_header("Content-Type", "application/json");
+    res.write(response);
+    res.end();
+  }
+
+
+  void WebUIBackend::_setTransitionSmoothing(const crow::request& req, crow::response& res) const
+  {
+    const std::string& data = req.body;
+    float transitionSmoothing = nlohmann::json::parse(data).get<float>();
+    m_huenicornCore->setTransitionSmoothing(transitionSmoothing);
+
+    nlohmann::json jsonTransitionSmoothing{
+      {"transitionSmoothing", m_huenicornCore->transitionSmoothing()}
+    };
+
+    std::string response = jsonTransitionSmoothing.dump();
     res.set_header("Content-Type", "application/json");
     res.write(response);
     res.end();

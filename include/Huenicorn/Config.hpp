@@ -125,6 +125,14 @@ namespace Huenicorn
     Interpolation::Type interpolation() const;
 
 
+    /**
+     * @brief Returns the registered transition smoothing factor
+     *
+     * @return float Transition smoothing factor, in [0, 1)
+    */
+    float transitionSmoothing() const;
+
+
     // Setters
     /**
      * @brief Registers Hue bridge address
@@ -173,6 +181,14 @@ namespace Huenicorn
     */
     void setInterpolation(Interpolation::Type interpolation);
 
+
+    /**
+     * @brief Registers the transition smoothing factor
+     *
+     * @param transitionSmoothing Smoothing factor, clamped to [0, 0.97]
+    */
+    void setTransitionSmoothing(float transitionSmoothing);
+
   private:
     // Private methods
     /**
@@ -201,6 +217,7 @@ namespace Huenicorn
     unsigned m_refreshRate{0};
     unsigned m_subsampleWidth{0};
     Interpolation::Type m_interpolation{Interpolation::Type::Area};
+    float m_transitionSmoothing{0.f};
   };
 
   void to_json(nlohmann::json& jsonConfig, const Config& config);

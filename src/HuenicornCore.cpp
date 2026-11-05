@@ -3,6 +3,8 @@
 #include <fstream>
 #include <chrono>
 
+#include <glm/common.hpp>
+
 #include <Huenicorn/ImageProcessing.hpp>
 #include <Huenicorn/Interpolation.hpp>
 #include <Huenicorn/Logger.hpp>
@@ -121,6 +123,13 @@ namespace Huenicorn
   }
 
 
+  float HuenicornCore::transitionSmoothing() const
+  {
+    // Config stores a raw [0, 1) blend factor; the API/UI works in percent.
+    return m_config.transitionSmoothing() * 100.f;
+  }
+
+
   const Interpolation::Interpolations& HuenicornCore::availableInterpolations() const
   {
     return Interpolation::availableInterpolations;
@@ -214,6 +223,12 @@ namespace Huenicorn
   void HuenicornCore::setInterpolation(unsigned interpolation)
   {
     m_config.setInterpolation(static_cast<Interpolation::Type>(interpolation));
+  }
+
+
+  void HuenicornCore::setTransitionSmoothing(float transitionSmoothing)
+  {
+    m_config.setTransitionSmoothing(transitionSmoothing / 100.f);
   }
 
 
@@ -654,6 +669,7 @@ namespace Huenicorn
         channelStream.r = 0;
         channelStream.g = 0;
         channelStream.b = 0;
+        channel.hasPreviousNormalized = false;
         channel.acknowledgeShutdown();
       }
       else{
@@ -666,6 +682,17 @@ namespace Huenicorn
         Color color = ImageProcessing::getDominantColor(subframeImage);
 
         glm::vec3 normalized = color.toNormalized();
+
+        // Ease toward the newly measured color instead of snapping to it, so
+        // fast-changing content doesn't produce an abrupt strobe-like cut.
+        // transitionSmoothing == 0 reproduces the previous (instant) behavior.
+        float smoothing = m_config.transitionSmoothing();
+        if(channel.hasPreviousNormalized && smoothing > 0.f){
+          normalized = glm::mix(channel.previousNormalized, normalized, 1.f - smoothing);
+        }
+        channel.previousNormalized = normalized;
+        channel.hasPreviousNormalized = true;
+
         glm::vec3 correctedColor = glm::pow(normalized, glm::vec3(channel.gammaExponent()));
 
         channelStream.id = channelId;

@@ -1,5 +1,6 @@
 #include <Huenicorn/Config.hpp>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 
@@ -54,6 +55,12 @@ namespace Huenicorn
   Interpolation::Type Config::interpolation() const
   {
     return m_interpolation;
+  }
+
+
+  float Config::transitionSmoothing() const
+  {
+    return m_transitionSmoothing;
   }
 
 
@@ -133,6 +140,13 @@ namespace Huenicorn
   }
 
 
+  void Config::setTransitionSmoothing(float transitionSmoothing)
+  {
+    m_transitionSmoothing = std::clamp(transitionSmoothing, 0.f, 0.97f);
+    _save();
+  }
+
+
   bool Config::_loadConfigFile()
   {
     nlohmann::json jsonConfigRoot = nlohmann::json::object();
@@ -142,14 +156,14 @@ namespace Huenicorn
       jsonConfigRoot = nlohmann::json::parse(std::ifstream(m_configFilePath));
     }
 
-    if(jsonConfigRoot.contains("restServerPort")){
+    if(jsonConfigRoot.contains("restServerPort") && !jsonConfigRoot.at("restServerPort").is_null()){
       m_restServerPort = jsonConfigRoot.at("restServerPort");
     }
     else{
       requireSave = true;
     }
 
-    if(jsonConfigRoot.contains("boundBackendIP")){
+    if(jsonConfigRoot.contains("boundBackendIP") && !jsonConfigRoot.at("boundBackendIP").is_null()){
       m_boundBackendIP = jsonConfigRoot.at("boundBackendIP");
     }
     else{
@@ -190,16 +204,20 @@ namespace Huenicorn
       m_profileName.emplace(jsonConfigRoot.at("profileName"));
     }
 
-    if(jsonConfigRoot.contains("refreshRate")){
+    if(jsonConfigRoot.contains("refreshRate") && !jsonConfigRoot.at("refreshRate").is_null()){
       m_refreshRate = jsonConfigRoot.at("refreshRate");
     }
 
-    if(jsonConfigRoot.contains("subsampleWidth")){
+    if(jsonConfigRoot.contains("subsampleWidth") && !jsonConfigRoot.at("subsampleWidth").is_null()){
       m_subsampleWidth = jsonConfigRoot.at("subsampleWidth");
     }
 
-    if(jsonConfigRoot.contains("interpolation")){
+    if(jsonConfigRoot.contains("interpolation") && !jsonConfigRoot.at("interpolation").is_null()){
       m_interpolation = jsonConfigRoot.at("interpolation");
+    }
+
+    if(jsonConfigRoot.contains("transitionSmoothing") && !jsonConfigRoot.at("transitionSmoothing").is_null()){
+      m_transitionSmoothing = jsonConfigRoot.at("transitionSmoothing");
     }
 
     if(requireSave){
@@ -228,6 +246,7 @@ namespace Huenicorn
       {"refreshRate", config.refreshRate()},
       {"restServerPort", config.restServerPort()},
       {"interpolation", config.interpolation()},
+      {"transitionSmoothing", config.transitionSmoothing()},
       {"boundBackendIP", config.boundBackendIP()}
     };
 

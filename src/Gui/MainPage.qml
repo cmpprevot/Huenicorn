@@ -310,6 +310,21 @@ Item {
                             readOnly: !parent.editable
                         }
                     }
+
+                    Label { text: "Transition smoothing"; color: Theme.textDim; font.pixelSize: 12 }
+                    Slider {
+                        Layout.fillWidth: true
+                        from: 0
+                        to: 95
+                        stepSize: 1
+                        value: huenicorn.transitionSmoothing
+                        onMoved: huenicorn.setTransitionSmoothing(Math.round(value))
+                    }
+                    Label {
+                        color: Theme.text
+                        font.pixelSize: 12
+                        text: Math.round(huenicorn.transitionSmoothing) + " %"
+                    }
                 }
 
                 Item { Layout.fillHeight: true }

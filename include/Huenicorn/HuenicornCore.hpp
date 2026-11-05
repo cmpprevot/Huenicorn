@@ -179,6 +179,14 @@ namespace Huenicorn
 
 
     /**
+     * @brief Returns the current transition smoothing factor
+     *
+     * @return float Transition smoothing factor, in percent [0, 100)
+     */
+    float transitionSmoothing() const;
+
+
+    /**
      * @brief Returns the resolved Hue bridge IP address
      * 
      * @return nlohmann::json Object containing Hue bridge address and request status
@@ -259,6 +267,14 @@ namespace Huenicorn
      * @param interpolation Desired interpolation type
      */
     void setInterpolation(unsigned interpolation);
+
+
+    /**
+     * @brief Set the transition smoothing factor
+     *
+     * @param transitionSmoothing Desired smoothing amount, in percent [0, 100]
+     */
+    void setTransitionSmoothing(float transitionSmoothing);
 
 
     // Methods

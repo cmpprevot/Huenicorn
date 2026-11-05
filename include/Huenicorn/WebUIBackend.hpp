@@ -143,6 +143,14 @@ namespace Huenicorn
 
 
     /**
+     * @brief Handler to set the transition smoothing factor
+     *
+     * @param res Pending HTTP response
+     */
+    void _setTransitionSmoothing(const crow::request& req, crow::response& res) const;
+
+
+    /**
      * @brief Handler to set the channel streaming state
      * 
      * @param res Pending HTTP response

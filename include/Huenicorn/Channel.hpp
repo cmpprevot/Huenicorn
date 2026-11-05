@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <glm/exponential.hpp>
+#include <glm/vec3.hpp>
 
 #include <Huenicorn/Device.hpp>
 #include <Huenicorn/UV.hpp>
@@ -130,6 +131,12 @@ namespace Huenicorn
      */
     void acknowledgeShutdown();
 
+
+  public:
+    // Transient streaming state (not persisted): last normalized color sent,
+    // used to ease transitions when Config::transitionSmoothing() > 0.
+    glm::vec3 previousNormalized{0.315f, 0.3312f, 0.f};
+    bool hasPreviousNormalized{false};
 
   private:
     // Attributes
