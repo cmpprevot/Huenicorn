@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include <mbedtls/version.h>
+#include <mbedtls/build_info.h>
 
 #if MBEDTLS_VERSION_MAJOR >= 4
 #include <Huenicorn/DtlsClientMbedTls4Impl.hpp>
