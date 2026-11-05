@@ -96,6 +96,10 @@ namespace Huenicorn
         break;
     }
 
+    // Keep a minimum zone size so it can always be selected and resized again
+    newUVs.max.x = glm::max(newUVs.max.x, newUVs.min.x + 0.01f);
+    newUVs.max.y = glm::max(newUVs.max.y, newUVs.min.y + 0.01f);
+
     std::swap(m_uvs, newUVs);
 
     return m_uvs;

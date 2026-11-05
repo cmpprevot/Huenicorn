@@ -55,6 +55,34 @@ ColumnLayout {
                 }
             }
 
+            // Click on the preview: select the smallest zone containing the
+            // point (so a small zone stays selectable even when covered by a
+            // larger one). Declared before the zones so handle MouseAreas
+            // keep their drags.
+            MouseArea {
+                anchors.fill: parent
+                onClicked: function(mouse) {
+                    var px = mouse.x / screen.width;
+                    var py = mouse.y / screen.height;
+                    var bestId = -1;
+                    var bestArea = Infinity;
+                    var count = huenicorn.channels.count;
+                    for (var i = 0; i < count; ++i) {
+                        var c = huenicorn.channels.get(i);
+                        if (!c.active) continue;
+                        if (px < c.uvMinX || px > c.uvMaxX || py < c.uvMinY || py > c.uvMaxY) continue;
+                        var area = (c.uvMaxX - c.uvMinX) * (c.uvMaxY - c.uvMinY);
+                        if (c.channelId === huenicorn.selectedChannelId || area < bestArea) {
+                            bestId = c.channelId;
+                            bestArea = area;
+                        }
+                    }
+                    if (bestId >= 0) {
+                        huenicorn.selectedChannelId = bestId;
+                    }
+                }
+            }
+
             // channel zones
             Repeater {
                 model: huenicorn.channels
@@ -64,6 +92,7 @@ ColumnLayout {
                     property bool selected: huenicorn.selectedChannelId === channelId
 
                     visible: model.active
+                    z: selected ? 1 : 0
                     x: model.uvMinX * screen.width
                     y: model.uvMinY * screen.height
                     width: Math.max(0, (model.uvMaxX - model.uvMinX) * screen.width)
@@ -73,11 +102,6 @@ ColumnLayout {
                     opacity: selected ? 0.45 : 0.16
                     border.color: Theme.channelColor(channelId)
                     border.width: selected ? 2 : 1
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: huenicorn.selectedChannelId = zone.channelId
-                    }
 
                     // corner handles (only for the selected channel)
                     Repeater {
