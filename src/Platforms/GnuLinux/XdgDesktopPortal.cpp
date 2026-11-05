@@ -228,6 +228,9 @@ namespace Huenicorn
       }
 
       capture->pwFd = pwFd;
+      // Stop the GMainLoop in _initCapture: without this the xdg thread
+      // keeps spinning on g_main_context_iteration at 100% CPU
+      capture->updateXdgContext = false;
       setFdReady(capture, true);
     }
 
@@ -261,6 +264,16 @@ namespace Huenicorn
         Logger::warn("Failed to start screencast, denied or cancelled by user.");
         setFdReady(capture, false);
         return;
+      }
+
+      // Tokens are single-use: always persist the new restore token from the
+      // Start response so the next run can skip the screen selection dialog
+      const char* restoreToken = nullptr;
+      if(g_variant_lookup(result, "restore_token", "&s", &restoreToken) && capture->config){
+        if(!capture->config->restoreToken().has_value() || *capture->config->restoreToken() != restoreToken){
+          capture->config->setRestoreToken(restoreToken);
+          Logger::log("Registered new restore token into config");
+        }
       }
 
       g_autoptr(GVariant) streams = g_variant_lookup_value(result, "streams", G_VARIANT_TYPE_ARRAY);
@@ -305,6 +318,14 @@ namespace Huenicorn
         GVariantBuilder builder;
         g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
         g_variant_builder_add(&builder, "{sv}", "handle_token", g_variant_new_string(pathAndToken.second.c_str()));
+
+        if(capture->config && capture->config->restoreToken().has_value()){
+          Logger::log("Using saved restore token for screen capture session");
+          g_variant_builder_add(&builder, "{sv}", "restore_token", g_variant_new_string(capture->config->restoreToken()->c_str()));
+        }
+        else{
+          Logger::log("No restore token available, user will be prompted for screen selection");
+        }
 
         g_dbus_proxy_call(getScreencastPortalProxy(), "Start", g_variant_new("(osa{sv})", capture->sessionHandle, "", &builder), G_DBUS_CALL_FLAGS_NONE, -1, capture->cancellable, onStartedCallback, capture);
       }

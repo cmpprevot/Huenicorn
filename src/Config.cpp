@@ -94,6 +94,12 @@ namespace Huenicorn
   }
 
 
+  const std::optional<std::string>& Config::restoreToken() const
+  {
+    return m_restoreToken;
+  }
+
+
   void Config::setBridgeAddress(const std::string& bridgeAddress)
   {
     m_bridgeAddress.emplace(bridgeAddress);
@@ -143,6 +149,13 @@ namespace Huenicorn
   void Config::setTransitionSmoothing(float transitionSmoothing)
   {
     m_transitionSmoothing = std::clamp(transitionSmoothing, 0.f, 0.97f);
+    _save();
+  }
+
+
+  void Config::setRestoreToken(const std::string& restoreToken)
+  {
+    m_restoreToken.emplace(restoreToken);
     _save();
   }
 
@@ -204,6 +217,10 @@ namespace Huenicorn
       m_profileName.emplace(jsonConfigRoot.at("profileName"));
     }
 
+    if(jsonConfigRoot.contains("restoreToken") && !jsonConfigRoot.at("restoreToken").is_null()){
+      m_restoreToken.emplace(jsonConfigRoot.at("restoreToken"));
+    }
+
     if(jsonConfigRoot.contains("refreshRate") && !jsonConfigRoot.at("refreshRate").is_null()){
       m_refreshRate = jsonConfigRoot.at("refreshRate");
     }
@@ -260,6 +277,10 @@ namespace Huenicorn
 
     if(config.profileName().has_value()){
       jsonConfig["profileName"] = config.profileName().value();
+    }
+
+    if(config.restoreToken().has_value()){
+      jsonConfig["restoreToken"] = config.restoreToken().value();
     }
   }
 }

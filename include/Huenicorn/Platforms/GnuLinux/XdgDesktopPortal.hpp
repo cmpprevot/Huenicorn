@@ -11,6 +11,8 @@
 
 #include <gio/gunixfdlist.h>
 
+#include <Huenicorn/Config.hpp>
+
 
 namespace Huenicorn
 {
@@ -55,6 +57,7 @@ namespace Huenicorn
       std::promise<bool> fdReadyPromise;
       bool fdPromiseSet{false};
       bool updateXdgContext{true};
+      Config* config{nullptr};
     };
 
 

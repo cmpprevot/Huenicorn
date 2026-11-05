@@ -25,6 +25,7 @@ namespace Huenicorn
   IGrabber(config)
   {
     m_pwData.config = config;
+    m_capture.config = config;
     m_pwData.useGamescope = useGamescope;
 
     if(useGamescope){

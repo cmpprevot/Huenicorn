@@ -94,6 +94,14 @@ namespace Huenicorn
 
 
     /**
+     * @brief Returns the registered restoration token for screen selection portal
+     *
+     * @return const std::optional<std::string>& Registered restore token
+    */
+    const std::optional<std::string>& restoreToken() const;
+
+
+    /**
      * @brief Returns the registered profile name
      * 
      * @return const std::optional<std::string>& Registered profile name
@@ -189,6 +197,14 @@ namespace Huenicorn
     */
     void setTransitionSmoothing(float transitionSmoothing);
 
+
+    /**
+     * @brief Registers the restore token for screen selection
+     *
+     * @param restoreToken Token for xdg session restauration
+    */
+    void setRestoreToken(const std::string& restoreToken);
+
   private:
     // Private methods
     /**
@@ -214,6 +230,7 @@ namespace Huenicorn
     std::optional<std::string> m_bridgeAddress;
     std::optional<Credentials> m_credentials;
     std::optional<std::string> m_profileName;
+    std::optional<std::string> m_restoreToken;
     unsigned m_refreshRate{0};
     unsigned m_subsampleWidth{0};
     Interpolation::Type m_interpolation{Interpolation::Type::Area};
