@@ -1,15 +1,8 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
-
-#include <mbedtls/ctr_drbg.h>
-#include <mbedtls/debug.h>
-#include <mbedtls/entropy.h>
-#include <mbedtls/error.h>
-#include <mbedtls/net_sockets.h>
-#include <mbedtls/ssl.h>
-#include <mbedtls/timing.h>
 
 #include <Huenicorn/Credentials.hpp>
 
@@ -18,19 +11,18 @@ namespace Huenicorn
 {
   /**
    * @brief Wrapper around Mbed-TLS library to provide TLS v1.2 connection to Hue bridge
-   * 
+   *
+   * The actual implementation is selected at compile time depending on the
+   * Mbed TLS version: DtlsClientMbedTls3Impl.hpp for Mbed TLS 2.x/3.x,
+   * DtlsClientMbedTls4Impl.hpp for Mbed TLS 4.x.
    */
   class DtlsClient
   {
-    // Constants
-    static const std::string Hostname;
-    static const unsigned HandshakeAttempts;
-
   public:
     // Constructor / destructor
     /**
      * @brief DtlsClient constructor
-     * 
+     *
      * @param credentials PSK credentials
      * @param address Address of the DTLS server
      * @param port Port of the DTLS server
@@ -40,20 +32,21 @@ namespace Huenicorn
 
     /**
      * @brief DtlsClient destructor
-     * 
+     *
      */
     ~DtlsClient();
 
+
     /**
      * @brief Calls all the inner initializations
-     * 
+     *
      */
     void init();
 
 
     /**
      * @brief Sends byte buffer to the server
-     * 
+     *
      * @param requestBuffer Byte buffer to send to the server
      * @return true Sending was successful
      * @return false Sending failed
@@ -61,69 +54,15 @@ namespace Huenicorn
     bool send(const std::vector<char>& requestBuffer);
 
   private:
-    // Private methods
-    /**
-     * @brief Initializes MberdTLS objects
-     * 
-     */
-    void _initMembers();
+    // Private classes
+    class Impl;
 
-
-    /**
-     * @brief Initializes debug messages for Mbed-TLS
-     * 
-     */
-    void _initDebug();
-
-
-    /**
-     * @brief Initializes the random number generator
-     * 
-     */
-    void _initRNG();
-
-
-    /**
-     * @brief Initializes the connection
-     * 
-     */
-    void _initConnection();
-
-
-    /**
-     * @brief Initializes the SSL layer with PSK
-     * 
-     */
-    void _initSSL();
-
-
-    /**
-     * @brief Execute handshake
-     * 
-     */
-    void _handshake();
-
-
-    /**
-     * @brief Free all the allocated MbedTLS members
-     * 
-     */
-    void _deallocate();
 
     // Attributes
     const Credentials m_credentials;
     const std::string m_address;
     const std::string m_port;
 
-    std::vector<int> m_ciphers;
-
-    // MbedTLS
-    mbedtls_net_context m_serverFd;
-    mbedtls_entropy_context m_entropy;
-    mbedtls_ctr_drbg_context m_ctrDrbg;
-    mbedtls_ssl_context m_ssl;
-    mbedtls_ssl_config m_conf;
-    mbedtls_x509_crt m_cacert;
-    mbedtls_timing_delay_context m_timer;
+    std::unique_ptr<Impl> m_impl;
   };
 }
