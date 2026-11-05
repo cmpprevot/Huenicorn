@@ -14,32 +14,42 @@
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #include <spa/debug/types.h>
 #include <spa/param/video/type-info.h>
+#include <spa/utils/dict.h>
 #pragma GCC diagnostic pop
 
 using namespace std::chrono_literals;
 
 namespace Huenicorn
 {
-  PipewireGrabber::PipewireGrabber(Config* config):
+  PipewireGrabber::PipewireGrabber(Config* config, bool useGamescope):
   IGrabber(config)
   {
     m_pwData.config = config;
+    m_pwData.useGamescope = useGamescope;
 
-    std::promise<bool> fdReadyPromise;
-    auto fdReadyFuture = fdReadyPromise.get_future();
-    m_capture.fdReadyPromise = std::move(fdReadyPromise);
-    m_xdgThread.emplace(_initCapture, &m_capture);
-
-    // The portal dialog may require user interaction, allow some time but do
-    // not hang forever if the portal never answers
-    if(fdReadyFuture.wait_for(300s) != std::future_status::ready || !fdReadyFuture.get()){
-      _stop();
-      throw std::runtime_error("Failed to get monitor file descriptor");
+    if(useGamescope){
+      // Gamescope sessions don't run an xdg-desktop-portal ScreenCast backend,
+      // so there's no session/fd to negotiate. The Pipewire thread connects
+      // directly to the local socket and finds gamescope's node itself.
+      Logger::log("Detected gamescope session. Capturing gamescope's Pipewire node directly instead of using the XDG portal.");
     }
+    else{
+      std::promise<bool> fdReadyPromise;
+      auto fdReadyFuture = fdReadyPromise.get_future();
+      m_capture.fdReadyPromise = std::move(fdReadyPromise);
+      m_xdgThread.emplace(_initCapture, &m_capture);
 
-    if(m_capture.pwFd < 0 || m_capture.pwNode == 0){
-      _stop();
-      throw std::runtime_error("Invalid pipewire node or file descriptor");
+      // The portal dialog may require user interaction, allow some time but do
+      // not hang forever if the portal never answers
+      if(fdReadyFuture.wait_for(300s) != std::future_status::ready || !fdReadyFuture.get()){
+        _stop();
+        throw std::runtime_error("Failed to get monitor file descriptor");
+      }
+
+      if(m_capture.pwFd < 0 || m_capture.pwNode == 0){
+        _stop();
+        throw std::runtime_error("Invalid pipewire node or file descriptor");
+      }
     }
 
     auto configDataReadyFuture = m_pwData.screenDataReadyPromise.get_future();
@@ -89,14 +99,14 @@ namespace Huenicorn
 
   void PipewireGrabber::_onCoreDoneCallback(void* userData, uint32_t id, int seq)
   {
-    (void)id;
-    (void)seq;
-    (void)userData;
+    PipewireData* pw = static_cast<PipewireData*>(userData);
 
-    //PipewireData* pw = static_cast<PipewireData*>(userData);
-
-    // TODO : See if extra checks are required
-    //pw_thread_loop_signal(pw->loop, FALSE);
+    // Gamescope node discovery: the registry has advertised all currently
+    // available globals by the time this sync's "done" fires, so it's safe
+    // to stop the loop and check whether "gamescope" showed up.
+    if(pw->discoveryMode && id == PW_ID_CORE && seq == pw->discoverySyncSeq){
+      pw_main_loop_quit(pw->loop);
+    }
   }
 
 
@@ -196,6 +206,32 @@ namespace Huenicorn
   }
 
 
+  void PipewireGrabber::_onRegistryGlobal(
+    void* userdata,
+    uint32_t id,
+    uint32_t /*permissions*/,
+    const char* type,
+    uint32_t /*version*/,
+    const struct spa_dict* props
+  )
+  {
+    PipewireData* pw = static_cast<PipewireData*>(userdata);
+
+    if(pw->gamescopeNodeId != 0 || props == nullptr){
+      return;
+    }
+
+    if(std::string(type) != PW_TYPE_INTERFACE_Node){
+      return;
+    }
+
+    const char* nodeName = spa_dict_lookup(props, PW_KEY_NODE_NAME);
+    if(nodeName != nullptr && std::string(nodeName) == "gamescope"){
+      pw->gamescopeNodeId = id;
+    }
+  }
+
+
   void PipewireGrabber::_initCapture(XdgDesktopPortal::Capture* capture)
   {
     screencastPortalDesktopCaptureCreate(capture, XdgDesktopPortal::CaptureType::Monitor, true);
@@ -226,7 +262,7 @@ namespace Huenicorn
     streamEvents.param_changed = _onStreamParamChanged;
     streamEvents.process = _onStreamProcess;
 
-    if(capture->pwFd < 0 || capture->pwNode == 0){
+    if(!pw->useGamescope && (capture->pwFd < 0 || capture->pwNode == 0)){
       Logger::error("Invalid pipewire capture data, aborting pipewire thread");
       if(!pw->promiseSetAlready){
         pw->screenDataReadyPromise.set_value(false);
@@ -238,7 +274,9 @@ namespace Huenicorn
     pw->loop = pw_main_loop_new(NULL);
     pw->context = pw_context_new(pw_main_loop_get_loop(pw->loop), NULL, 0);
 
-    auto core = pw_context_connect_fd(pw->context, fcntl(capture->pwFd, F_DUPFD_CLOEXEC, 5), NULL, 0);
+    auto core = pw->useGamescope
+      ? pw_context_connect(pw->context, NULL, 0)
+      : pw_context_connect_fd(pw->context, fcntl(capture->pwFd, F_DUPFD_CLOEXEC, 5), NULL, 0);
 
     if(!core){
       Logger::error("Failed to connect to pipewire");
@@ -256,6 +294,41 @@ namespace Huenicorn
 #pragma GCC diagnostic ignored "-Wpedantic"
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
     pw_core_add_listener(core, &pw->coreListener, &coreEvents, pw);
+
+    uint32_t targetNode = capture->pwNode;
+
+    if(pw->useGamescope){
+      pw_registry_events registryEvents = {};
+      registryEvents.version = PW_VERSION_REGISTRY_EVENTS;
+      registryEvents.global = _onRegistryGlobal;
+
+      pw_registry* registry = pw_core_get_registry(core, PW_VERSION_REGISTRY, 0);
+      spa_hook registryListener{};
+      pw_registry_add_listener(registry, &registryListener, &registryEvents, pw);
+
+      pw->discoveryMode = true;
+      pw->discoverySyncSeq = pw_core_sync(core, PW_ID_CORE, 0);
+      pw_main_loop_run(pw->loop);
+      pw->discoveryMode = false;
+
+      spa_hook_remove(&registryListener);
+      pw_proxy_destroy(reinterpret_cast<pw_proxy*>(registry));
+
+      if(pw->gamescopeNodeId == 0){
+        Logger::error("Could not find a Pipewire node named 'gamescope'. This doesn't look like a gamescope session, or gamescope's Pipewire support isn't available.");
+        if(!pw->promiseSetAlready){
+          pw->screenDataReadyPromise.set_value(false);
+          pw->promiseSetAlready = true;
+        }
+        pw_core_disconnect(core);
+        g_clear_pointer(&pw->context, pw_context_destroy);
+        g_clear_pointer(&pw->loop, pw_main_loop_destroy);
+        pw_deinit();
+        return;
+      }
+
+      targetNode = pw->gamescopeNodeId;
+    }
 
     auto props = pw_properties_new(
       PW_KEY_MEDIA_TYPE, "Video",
@@ -323,7 +396,7 @@ namespace Huenicorn
     };
 #pragma GCC diagnostic pop
 
-    pw_stream_connect(pw->stream, PW_DIRECTION_INPUT, capture->pwNode, static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS), params, 1);
+    pw_stream_connect(pw->stream, PW_DIRECTION_INPUT, targetNode, static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS), params, 1);
   
 
     pw_main_loop_run(pw->loop);
@@ -364,12 +437,14 @@ namespace Huenicorn
     // Stop Pipewire session
     _teardownPipewire();
 
-    // Stop XdgPortal
-    m_capture.updateXdgContext = false; // Making sure
-    XdgDesktopPortal::screencastPortalCaptureDestroy(&m_capture);
-    if(m_xdgThread.has_value()){
-      m_xdgThread.value().join();
-      m_xdgThread.reset();
+    // Stop XdgPortal (not used when capturing gamescope's node directly)
+    if(!m_pwData.useGamescope){
+      m_capture.updateXdgContext = false; // Making sure
+      XdgDesktopPortal::screencastPortalCaptureDestroy(&m_capture);
+      if(m_xdgThread.has_value()){
+        m_xdgThread.value().join();
+        m_xdgThread.reset();
+      }
     }
 
     // Waiting for thread to finish

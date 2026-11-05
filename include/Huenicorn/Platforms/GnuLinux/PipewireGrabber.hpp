@@ -48,6 +48,15 @@ namespace Huenicorn
       std::promise<bool> screenDataReadyPromise;
       bool promiseSetAlready{false};
       Config* config;
+
+      // Gamescope direct-capture support: gamescope exposes its composited
+      // output as a plain (non-portal-gated) Pipewire node named "gamescope".
+      // xdg-desktop-portal's ScreenCast implementation isn't wired up inside
+      // a gamescope session, which is why the portal path black-screens there.
+      bool useGamescope{false};
+      bool discoveryMode{false};
+      int discoverySyncSeq{0};
+      uint32_t gamescopeNodeId{0};
     };
 
 
@@ -55,8 +64,12 @@ namespace Huenicorn
     // Constructor / destructor
     /**
      * PipewireGrabber constructor
+     *
+     * @param config Application configuration
+     * @param useGamescope Capture gamescope's own Pipewire node directly,
+     * bypassing the XDG screencast portal
     */
-    PipewireGrabber(Config* config);
+    PipewireGrabber(Config* config, bool useGamescope = false);
 
 
     /**
@@ -101,6 +114,19 @@ namespace Huenicorn
     static void _onStreamProcess(void* userdata);
 
     static void _onStreamParamChanged(void* userdata, uint32_t id, const struct spa_pod* param);
+
+    /**
+     * Registry listener used to find gamescope's "gamescope" Pipewire node
+    */
+    static void _onRegistryGlobal(
+      void* userdata,
+      uint32_t id,
+      uint32_t permissions,
+      const char* type,
+      uint32_t version,
+      const struct spa_dict* props
+    );
+
 
     /**
      * Screencast portal thread
