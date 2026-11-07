@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <nlohmann/json.hpp>
+
 #include <Huenicorn/Device.hpp>
 #include <Huenicorn/EntertainmentConfiguration.hpp>
 
@@ -77,5 +79,28 @@ namespace Huenicorn
      * @return false Streaming is inactive
      */
     bool streamingActive(const EntertainmentConfigurationEntry& entertainmentConfigurationEntry, const std::string& username, const std::string& bridgeAddress);
+
+    /**
+     * @brief Builds a CLIP v2 light resource body from a Huenicorn manual light state
+     *
+     * @param state State to convert: {"on": bool, "brightness": 0-100, "mode": "color"|"white",
+     *              "r"/"g"/"b": 0-255 for mode "color", or "mirek": 153-500 for mode "white"}
+     * @return nlohmann::json CLIP v2 body, e.g. {"on": {"on": true}, "dimming": {"brightness": 80},
+     *         "color": {"xy": {"x": ..., "y": ...}}} or {"color_temperature": {"mirek": ...}}
+     */
+    nlohmann::json buildLightStateBody(const nlohmann::json& state);
+
+    /**
+     * @brief Applies a light state (power, brightness, color or color temperature) to a list of lights
+     *
+     * @param username Username credential for the HTTPS request
+     * @param bridgeAddress Address of the Hue bridge
+     * @param lightIds IDs of the lights to control
+     * @param state State to apply: {"on": bool, "brightness": 0-100, "mode": "color"|"white",
+     *               "r"/"g"/"b": 0-255 for mode "color", or "mirek": 153-500 for mode "white"}
+     * @return true All lights accepted the state
+     * @return false At least one light rejected the state or the bridge was unreachable
+     */
+    bool setLightsState(const std::string& username, const std::string& bridgeAddress, const MembersIds& lightIds, const nlohmann::json& state);
   }
 }

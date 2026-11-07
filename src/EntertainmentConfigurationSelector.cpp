@@ -1,5 +1,7 @@
 #include <Huenicorn/EntertainmentConfigurationSelector.hpp>
 
+#include <exception>
+
 #include <Huenicorn/ApiTools.hpp>
 #include <Huenicorn/Logger.hpp>
 
@@ -72,6 +74,34 @@ namespace Huenicorn
     ApiTools::setStreamingState(*m_currentEntertainmentConfiguration, m_credentials.username(), m_bridgeAddress, true);
 
     return true;
+  }
+
+
+  bool EntertainmentConfigurationSelector::streamingActiveOnBridge() const
+  {
+    if(!validSelection()){
+      return false;
+    }
+
+    try{
+      return ApiTools::streamingActive(*m_currentEntertainmentConfiguration, m_credentials.username(), m_bridgeAddress);
+    }
+    catch(const std::exception& e){
+      // A malformed or missing bridge response must not crash the caller
+      // (this can be invoked from the UI thread)
+      Logger::warn("Could not query bridge streaming status: ", e.what());
+      return false;
+    }
+  }
+
+
+  void EntertainmentConfigurationSelector::enableStreaming() const
+  {
+    if(m_currentEntertainmentConfiguration == m_entertainmentConfigurations.end()){
+      return;
+    }
+
+    ApiTools::setStreamingState(*m_currentEntertainmentConfiguration, m_credentials.username(), m_bridgeAddress, true);
   }
 
 

@@ -72,8 +72,25 @@ namespace Huenicorn
 
 
     /**
+     * @brief Returns whether the bridge currently reports streaming as active on the
+     * current entertainment configuration
+     *
+     * @return true Bridge reports streaming active
+     * @return false Bridge reports streaming inactive (or no valid selection)
+     */
+    bool streamingActiveOnBridge() const;
+
+
+    /**
+     * @brief Enables streaming on the current entertainment configuration if a valid one is selected
+     *
+     */
+    void enableStreaming() const;
+
+
+    /**
      * @brief Disables streaming on entertainment configuration if already active
-     * 
+     *
      */
     void disableStreaming() const;
 

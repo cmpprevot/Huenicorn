@@ -162,6 +162,7 @@ qt_add_qml_module(${BINARY_NAME}
   src/Gui/Theme.qml
   src/Gui/SetupPage.qml
   src/Gui/MainPage.qml
+  src/Gui/ManualControlPage.qml
   src/Gui/ScreenArea.qml
   RESOURCES
   assets/logo.svg

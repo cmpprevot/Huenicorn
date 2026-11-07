@@ -152,10 +152,18 @@ namespace Huenicorn
 
     /**
      * @brief Handler to set the channel streaming state
-     * 
+     *
      * @param res Pending HTTP response
      */
     void _setChannelActivity(const crow::request& req, crow::response& res, uint8_t channelId) const;
+
+
+    /**
+     * @brief Handler to activate or pause ambilight streaming without stopping Huenicorn
+     *
+     * @param res Pending HTTP response
+     */
+    void _setStreamingActive(const crow::request& req, crow::response& res) const;
 
 
     /**

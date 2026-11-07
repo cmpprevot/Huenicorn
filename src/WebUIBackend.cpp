@@ -85,6 +85,11 @@ namespace Huenicorn
       _setChannelActivity(req, res, channelId);
     });
 
+    CROW_ROUTE(m_app, "/api/setStreamingActive").methods(crow::HTTPMethod::PUT)
+    ([this](const crow::request& req, crow::response& res){
+      _setStreamingActive(req, res);
+    });
+
     CROW_ROUTE(m_app, "/api/saveProfile").methods(crow::HTTPMethod::POST)
     ([this](const crow::request& /*req*/, crow::response& res){
       _saveProfile(res);
@@ -128,6 +133,7 @@ namespace Huenicorn
   {
     nlohmann::json jsonResponse = {
       {"ready", true},
+      {"streamingActive", m_huenicornCore->streamingActive()},
     };
 
     std::string response = jsonResponse.dump();
@@ -395,6 +401,25 @@ namespace Huenicorn
     if(active){
       jsonResponse["newActiveChannelId"] = channelId;
     }
+
+    std::string response = jsonResponse.dump();
+    res.set_header("Content-Type", "application/json");
+    res.write(response);
+    res.end();
+  }
+
+
+  void WebUIBackend::_setStreamingActive(const crow::request& req, crow::response& res) const
+  {
+    const std::string& data = req.body;
+    bool active = nlohmann::json::parse(data).get<bool>();
+
+    m_huenicornCore->setStreamingActive(active);
+
+    nlohmann::json jsonResponse = {
+      {"succeeded", true},
+      {"streamingActive", m_huenicornCore->streamingActive()}
+    };
 
     std::string response = jsonResponse.dump();
     res.set_header("Content-Type", "application/json");

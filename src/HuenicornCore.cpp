@@ -46,6 +46,12 @@ namespace Huenicorn
   }
 
 
+  bool HuenicornCore::streamingActive() const
+  {
+    return m_streamingActive;
+  }
+
+
   bool HuenicornCore::webUIEnabled() const
   {
     return m_webUIEnabled;
@@ -183,6 +189,12 @@ namespace Huenicorn
     }
 
     _enableEntertainmentConfiguration(entertainmentConfigurationId);
+
+    // Selecting an entertainment configuration re-enables streaming on the bridge;
+    // keep it off if ambilight is currently paused
+    if(!m_streamingActive){
+      m_selector->disableStreaming();
+    }
 
     return true;
   }
@@ -356,6 +368,78 @@ namespace Huenicorn
     _updateStreamChannelsSize();
 
     return true;
+  }
+
+
+  void HuenicornCore::setStreamingActive(bool active)
+  {
+    if(m_streamingActive.exchange(active) == active){
+      return;
+    }
+
+    if(!m_selector){
+      return;
+    }
+
+    if(active){
+      m_selector->enableStreaming();
+      // Do not recreate the streamer here: the bridge may still hold the previous
+      // DTLS session (a new handshake would be rejected with a timeout). The
+      // streaming loop resumes sending on the existing streamer right away; if
+      // that send fails (dead session), the streamer is recreated automatically.
+      Logger::log("Ambilight resumed");
+    }
+    else{
+      m_selector->disableStreaming();
+      Logger::log("Ambilight paused");
+    }
+
+    bool activeOnBridge = m_selector->streamingActiveOnBridge();
+    Logger::log("Bridge reports streaming ", activeOnBridge ? "active" : "inactive", " after setStreamingActive(", active, ")");
+  }
+
+
+  bool HuenicornCore::setManualLightState(const nlohmann::json& state)
+  {
+    if(!m_selector || !m_selector->validSelection()){
+      Logger::warn("Cannot set manual light state: no valid entertainment configuration selected");
+      return false;
+    }
+
+    if(!m_config.credentials().has_value() || !m_config.bridgeAddress().has_value()){
+      Logger::warn("Cannot set manual light state: missing bridge address or credentials");
+      return false;
+    }
+
+    // While the bridge streams to the entertainment configuration, REST light
+    // commands are ignored: pause ambilight so the manual state takes effect
+    if(m_streamingActive){
+      setStreamingActive(false);
+    }
+
+    const Devices& devices = m_selector->currentEntertainmentConfiguration().devices;
+    MembersIds lightIds;
+    lightIds.reserve(devices.size());
+    for(const auto& [lightId, device] : devices){
+      lightIds.push_back(lightId);
+    }
+
+    bool succeeded = ApiTools::setLightsState(m_config.credentials().value().username(), m_config.bridgeAddress().value(), lightIds, state);
+
+    if(succeeded){
+      std::lock_guard lock(m_manualLightStateMutex);
+      m_manualLightState = state;
+      Logger::log("Manual light state applied to ", lightIds.size(), " light(s)");
+    }
+
+    return succeeded;
+  }
+
+
+  nlohmann::json HuenicornCore::manualLightState() const
+  {
+    std::lock_guard lock(m_manualLightStateMutex);
+    return m_manualLightState;
   }
 
 
@@ -596,13 +680,7 @@ namespace Huenicorn
       return;
     }
 
-    const Credentials& credentials = m_config.credentials().value();
-
-    {
-      std::lock_guard lock(m_streamerMutex);
-      m_streamer = std::make_unique<Streamer>(credentials, m_config.bridgeAddress().value());
-      m_streamer->setEntertainmentConfigurationId(m_selector->currentEntertainmentConfigurationId().value());
-    }
+    _recreateStreamer();
 
     auto profilePath = _profilePath();
     nlohmann::json jsonChannels = nlohmann::json::object();
@@ -618,6 +696,47 @@ namespace Huenicorn
   }
 
 
+  void HuenicornCore::_recreateStreamer()
+  {
+    // This can run on the streaming loop thread: it must never throw
+    if(!m_selector || !m_selector->validSelection()){
+      Logger::warn("Cannot recreate streamer: no valid entertainment configuration selected");
+      return;
+    }
+
+    if(!m_config.credentials().has_value() || !m_config.bridgeAddress().has_value()){
+      Logger::warn("Cannot recreate streamer: missing bridge address or credentials");
+      return;
+    }
+
+    const Credentials& credentials = m_config.credentials().value();
+    const std::string& bridgeAddress = m_config.bridgeAddress().value();
+    const std::string entertainmentConfigurationId = m_selector->currentEntertainmentConfigurationId().value();
+
+    Logger::log("Recreating streamer (new DTLS handshake)");
+
+    auto candidate = std::make_unique<Streamer>(credentials, bridgeAddress);
+    bool connected = candidate->isConnected();
+
+    {
+      std::lock_guard lock(m_streamerMutex);
+      // Only replace the current streamer if the new DTLS session is usable (or
+      // there is no current streamer yet). The bridge keeps a single DTLS session
+      // per entertainment configuration, so a failed handshake must not destroy
+      // a session that may still be valid on the bridge side.
+      if(connected || !m_streamer){
+        candidate->setEntertainmentConfigurationId(entertainmentConfigurationId);
+        m_streamer = std::move(candidate);
+      }
+    }
+
+    if(!connected){
+      Logger::warn("DTLS handshake failed, keeping previous streamer and retrying later");
+      m_streamerStale = true;
+    }
+  }
+
+
   void HuenicornCore::_startStreamingLoop()
   {
     m_tickSynchronizer = std::make_unique<TickSynchronizer>(1.0f / static_cast<float>(m_config.refreshRate()));
@@ -626,7 +745,9 @@ namespace Huenicorn
 
     m_keepLooping = true;
     while(m_keepLooping && !m_stopRequested){
-      _update();
+      if(m_streamingActive){
+        _update();
+      }
 
       if(!m_tickSynchronizer->sync()){
         const auto& lastExcess = m_tickSynchronizer->lastExcess();
@@ -699,11 +820,28 @@ namespace Huenicorn
       }
     }
 
+    // Recreate the streamer (fresh DTLS handshake) when marked stale, throttled
+    // so a failing handshake doesn't hammer the bridge at every tick
+    if(m_streamerStale.load()){
+      auto now = std::chrono::steady_clock::now();
+      if(now - m_lastStreamerRecreate >= std::chrono::seconds(2)){
+        m_lastStreamerRecreate = now;
+        m_streamerStale = false;
+        _recreateStreamer();
+      }
+    }
+
+    bool sendFailed = false;
     {
       std::lock_guard lock(m_streamerMutex);
       if(m_streamer.get()){
-        m_streamer->streamChannels(m_channelStreams);
+        sendFailed = !m_streamer->streamChannels(m_channelStreams);
       }
+    }
+
+    if(sendFailed){
+      Logger::warn("DTLS send failed, will recreate streamer");
+      m_streamerStale = true;
     }
   }
 

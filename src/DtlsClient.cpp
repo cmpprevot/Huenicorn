@@ -41,4 +41,14 @@ namespace Huenicorn
 
     return m_impl->_send(requestBuffer);
   }
+
+
+  bool DtlsClient::isConnected() const
+  {
+    if(!m_impl){
+      return false;
+    }
+
+    return m_impl->connected();
+  }
 }

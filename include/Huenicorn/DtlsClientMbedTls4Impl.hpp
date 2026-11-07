@@ -44,6 +44,11 @@ namespace Huenicorn
       _deallocate();
     }
 
+    bool connected() const
+    {
+      return isConnected;
+    }
+
   private:
     template <auto FreeFunc>
     struct MbedTlsDeleter

@@ -10,6 +10,86 @@
 
 #include <QCoreApplication>
 #include <QStringList>
+#include <QThreadPool>
+#include <QVariant>
+
+
+namespace
+{
+  nlohmann::json variantToJson(const QVariant& value)
+  {
+    switch(value.metaType().id()){
+      case QMetaType::Bool:
+        return value.toBool();
+      case QMetaType::Int:
+        return value.toInt();
+      case QMetaType::UInt:
+        return value.toUInt();
+      case QMetaType::LongLong:
+        return value.toLongLong();
+      case QMetaType::ULongLong:
+        return value.toULongLong();
+      case QMetaType::Double:
+        return value.toDouble();
+      case QMetaType::QString:
+        return value.toString().toStdString();
+      case QMetaType::QVariantList:
+      {
+        nlohmann::json array = nlohmann::json::array();
+        for(const QVariant& entry : value.toList()){
+          array.push_back(variantToJson(entry));
+        }
+        return array;
+      }
+      case QMetaType::QVariantMap:
+      {
+        nlohmann::json object = nlohmann::json::object();
+        const QVariantMap map = value.toMap();
+        for(auto it = map.begin(); it != map.end(); ++it){
+          object[it.key().toStdString()] = variantToJson(it.value());
+        }
+        return object;
+      }
+      default:
+        return nullptr;
+    }
+  }
+
+
+  QVariant jsonToVariant(const nlohmann::json& json)
+  {
+    if(json.is_boolean()){
+      return json.get<bool>();
+    }
+    if(json.is_number_integer()){
+      return static_cast<qlonglong>(json.get<long long>());
+    }
+    if(json.is_number_unsigned()){
+      return static_cast<qulonglong>(json.get<unsigned long long>());
+    }
+    if(json.is_number_float()){
+      return json.get<double>();
+    }
+    if(json.is_string()){
+      return QString::fromStdString(json.get<std::string>());
+    }
+    if(json.is_array()){
+      QVariantList list;
+      for(const auto& entry : json){
+        list.append(jsonToVariant(entry));
+      }
+      return list;
+    }
+    if(json.is_object()){
+      QVariantMap map;
+      for(auto it = json.begin(); it != json.end(); ++it){
+        map[QString::fromStdString(it.key())] = jsonToVariant(it.value());
+      }
+      return map;
+    }
+    return QVariant();
+  }
+}
 
 
 namespace Huenicorn
@@ -47,6 +127,12 @@ namespace Huenicorn
   bool QtController::running() const
   {
     return m_core->running();
+  }
+
+
+  bool QtController::streamingActive() const
+  {
+    return m_core->streamingActive();
   }
 
 
@@ -238,6 +324,19 @@ namespace Huenicorn
   }
 
 
+  void QtController::setStreamingActive(bool active)
+  {
+    m_core->setStreamingActive(active);
+
+    // Emit immediately so the QML property is up to date even if the user
+    // toggles again before the next poll
+    if(m_wasStreamingActive != active){
+      m_wasStreamingActive = active;
+      emit streamingActiveChanged();
+    }
+  }
+
+
   QVariantMap QtController::setChannelUV(int channelId, int corner, double x, double y)
   {
     QVariantMap map;
@@ -313,6 +412,23 @@ namespace Huenicorn
   }
 
 
+  bool QtController::setManualLight(const QVariantMap& state)
+  {
+    // Bridge requests are blocking (up to 1s timeout each): run them off the GUI
+    // thread so slider drags don't freeze the UI
+    nlohmann::json jsonState = variantToJson(state);
+    HuenicornCore* core = m_core;
+    QThreadPool::globalInstance()->start([core, jsonState](){ core->setManualLightState(jsonState); });
+    return true;
+  }
+
+
+  QVariantMap QtController::manualLightState() const
+  {
+    return jsonToVariant(m_core->manualLightState()).toMap();
+  }
+
+
   QVariantMap QtController::channelData(int channelId) const
   {
     QVariantMap map;
@@ -353,6 +469,7 @@ namespace Huenicorn
   {
     bool setupReq = setupRequired();
     bool isRunning = running();
+    bool isStreamingActive = streamingActive();
 
     if(setupReq != m_wasSetupRequired){
       m_wasSetupRequired = setupReq;
@@ -369,6 +486,11 @@ namespace Huenicorn
         _refreshDisplayInfo();
         _refreshInterpolations();
       }
+    }
+
+    if(isStreamingActive != m_wasStreamingActive){
+      m_wasStreamingActive = isStreamingActive;
+      emit streamingActiveChanged();
     }
   }
 

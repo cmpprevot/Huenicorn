@@ -1,9 +1,13 @@
 #include <Huenicorn/ApiTools.hpp>
 
+#include <algorithm>
+
 #include <nlohmann/json.hpp>
 
 #include <Huenicorn/BridgeAddress.hpp>
+#include <Huenicorn/Color.hpp>
 #include <Huenicorn/HttpRequestUtils.hpp>
+#include <Huenicorn/Logger.hpp>
 
 
 namespace Huenicorn
@@ -134,7 +138,14 @@ namespace Huenicorn
 
       std::string url = HttpProtocol + bridgeAddress + "/clip/v2/resource/entertainment_configuration/" + entertainmentConfigurationEntry.first;
 
-      HttpRequestUtils::sendRequest(url, "PUT", jsonBody.dump(), headers);
+      auto response = HttpRequestUtils::sendRequest(url, "PUT", jsonBody.dump(), headers);
+
+      if(!response.has_value()){
+        Logger::warn("setStreamingState(", active ? "start" : "stop", ") on ", entertainmentConfigurationEntry.first, ": no response from bridge");
+      }
+      else{
+        Logger::log("setStreamingState(", active ? "start" : "stop", ") on ", entertainmentConfigurationEntry.first, " response: ", response.value().asString());
+      }
     }
 
 
@@ -150,6 +161,84 @@ namespace Huenicorn
       }
 
       return status == "active";
+    }
+
+
+    nlohmann::json buildLightStateBody(const nlohmann::json& state)
+    {
+      nlohmann::json body = nlohmann::json::object();
+
+      bool on = state.value("on", true);
+      body["on"] = {{"on", on}};
+
+      if(on){
+        if(state.contains("brightness")){
+          double brightness = std::clamp(state.at("brightness").get<double>(), 0.0, 100.0);
+          body["dimming"] = {{"brightness", brightness}};
+        }
+
+        std::string mode = state.value("mode", "color");
+        if(mode == "white" && state.contains("mirek")){
+          int mirek = std::clamp(state.at("mirek").get<int>(), 153, 500);
+          body["color_temperature"] = {{"mirek", mirek}};
+        }
+        else if(state.contains("r") && state.contains("g") && state.contains("b")){
+          Color color(
+            static_cast<Color::ChannelDepth>(std::clamp(state.at("r").get<int>(), 0, 255)),
+            static_cast<Color::ChannelDepth>(std::clamp(state.at("g").get<int>(), 0, 255)),
+            static_cast<Color::ChannelDepth>(std::clamp(state.at("b").get<int>(), 0, 255))
+          );
+          // Hue "gamut C" boundaries; Color::toXY currently does not clamp against them
+          static const Color::GamutCoordinates gamutC = {{{0.675f, 0.322f}, {0.409f, 0.518f}, {0.167f, 0.04f}}};
+          glm::vec2 xy = color.toXY(gamutC);
+          body["color"] = {{"xy", {{"x", xy.x}, {"y", xy.y}}}};
+        }
+      }
+
+      return body;
+    }
+
+
+    bool setLightsState(const std::string& username, const std::string& bridgeAddress, const MembersIds& lightIds, const nlohmann::json& state)
+    {
+      nlohmann::json body;
+      try{
+        body = buildLightStateBody(state);
+      }
+      catch(const std::exception& e){
+        Logger::warn("setLightsState: invalid state, ignoring it: ", e.what());
+        return false;
+      }
+
+      HttpRequestUtils::Headers headers = {{"hue-application-key", username}};
+
+      bool allSucceeded = true;
+      for(const std::string& lightId : lightIds){
+        std::string lightUrl = HttpProtocol + bridgeAddress + "/clip/v2/resource/light/" + lightId;
+
+        auto response = HttpRequestUtils::sendRequest(lightUrl, "PUT", body.dump(), headers);
+        if(!response.has_value()){
+          Logger::warn("setLightsState on light ", lightId, ": no response from bridge");
+          allSucceeded = false;
+          continue;
+        }
+
+        try{
+          // CLIP v2 answers with an array of {"success": ...} or {"error": ...} entries
+          for(const nlohmann::json& entry : response.value().asJson()){
+            if(entry.contains("error")){
+              Logger::warn("setLightsState on light ", lightId, " rejected: ", entry.at("error").dump());
+              allSucceeded = false;
+            }
+          }
+        }
+        catch(const std::exception& e){
+          Logger::warn("setLightsState on light ", lightId, ": unparsable response: ", e.what());
+          allSucceeded = false;
+        }
+      }
+
+      return allSucceeded;
     }
   }
 }

@@ -138,10 +138,21 @@ namespace Huenicorn
     // Methods
     /**
      * @brief Submit the channels data to the stream
-     * 
-     * @param channels 
+     *
+     * @param channels
+     * @return true Data was sent over the DTLS session
+     * @return false Sending failed (e.g. the bridge tore down the session)
      */
-    void streamChannels(const ChannelStreams& channels);
+    bool streamChannels(const ChannelStreams& channels);
+
+
+    /**
+     * @brief Returns whether the underlying DTLS session completed its handshake
+     *
+     * @return true DTLS session is connected
+     * @return false DTLS session is not usable
+     */
+    bool isConnected() const;
 
 
   private:

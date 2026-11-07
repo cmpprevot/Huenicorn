@@ -41,6 +41,11 @@ namespace Huenicorn
       _deallocate();
     }
 
+    bool connected() const
+    {
+      return isConnected;
+    }
+
   private:
     static void _debugCallback(void* ctx, int level, const char* file, int line, const char* str)
     {
@@ -77,6 +82,10 @@ namespace Huenicorn
     bool _send(const std::vector<char>& requestBuffer)
     {
       int result = mbedtls_ssl_write(&m_ssl, reinterpret_cast<const unsigned char*>(requestBuffer.data()), requestBuffer.size());
+      if(result < 0){
+        isConnected = false;
+      }
+
       return (
         result == MBEDTLS_ERR_SSL_WANT_READ ||
         result == MBEDTLS_ERR_SSL_WANT_WRITE ||
@@ -237,6 +246,7 @@ namespace Huenicorn
         throw std::runtime_error("mbedtls_ssl_handshake failed with code: " + std::to_string(result));
       }
 
+      isConnected = true;
       Logger::log("Dtls handshake successful");
     }
 
@@ -247,6 +257,7 @@ namespace Huenicorn
      */
     void _deallocate()
     {
+      isConnected = false;
       mbedtls_net_free(&m_serverFd);
       mbedtls_x509_crt_free(&m_cacert);
       mbedtls_ssl_free(&m_ssl);
@@ -262,6 +273,7 @@ namespace Huenicorn
     std::string m_port;
 
     std::vector<int> m_ciphers;
+    bool isConnected{false};
 
     // MbedTLS
     mbedtls_net_context m_serverFd;

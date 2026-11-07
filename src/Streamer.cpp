@@ -25,7 +25,7 @@ namespace Huenicorn
   }
 
 
-  void Streamer::streamChannels(const ChannelStreams& channels)
+  bool Streamer::streamChannels(const ChannelStreams& channels)
   {
     std::vector<char> requestBuffer;
     requestBuffer.insert(requestBuffer.end(), reinterpret_cast<char*>(&m_header), reinterpret_cast<char*>(&m_header) + sizeof(HuestreamHeader));
@@ -40,7 +40,15 @@ namespace Huenicorn
       requestBuffer.insert(requestBuffer.end(), reinterpret_cast<char*>(&payload), reinterpret_cast<char*>(&payload) + sizeof(HuestreamPayload));
     }
 
-    m_dtlsClient.send(requestBuffer);
+    bool sent = m_dtlsClient.send(requestBuffer);
     m_header.sequenceId++;
+
+    return sent;
+  }
+
+
+  bool Streamer::isConnected() const
+  {
+    return m_dtlsClient.isConnected();
   }
 }

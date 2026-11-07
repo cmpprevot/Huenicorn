@@ -36,6 +36,26 @@ Item {
             }
             Item { Layout.fillWidth: true }
             Button {
+                id: ambilightToggle
+                enabled: huenicorn.running
+                text: huenicorn.streamingActive ? "Ambilight: On" : "Ambilight: Off"
+                onClicked: huenicorn.setStreamingActive(!huenicorn.streamingActive)
+                background: Rectangle {
+                    color: !parent.enabled ? Theme.surfaceActive
+                        : huenicorn.streamingActive ? (parent.hovered ? Theme.accent : Theme.accentSoft)
+                        : (parent.hovered ? Theme.surfaceHover : Theme.surface)
+                    border.color: huenicorn.streamingActive ? Theme.accent : Theme.border
+                    border.width: 1
+                    radius: Theme.radiusSmall
+                }
+                contentItem: Label {
+                    text: parent.text
+                    color: huenicorn.streamingActive && parent.enabled ? "#ffffff" : Theme.text
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+            Button {
                 text: "Shut down"
                 onClicked: confirmStopDialog.open()
                 background: Rectangle {
@@ -73,10 +93,19 @@ Item {
             }
         }
 
+        TabBar {
+            id: mainTabBar
+            Layout.fillWidth: true
+
+            TabButton { text: "Ambilight" }
+            TabButton { text: "Manual control" }
+        }
+
         RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
             spacing: Theme.spacing
+            visible: mainTabBar.currentIndex === 0
 
             // left: screen preview card
             Rectangle {
@@ -368,6 +397,12 @@ Item {
                     }
                 }
             }
+        }
+
+        ManualControlPage {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: mainTabBar.currentIndex === 1
         }
     }
 

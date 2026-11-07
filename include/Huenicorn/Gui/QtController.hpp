@@ -27,6 +27,7 @@ namespace Huenicorn
     Q_PROPERTY(QString configFilePath READ configFilePath CONSTANT)
     Q_PROPERTY(bool setupRequired READ setupRequired NOTIFY setupRequiredChanged)
     Q_PROPERTY(bool running READ running NOTIFY runningChanged)
+    Q_PROPERTY(bool streamingActive READ streamingActive NOTIFY streamingActiveChanged)
     Q_PROPERTY(int selectedChannelId READ selectedChannelId WRITE setSelectedChannelId NOTIFY selectedChannelIdChanged)
     Q_PROPERTY(ChannelListModel* channels READ channelsModel CONSTANT)
     Q_PROPERTY(EntertainmentConfigurationModel* entertainmentConfigurations READ entertainmentConfigurationsModel CONSTANT)
@@ -57,6 +58,7 @@ namespace Huenicorn
     QString configFilePath() const;
     bool setupRequired() const;
     bool running() const;
+    bool streamingActive() const;
     int selectedChannelId() const;
     ChannelListModel* channelsModel() const;
     EntertainmentConfigurationModel* entertainmentConfigurationsModel() const;
@@ -104,6 +106,7 @@ namespace Huenicorn
     // Runtime invokables
     Q_INVOKABLE bool selectEntertainmentConfiguration(const QString& entertainmentConfigurationId);
     Q_INVOKABLE bool setChannelActivity(int channelId, bool active);
+    Q_INVOKABLE void setStreamingActive(bool active);
     Q_INVOKABLE QVariantMap setChannelUV(int channelId, int corner, double x, double y);
     Q_INVOKABLE bool setChannelGammaFactor(int channelId, double gammaFactor);
     Q_INVOKABLE void setSubsampleWidth(int subsampleWidth);
@@ -112,6 +115,23 @@ namespace Huenicorn
     Q_INVOKABLE void setInterpolation(int interpolation);
     Q_INVOKABLE void saveProfile();
     Q_INVOKABLE void quit();
+
+    /**
+     * @brief Applies a manual state to all lights of the current entertainment area.
+     * Pauses ambilight first if it is active.
+     *
+     * @param state Map with keys: on (bool), brightness (0-100), mode ("color"|"white"),
+     *              r/g/b (0-255, mode "color") or mirek (153-500, mode "white")
+     * @return true State was applied to all lights
+     */
+    Q_INVOKABLE bool setManualLight(const QVariantMap& state);
+
+    /**
+     * @brief Returns the last manual light state applied through setManualLight
+     *
+     * @return QVariantMap Last applied state, empty map if none was applied yet
+     */
+    Q_INVOKABLE QVariantMap manualLightState() const;
 
     /**
      * @brief Returns the data of a channel as a map (empty if unknown or not running)
@@ -125,6 +145,7 @@ namespace Huenicorn
   signals:
     void setupRequiredChanged();
     void runningChanged();
+    void streamingActiveChanged();
     void selectedChannelIdChanged();
     void displayInfoChanged();
     void interpolationInfoChanged();
@@ -157,6 +178,7 @@ namespace Huenicorn
     int m_selectedChannelId{-1};
     bool m_wasSetupRequired{true};
     bool m_wasRunning{false};
+    bool m_wasStreamingActive{true};
     QString m_currentEntertainmentConfigurationId;
     int m_channelsVersion{0};
 

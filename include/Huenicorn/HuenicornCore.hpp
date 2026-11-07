@@ -1,7 +1,9 @@
 #pragma once
 
 #include <atomic>
+#include <chrono>
 #include <filesystem>
+#include <mutex>
 #include <optional>
 #include <thread>
 
@@ -66,11 +68,21 @@ namespace Huenicorn
 
     /**
      * @brief Returns whether the streaming loop is currently running
-     * 
+     *
      * @return true Streaming loop is running
      * @return false Streaming loop is not running
      */
     bool running() const;
+
+
+    /**
+     * @brief Returns whether ambilight streaming is currently active. The loop may be
+     * running while ambilight is paused.
+     *
+     * @return true Ambilight is streaming colors to the bridge
+     * @return false Ambilight is paused
+     */
+    bool streamingActive() const;
 
 
     /**
@@ -314,13 +326,43 @@ namespace Huenicorn
 
     /**
      * @brief Set the streaming activity of the channel referenced by ID
-     * 
+     *
      * @param channelId ID of the channel to affect
      * @param active State of the streaming
      * @return true Streaming state was successfully set
      * @return false Streaming state could not be set
      */
     bool setChannelActivity(uint8_t channelId, bool active);
+
+
+    /**
+     * @brief Activates or pauses ambilight streaming without stopping the application.
+     * Pausing disables streaming on the bridge so lights leave entertainment mode;
+     * resuming re-enables it.
+     *
+     * @param active true to stream colors, false to pause ambilight
+     */
+    void setStreamingActive(bool active);
+
+
+    /**
+     * @brief Applies a manual state (power, brightness, color or color temperature) to all
+     * lights of the current entertainment configuration. Ambilight is paused first if it is
+     * active, since the bridge ignores REST light commands while streaming.
+     *
+     * @param state State to apply (see ApiTools::setLightsState for the expected format)
+     * @return true State was applied to all lights
+     * @return false State could not be applied
+     */
+    bool setManualLightState(const nlohmann::json& state);
+
+
+    /**
+     * @brief Returns the last manual light state applied through setManualLightState
+     *
+     * @return nlohmann::json Last applied state, empty object if none was applied yet
+     */
+    nlohmann::json manualLightState() const;
 
 
     /**
@@ -400,10 +442,18 @@ namespace Huenicorn
 
     /**
      * @brief Enables the selected entertainment configuration, recreates streamer  and loads related profile
-     * 
+     *
      * @param entertainmentConfigurationId ID of the entertainment configuration to enable
      */
     void _enableEntertainmentConfiguration(const std::string& entertainmentConfigurationId);
+
+
+    /**
+     * @brief Recreates the streamer for the current entertainment configuration.
+     * A fresh DTLS handshake is performed, which is required after the bridge
+     * tore down the previous session (e.g. when ambilight was paused).
+     */
+    void _recreateStreamer();
 
 
     /**
@@ -442,6 +492,9 @@ namespace Huenicorn
     std::atomic<bool> m_keepLooping{false};
     std::atomic<bool> m_stopRequested{false};
     std::atomic<bool> m_running{false};
+    std::atomic<bool> m_streamingActive{true};
+    std::atomic<bool> m_streamerStale{false};
+    std::chrono::steady_clock::time_point m_lastStreamerRecreate{};
     bool m_webUIEnabled{true};
     bool m_openedSetup{false};
     std::unique_ptr<TickSynchronizer> m_tickSynchronizer;
@@ -454,6 +507,10 @@ namespace Huenicorn
     // Streamer
     std::mutex m_streamerMutex;
     std::unique_ptr<Streamer> m_streamer;
+
+    // Last manual light state applied through setManualLightState
+    mutable std::mutex m_manualLightStateMutex;
+    nlohmann::json m_manualLightState{nlohmann::json::object()};
 
     // Service and flags
     ThreadedRestService m_webUIService;

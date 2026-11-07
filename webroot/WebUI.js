@@ -39,6 +39,9 @@ class WebUI
     this.saveProfileButton = document.getElementById("saveProfileButton");
     this.saveProfileButton.addEventListener("click", () => {this._saveProfile();});
 
+    this.ambilightButton = document.getElementById("ambilightButton");
+    this.ambilightButton.addEventListener("click", () => {this._setStreamingActive(!this.streamingActive);});
+
     this.stopButton = document.getElementById("stopButton");
     this.stopButton.addEventListener("click", () => {this._askStopConfirmation()});
     
@@ -54,6 +57,12 @@ class WebUI
 
   initUI()
   {
+    this.streamingActive = true;
+
+    let webUIStatusPromise = RequestUtils.get("/api/webUIStatus");
+    webUIStatusPromise.then((data) => {this._webUIStatusCallback(data);});
+    webUIStatusPromise.catch((error) => {log(error);});
+
     let channelsPromise = RequestUtils.get("/api/channels");
     channelsPromise.then((data) => {this._refreshChannelsLists(data);});
     channelsPromise.catch((error) => {log(error);});
@@ -69,6 +78,29 @@ class WebUI
     let entertainmentConfigurationsPromise = RequestUtils.get("/api/entertainmentConfigurations");
     entertainmentConfigurationsPromise.then((data) => {this._entertainmentConfigurationsCallback(data);});
     entertainmentConfigurationsPromise.catch((error) => {log(error);});
+  }
+
+
+  _webUIStatusCallback(status)
+  {
+    if("streamingActive" in status){
+      this._setAmbilightButtonLabel(status.streamingActive);
+    }
+  }
+
+
+  _setAmbilightButtonLabel(active)
+  {
+    this.streamingActive = active;
+    this.ambilightButton.textContent = active ? "Pause ambilight" : "Resume ambilight";
+  }
+
+
+  _setStreamingActive(active)
+  {
+    let promise = RequestUtils.put("/api/setStreamingActive", JSON.stringify(active));
+    promise.then((data) => {this._setAmbilightButtonLabel(data.streamingActive);});
+    promise.catch((error) => {log(error);});
   }
 
 

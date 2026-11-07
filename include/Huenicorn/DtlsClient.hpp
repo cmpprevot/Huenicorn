@@ -53,6 +53,15 @@ namespace Huenicorn
      */
     bool send(const std::vector<char>& requestBuffer);
 
+
+    /**
+     * @brief Returns whether the DTLS handshake completed and the session is usable
+     *
+     * @return true Session is connected
+     * @return false No session (handshake failed or not performed)
+     */
+    bool isConnected() const;
+
   private:
     // Private classes
     class Impl;
