@@ -5,7 +5,7 @@ import QtQuick.Layouts
 // Screen preview with draggable per-channel UV zones and gamma slider
 ColumnLayout {
     id: screenArea
-    spacing: 8
+    spacing: 12
 
     property real aspect: huenicorn.displayWidth > 0 && huenicorn.displayHeight > 0
         ? huenicorn.displayWidth / huenicorn.displayHeight
@@ -23,15 +23,37 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
 
+        // soft frame glow around the preview
+        Rectangle {
+            anchors.centerIn: screen
+            width: screen.width + 18
+            height: screen.height + 18
+            radius: Theme.radiusSmall + 10
+            color: Theme.glowAccent
+            opacity: 0.35
+            z: -1
+        }
+
         Rectangle {
             id: screen
             anchors.centerIn: parent
             width: Math.min(parent.width, parent.height * screenArea.aspect)
             height: width / screenArea.aspect
-            color: "#05070a"
-            border.color: Theme.border
+            color: "#04060a"
+            border.color: Theme.borderStrong
             border.width: 1
             radius: Theme.radiusSmall
+
+            // subtle inner vignette
+            Rectangle {
+                anchors.fill: parent
+                radius: parent.radius - 1
+                gradient: Gradient {
+                    orientation: Gradient.Vertical
+                    GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.03) }
+                    GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.25) }
+                }
+            }
 
             // grid
             Repeater {
@@ -41,7 +63,7 @@ ColumnLayout {
                     width: 1
                     height: screen.height
                     color: Theme.border
-                    opacity: 0.6
+                    opacity: 0.45
                 }
             }
             Repeater {
@@ -51,7 +73,7 @@ ColumnLayout {
                     width: screen.width
                     height: 1
                     color: Theme.border
-                    opacity: 0.6
+                    opacity: 0.45
                 }
             }
 
@@ -97,11 +119,21 @@ ColumnLayout {
                     y: model.uvMinY * screen.height
                     width: Math.max(0, (model.uvMaxX - model.uvMinX) * screen.width)
                     height: Math.max(0, (model.uvMaxY - model.uvMinY) * screen.height)
-                    radius: 4
+                    radius: 6
                     color: Theme.channelColor(channelId)
-                    opacity: selected ? 0.45 : 0.16
+                    opacity: selected ? 0.45 : 0.15
                     border.color: Theme.channelColor(channelId)
                     border.width: selected ? 2 : 1
+
+                    // soft halo around the zone
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: parent.width + 16
+                        height: parent.height + 16
+                        radius: parent.radius + 8
+                        color: parent.color
+                        opacity: zone.selected ? 0.16 : 0.05
+                    }
 
                     // corner handles (only for the selected channel)
                     Repeater {
@@ -111,16 +143,28 @@ ColumnLayout {
                             { corner: 2, hx: 0.0, hy: 1.0 },
                             { corner: 3, hx: 1.0, hy: 1.0 }
                         ]
-                        delegate: Rectangle {
+                        delegate: Item {
                             visible: zone.selected
-                            width: 14
-                            height: 14
-                            radius: 7
+                            width: 18
+                            height: 18
                             x: modelData.hx * zone.width - width / 2
                             y: modelData.hy * zone.height - height / 2
-                            color: Theme.channelColor(zone.channelId)
-                            border.color: "#ffffff"
-                            border.width: 1
+
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.margins: -4
+                                radius: (width + 8) / 2
+                                color: Theme.shadow
+                            }
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 16
+                                height: 16
+                                radius: 8
+                                color: Theme.channelColor(zone.channelId)
+                                border.color: "#ffffff"
+                                border.width: 2
+                            }
 
                             MouseArea {
                                 anchors.fill: parent
@@ -137,23 +181,34 @@ ColumnLayout {
                 }
             }
 
-            // overlay legend
-            Label {
+            // overlay legend chip
+            Rectangle {
                 anchors.top: parent.top
                 anchors.horizontalCenter: parent.horizontalCenter
-                anchors.topMargin: 8
-                color: Theme.textDim
-                font.pixelSize: 12
-                text: {
-                    if (huenicorn.selectedChannelId < 0) {
-                        return huenicorn.channels && huenicorn.channels.rowCount() > 0
-                            ? "Select a light on the right to edit its screen zone"
-                            : "No channel available for the current entertainment area";
+                anchors.topMargin: 10
+                radius: Theme.pill
+                color: Qt.rgba(4, 6, 10, 0.72)
+                border.color: Theme.border
+                border.width: 1
+                implicitWidth: legendLabel.implicitWidth + 24
+                implicitHeight: legendLabel.implicitHeight + 12
+
+                Label {
+                    id: legendLabel
+                    anchors.centerIn: parent
+                    color: Theme.textDim
+                    font.pixelSize: Theme.fontSmall
+                    text: {
+                        if (huenicorn.selectedChannelId < 0) {
+                            return huenicorn.channels && huenicorn.channels.rowCount() > 0
+                                ? "Select a light on the right to edit its screen zone"
+                                : "No channel available for the current entertainment area";
+                        }
+                        var c = screenArea.selectedChannel;
+                        var w = Math.round((c.uvMaxX - c.uvMinX) * 100);
+                        var h = Math.round((c.uvMaxY - c.uvMinY) * 100);
+                        return c.label + "  ·  " + w + "% x " + h + "% of the screen";
                     }
-                    var c = screenArea.selectedChannel;
-                    var w = Math.round((c.uvMaxX - c.uvMinX) * 100);
-                    var h = Math.round((c.uvMaxY - c.uvMinY) * 100);
-                    return c.label + "  -  " + w + "% x " + h + "% of the screen";
                 }
             }
         }
@@ -163,14 +218,14 @@ ColumnLayout {
     RowLayout {
         Layout.fillWidth: true
         visible: huenicorn.selectedChannelId >= 0
-        spacing: 8
+        spacing: 12
 
         Label {
             text: "Gamma"
             color: Theme.textDim
+            font.pixelSize: Theme.fontBody
         }
-        Slider {
-            id: gammaSlider
+        UiSlider {
             Layout.fillWidth: true
             from: 0
             to: 1000
@@ -181,16 +236,17 @@ ColumnLayout {
                 }
                 return (c.gammaFactor + 1) / 2 * 1000;
             }
-            onMoved: {
+            onMoved: function(v) {
                 var c = screenArea.selectedChannel;
                 if (c.channelId !== undefined) {
-                    huenicorn.setChannelGammaFactor(c.channelId, value / 1000 * 2 - 1);
+                    huenicorn.setChannelGammaFactor(c.channelId, v / 1000 * 2 - 1);
                 }
             }
         }
         Label {
             color: Theme.text
-            font.pixelSize: 12
+            font.pixelSize: Theme.fontSmall
+            Layout.preferredWidth: 40
             text: {
                 var c = screenArea.selectedChannel;
                 return c.gammaFactor !== undefined ? (Math.round(c.gammaFactor * 100) / 100).toFixed(2) : "";

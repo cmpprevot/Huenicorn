@@ -11,36 +11,74 @@ Item {
     property string errorMessage: ""
     property var detectedBridges: []
 
-    Rectangle {
+    UiCard {
         anchors.centerIn: parent
-        width: Math.min(520, parent.width - 48)
-        height: contentColumn.implicitHeight + 2 * Theme.padding
-        color: Theme.surface
-        border.color: Theme.border
-        border.width: 1
-        radius: Theme.radius
+        width: Math.min(540, parent.width - 48)
+        height: contentColumn.implicitHeight + 2 * 24
 
         ColumnLayout {
             id: contentColumn
             anchors.fill: parent
-            anchors.margins: Theme.padding
-            spacing: Theme.spacing
+            anchors.margins: 24
+            spacing: 16
 
-            Image {
+            // logo with gradient ring
+            Item {
                 Layout.alignment: Qt.AlignHCenter
-                source: "qrc:/qt/qml/huenicorn_UI/logo.svg"
-                sourceSize.width: 72
-                sourceSize.height: 72
-                fillMode: Image.PreserveAspectFit
+                Layout.preferredWidth: 92
+                Layout.preferredHeight: 92
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 26
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop { position: 0.0; color: Theme.accentA }
+                        GradientStop { position: 0.55; color: Theme.accentB }
+                        GradientStop { position: 1.0; color: Theme.accentC }
+                    }
+                }
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: 4
+                    radius: 22
+                    color: Theme.surface
+                    Image {
+                        anchors.centerIn: parent
+                        source: "qrc:/qt/qml/huenicorn_UI/logo.svg"
+                        sourceSize.width: 56
+                        sourceSize.height: 56
+                        fillMode: Image.PreserveAspectFit
+                    }
+                }
             }
 
             Label {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
-                text: "Huenicorn setup"
-                font.pixelSize: 22
+                text: "Welcome to Huenicorn"
+                font.pixelSize: Theme.fontTitle
                 font.bold: true
                 color: Theme.text
+            }
+
+            // step indicator
+            RowLayout {
+                Layout.alignment: Qt.AlignHCenter
+                spacing: 8
+
+                Rectangle {
+                    Layout.preferredWidth: 26
+                    Layout.preferredHeight: 6
+                    radius: 3
+                    color: Theme.accentA
+                }
+                Rectangle {
+                    Layout.preferredWidth: 26
+                    Layout.preferredHeight: 6
+                    radius: 3
+                    color: setupPage.step >= 2 ? Theme.accentB : Theme.surfaceActive
+                }
             }
 
             Label {
@@ -48,6 +86,7 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
                 color: Theme.textDim
+                font.pixelSize: Theme.fontBody
                 text: step === 1
                     ? "Connect Huenicorn to your Philips Hue bridge."
                     : "Press the link button on your Hue bridge, then click Pair."
@@ -56,30 +95,37 @@ Item {
             // Step 1: bridge address
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 8
+                spacing: 10
                 visible: step === 1
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 8
+                    spacing: 10
 
                     TextField {
                         id: bridgeAddressField
                         Layout.fillWidth: true
+                        implicitHeight: 42
                         placeholderText: "Bridge IP address (e.g. 192.168.1.10)"
                         color: Theme.text
-                        selectedTextColor: Theme.background
-                        selectionColor: Theme.accent
+                        placeholderTextColor: Theme.textFaint
+                        selectedTextColor: "#ffffff"
+                        selectionColor: Theme.accentA
+                        font.pixelSize: Theme.fontBody
+                        leftPadding: 14
+                        rightPadding: 14
                         background: Rectangle {
-                            color: Theme.background
-                            border.color: Theme.border
-                            border.width: 1
-                            radius: Theme.radiusSmall
+                            color: bridgeAddressField.hovered || bridgeAddressField.activeFocus
+                                ? Theme.surfaceHover : Theme.background
+                            border.color: bridgeAddressField.activeFocus ? Theme.accentA : Theme.border
+                            border.width: bridgeAddressField.activeFocus ? 1.5 : 1
+                            radius: Theme.radiusControl
                         }
                     }
 
-                    Button {
+                    UiButton {
                         text: "Auto-detect"
+                        kind: "ghost"
                         enabled: !setupPage.busy
                         onClicked: {
                             setupPage.busy = true;
@@ -95,24 +141,14 @@ Item {
                                     : "No bridge detected. Enter the IP address manually.";
                             }
                         }
-                        background: Rectangle {
-                            color: parent.enabled ? Theme.surfaceActive : Theme.surface
-                            border.color: Theme.border
-                            border.width: 1
-                            radius: Theme.radiusSmall
-                        }
-                        contentItem: Label {
-                            text: parent.text
-                            color: parent.enabled ? Theme.text : Theme.textDim
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
                     }
                 }
 
-                Button {
+                UiButton {
                     Layout.fillWidth: true
+                    Layout.preferredHeight: 44
                     text: "Continue"
+                    kind: "primary"
                     enabled: !setupPage.busy && bridgeAddressField.text.trim() !== ""
                     onClicked: {
                         setupPage.busy = true;
@@ -125,25 +161,16 @@ Item {
                             setupPage.errorMessage = "Could not reach a Hue bridge at this address.";
                         }
                     }
-                    background: Rectangle {
-                        color: parent.enabled ? Theme.accent : Theme.surfaceActive
-                        radius: Theme.radiusSmall
-                    }
-                    contentItem: Label {
-                        text: parent.text
-                        color: parent.enabled ? "#0b0d10" : Theme.textDim
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
                 }
             }
 
             // Step 2: pairing
-            Button {
+            UiButton {
                 Layout.fillWidth: true
+                Layout.preferredHeight: 44
                 visible: step === 2
                 text: "Pair with bridge"
+                kind: "primary"
                 enabled: !setupPage.busy
                 onClicked: {
                     setupPage.busy = true;
@@ -158,32 +185,22 @@ Item {
                     // On success the controller switches setupRequired off and
                     // Main.qml automatically loads the main page.
                 }
-                background: Rectangle {
-                    color: parent.enabled ? Theme.accent : Theme.surfaceActive
-                    radius: Theme.radiusSmall
-                }
-                contentItem: Label {
-                    text: parent.text
-                    color: parent.enabled ? "#0b0d10" : Theme.textDim
-                    font.bold: true
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
             }
 
             RowLayout {
                 Layout.fillWidth: true
                 visible: setupPage.busy
-                spacing: 8
+                spacing: 10
 
                 BusyIndicator {
                     Layout.alignment: Qt.AlignVCenter
                     running: setupPage.busy
-                    palette.dark: Theme.accent
+                    palette.dark: Theme.accentA
                 }
                 Label {
                     text: "Contacting bridge..."
                     color: Theme.textDim
+                    font.pixelSize: Theme.fontSmall
                 }
             }
 
@@ -192,15 +209,16 @@ Item {
                 visible: setupPage.errorMessage !== ""
                 wrapMode: Text.WordWrap
                 color: Theme.danger
+                font.pixelSize: Theme.fontSmall
                 text: setupPage.errorMessage
             }
 
             Label {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
-                color: Theme.textDim
-                font.pixelSize: 11
-                text: "Huenicorn " + huenicorn.version + "  -  config: " + huenicorn.configFilePath
+                color: Theme.textFaint
+                font.pixelSize: Theme.fontSmall
+                text: "Huenicorn " + huenicorn.version + "  ·  config: " + huenicorn.configFilePath
             }
         }
     }

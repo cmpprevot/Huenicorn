@@ -13,49 +13,12 @@
 #include <QThreadPool>
 #include <QVariant>
 
+#include <algorithm>
+#include <cmath>
+
 
 namespace
 {
-  nlohmann::json variantToJson(const QVariant& value)
-  {
-    switch(value.metaType().id()){
-      case QMetaType::Bool:
-        return value.toBool();
-      case QMetaType::Int:
-        return value.toInt();
-      case QMetaType::UInt:
-        return value.toUInt();
-      case QMetaType::LongLong:
-        return value.toLongLong();
-      case QMetaType::ULongLong:
-        return value.toULongLong();
-      case QMetaType::Double:
-        return value.toDouble();
-      case QMetaType::QString:
-        return value.toString().toStdString();
-      case QMetaType::QVariantList:
-      {
-        nlohmann::json array = nlohmann::json::array();
-        for(const QVariant& entry : value.toList()){
-          array.push_back(variantToJson(entry));
-        }
-        return array;
-      }
-      case QMetaType::QVariantMap:
-      {
-        nlohmann::json object = nlohmann::json::object();
-        const QVariantMap map = value.toMap();
-        for(auto it = map.begin(); it != map.end(); ++it){
-          object[it.key().toStdString()] = variantToJson(it.value());
-        }
-        return object;
-      }
-      default:
-        return nullptr;
-    }
-  }
-
-
   QVariant jsonToVariant(const nlohmann::json& json)
   {
     if(json.is_boolean()){
@@ -88,6 +51,34 @@ namespace
       return map;
     }
     return QVariant();
+  }
+
+
+  // Approximate Kelvin -> RGB conversion (Tanner Helland), used to preview
+  // the white mode color in the GUI before it is applied to the bridge.
+  QColor kelvinToColor(int kelvin)
+  {
+    double t = std::clamp(kelvin, 2000, 6500) / 100.0;
+    double r, g, b;
+    if(t <= 66){
+      r = 255.0;
+      g = 99.4708025861 * std::log(t) - 161.1195681661;
+    }
+    else{
+      r = 329.698727446 * std::pow(t - 60, -0.1332047592);
+      g = 288.1221695283 * std::pow(t - 60, -0.0755148492);
+    }
+    if(t >= 66){
+      b = 255.0;
+    }
+    else if(t <= 19){
+      b = 0.0;
+    }
+    else{
+      b = 138.5177312231 * std::log(t - 10) - 305.0447927307;
+    }
+    auto clampChannel = [](double v){ return static_cast<int>(std::clamp(std::round(v), 0.0, 255.0)); };
+    return QColor(clampChannel(r), clampChannel(g), clampChannel(b));
   }
 }
 
@@ -412,14 +403,49 @@ namespace Huenicorn
   }
 
 
-  bool QtController::setManualLight(const QVariantMap& state)
+  bool QtController::setManualLight(bool on, int brightness, const QString& mode, int hue, int saturation, int kelvin)
   {
+    const bool whiteMode = (mode == QStringLiteral("white"));
+
+    // Store the raw UI fields (used to restore the manual page state) and the
+    // bridge payload computed from them
+    nlohmann::json jsonState{
+      {"on", on},
+      {"brightness", std::clamp(brightness, 0, 100)},
+      {"mode", mode.toStdString()},
+      {"hue", hue},
+      {"saturation", saturation},
+      {"kelvin", kelvin},
+    };
+
+    if(whiteMode){
+      jsonState["mirek"] = std::clamp(static_cast<int>(std::lround(1000000.0 / std::max(kelvin, 1))), 153, 500);
+    }
+    else{
+      const QColor color = manualColor(mode, hue, saturation, kelvin);
+      jsonState["r"] = color.red();
+      jsonState["g"] = color.green();
+      jsonState["b"] = color.blue();
+    }
+
     // Bridge requests are blocking (up to 1s timeout each): run them off the GUI
     // thread so slider drags don't freeze the UI
-    nlohmann::json jsonState = variantToJson(state);
     HuenicornCore* core = m_core;
     QThreadPool::globalInstance()->start([core, jsonState](){ core->setManualLightState(jsonState); });
     return true;
+  }
+
+
+  QColor QtController::manualColor(const QString& mode, int hue, int saturation, int kelvin) const
+  {
+    if(mode == QStringLiteral("white")){
+      return kelvinToColor(kelvin);
+    }
+    return QColor::fromHslF(
+      std::clamp(hue, 0, 360) / 360.0,
+      std::clamp(saturation, 0, 100) / 100.0,
+      0.5
+    );
   }
 
 

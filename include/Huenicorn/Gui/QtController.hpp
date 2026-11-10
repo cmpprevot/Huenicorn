@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QColor>
 #include <QString>
 #include <QTimer>
 #include <QVariantList>
@@ -118,13 +119,32 @@ namespace Huenicorn
 
     /**
      * @brief Applies a manual state to all lights of the current entertainment area.
-     * Pauses ambilight first if it is active.
+     * Pauses ambilight first if it is active. The bridge payload (RGB for the
+     * color mode, mirek for the white mode) is computed here: the QML layer
+     * only forwards raw UI fields.
      *
-     * @param state Map with keys: on (bool), brightness (0-100), mode ("color"|"white"),
-     *              r/g/b (0-255, mode "color") or mirek (153-500, mode "white")
-     * @return true State was applied to all lights
+     * @param on Power state
+     * @param brightness Brightness (0-100)
+     * @param mode "color" or "white"
+     * @param hue Hue (0-360, color mode)
+     * @param saturation Saturation (0-100, color mode)
+     * @param kelvin Color temperature in Kelvin (white mode)
+     * @return true State was accepted for application
      */
-    Q_INVOKABLE bool setManualLight(const QVariantMap& state);
+    Q_INVOKABLE bool setManualLight(bool on, int brightness, const QString& mode, int hue, int saturation, int kelvin);
+
+    /**
+     * @brief Preview color of a manual state for the GUI (color orb and swatches).
+     * Single source of truth for the color conversions: color mode uses HSL,
+     * white mode converts Kelvin to RGB (Tanner Helland approximation).
+     *
+     * @param mode "color" or "white"
+     * @param hue Hue (0-360, color mode)
+     * @param saturation Saturation (0-100, color mode)
+     * @param kelvin Color temperature in Kelvin (white mode)
+     * @return QColor Preview color
+     */
+    Q_INVOKABLE QColor manualColor(const QString& mode, int hue, int saturation, int kelvin) const;
 
     /**
      * @brief Returns the last manual light state applied through setManualLight

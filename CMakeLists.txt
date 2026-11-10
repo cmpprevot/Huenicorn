@@ -164,6 +164,16 @@ qt_add_qml_module(${BINARY_NAME}
   src/Gui/MainPage.qml
   src/Gui/ManualControlPage.qml
   src/Gui/ScreenArea.qml
+  src/Gui/UiCard.qml
+  src/Gui/UiButton.qml
+  src/Gui/UiSwitch.qml
+  src/Gui/UiSlider.qml
+  src/Gui/UiComboBox.qml
+  src/Gui/UiSpinBox.qml
+  src/Gui/UiChevron.qml
+  src/Gui/UiSectionLabel.qml
+  src/Gui/SegmentedControl.qml
+  src/Gui/GlowBlob.qml
   RESOURCES
   assets/logo.svg
   SOURCES
