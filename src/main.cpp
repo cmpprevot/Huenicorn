@@ -11,6 +11,7 @@
 
 #include <QCoreApplication>
 #include <QGuiApplication>
+#include <QIcon>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQmlError>
@@ -34,6 +35,8 @@ int main(int argc, char *argv[])
   QGuiApplication app(argc, argv);
   QCoreApplication::setApplicationName("huenicorn");
   QCoreApplication::setOrganizationName("huenicorn");
+  // Taskbar / window-switcher icon (replaces the generic Wayland/X11 icon)
+  QGuiApplication::setWindowIcon(QIcon(":/qt/qml/huenicorn_UI/logo.svg"));
 
   auto core = std::make_unique<Huenicorn::HuenicornCore>(Huenicorn::Version, Huenicorn::platformAdapter.getConfigFilePath());
   core->setWebUIEnabled(webUIEnabled);
