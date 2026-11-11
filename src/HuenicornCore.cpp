@@ -196,6 +196,14 @@ namespace Huenicorn
       return false;
     }
 
+    // The bridge keeps a single entertainment DTLS session per client key:
+    // close the current one before the new handshake, otherwise the handshake
+    // fails with a timeout while the streaming loop keeps sending on (and
+    // keeping alive) the old session, which still carries the previous
+    // entertainment configuration ID. The newly selected configuration would
+    // never receive the stream until the old session idles out on the bridge.
+    _closeStreamer();
+
     _enableEntertainmentConfiguration(entertainmentConfigurationId);
 
     // Selecting an entertainment configuration re-enables streaming on the bridge;
@@ -861,6 +869,15 @@ namespace Huenicorn
     }
 
     _initChannels(jsonChannels);
+  }
+
+
+  void HuenicornCore::_closeStreamer()
+  {
+    // Destroying the streamer emits a DTLS close_notify, prompting the bridge
+    // to free its single entertainment session immediately
+    std::lock_guard lock(m_streamerMutex);
+    m_streamer.reset();
   }
 
 

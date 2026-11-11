@@ -496,6 +496,15 @@ namespace Huenicorn
 
 
     /**
+     * @brief Tears down the current streamer, closing its DTLS session. Must
+     * be called before establishing a new session (the bridge keeps a single
+     * entertainment session per client key and rejects new handshakes while it
+     * is held), e.g. when switching to another entertainment configuration.
+     */
+    void _closeStreamer();
+
+
+    /**
      * @brief Starts the main loop calling for processing at given refresh rate
      * 
      */

@@ -295,6 +295,14 @@ namespace Huenicorn
      */
     void _deallocate()
     {
+      // Politely close the DTLS session (best effort). The bridge keeps a
+      // single entertainment session per client key and frees it immediately
+      // upon close_notify, instead of keeping it until its idle timeout
+      // expires (during which any new handshake fails with a timeout)
+      if(isConnected){
+        mbedtls_ssl_close_notify(ssl.get());
+      }
+
       isConnected = false;
       serverFd.reset();
       cacert.reset();
