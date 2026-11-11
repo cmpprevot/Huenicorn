@@ -18,11 +18,11 @@ Huenicorn provides a native Qt 6 graphical interface to assign specific portions
 The Qt interface also includes a "Manual control" tab to drive all the lights of an entertainment area by hand (power, brightness, color or color temperature).
 A legacy web interface is still available as an opt-in headless mode (see `--web` flag below).
 
-### Screenshot
+### Screenshots
 
-| ![Screenshot](screenshots/HuenicornFullWebUI.png) |
-|:--:|
-| *Caption: Huenicorn Light Manager user interface* |
+| ![Ambilight tab](screenshots/QtUIAmbilightPanel.png) | ![Manual control tab](screenshots/QtUIManualPanel.png) |
+|:--:|:--:|
+| *Ambilight tab: zone mapping and light controls* | *Manual control tab: drive all lights by hand* |
 
 ## Project status
 
