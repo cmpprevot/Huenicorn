@@ -80,6 +80,14 @@ namespace
     auto clampChannel = [](double v){ return static_cast<int>(std::clamp(std::round(v), 0.0, 255.0)); };
     return QColor(clampChannel(r), clampChannel(g), clampChannel(b));
   }
+
+
+  // Bridge requests are blocking (up to 1s timeout each): run them off the GUI
+  // thread so slider drags don't freeze the UI
+  void applyManualStateAsync(Huenicorn::HuenicornCore* core, nlohmann::json jsonState)
+  {
+    QThreadPool::globalInstance()->start([core, jsonState](){ core->setManualLightState(jsonState); });
+  }
 }
 
 
@@ -428,11 +436,68 @@ namespace Huenicorn
       jsonState["b"] = color.blue();
     }
 
-    // Bridge requests are blocking (up to 1s timeout each): run them off the GUI
-    // thread so slider drags don't freeze the UI
-    HuenicornCore* core = m_core;
-    QThreadPool::globalInstance()->start([core, jsonState](){ core->setManualLightState(jsonState); });
+    applyManualStateAsync(m_core, std::move(jsonState));
     return true;
+  }
+
+
+  bool QtController::setManualLightHex(bool on, int brightness, const QString& hex)
+  {
+    const QColor color = QColor::fromString(hex.trimmed());
+    if(!color.isValid()){
+      return false;
+    }
+
+    int h = 0, s = 0, l = 0;
+    color.getHsl(&h, &s, &l);
+
+    nlohmann::json jsonState{
+      {"on", on},
+      {"brightness", std::clamp(brightness, 0, 100)},
+      {"mode", "color"},
+      {"hue", (h < 0) ? 0 : h},
+      {"saturation", std::clamp(s * 100 / 255, 0, 100)},
+      {"kelvin", 4000},
+      {"r", color.red()},
+      {"g", color.green()},
+      {"b", color.blue()},
+    };
+
+    applyManualStateAsync(m_core, std::move(jsonState));
+    return true;
+  }
+
+
+  QString QtController::manualColorHex(const QString& mode, int hue, int saturation, int kelvin) const
+  {
+    return manualColor(mode, hue, saturation, kelvin).name(QColor::HexRgb).toUpper();
+  }
+
+
+  QColor QtController::colorFromHex(const QString& hex) const
+  {
+    return QColor::fromString(hex.trimmed());
+  }
+
+
+  QVariantMap QtController::hexToHsl(const QString& hex) const
+  {
+    QVariantMap result;
+    result["valid"] = false;
+
+    const QColor color = QColor::fromString(hex.trimmed());
+    if(!color.isValid()){
+      return result;
+    }
+
+    int h = 0, s = 0, l = 0;
+    color.getHsl(&h, &s, &l);
+
+    result["valid"] = true;
+    result["hue"] = (h < 0) ? 0 : h;
+    result["saturation"] = std::clamp(s * 100 / 255, 0, 100);
+    result["hex"] = color.name(QColor::HexRgb).toUpper();
+    return result;
   }
 
 

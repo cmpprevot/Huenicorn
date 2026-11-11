@@ -15,6 +15,22 @@ Item {
     property int saturation: 100
     property int kelvin: 4000
 
+    // Exact hex chosen in the hex field: when set it wins over the hue/sat
+    // sliders so the precise RGB value is sent to the bridge
+    property string hexColor: ""
+
+    readonly property color currentColor: hexColor !== ""
+        ? huenicorn.colorFromHex(hexColor)
+        : huenicorn.manualColor(mode, hue, saturation, kelvin)
+
+    // Sends the current state to the bridge (hex value when one is set)
+    function applyNow() {
+        if(hexColor !== "")
+            huenicorn.setManualLightHex(power, brightness, hexColor);
+        else
+            huenicorn.setManualLight(power, brightness, mode, hue, saturation, kelvin);
+    }
+
     // False while Component.onCompleted restores the last saved state, so the
     // handlers below don't send a spurious state to the bridge on page load
     property bool ready: false
@@ -23,10 +39,16 @@ Item {
     Timer {
         id: applyTimer
         interval: 250
-        onTriggered: huenicorn.setManualLight(manualPage.power, manualPage.brightness,
-                                              manualPage.mode, manualPage.hue,
-                                              manualPage.saturation, manualPage.kelvin)
+        onTriggered: manualPage.applyNow()
     }
+
+    // Keep the hex field in sync with the sliders (without clobbering the
+    // text while the user is typing in it)
+    onHueChanged: hexField.refresh()
+    onSaturationChanged: hexField.refresh()
+    onKelvinChanged: hexField.refresh()
+    onModeChanged: hexField.refresh()
+    onHexColorChanged: hexField.refresh()
 
     Component.onCompleted: {
         var s = huenicorn.manualLightState();
@@ -39,6 +61,7 @@ Item {
             if("kelvin" in s) kelvin = Math.round(s.kelvin);
         }
         ready = true;
+        hexField.refresh();
     }
 
     ColumnLayout {
@@ -57,12 +80,21 @@ Item {
                 Layout.fillWidth: true
             }
             Rectangle {
+                id: headerSwatch
                 Layout.preferredWidth: 40
                 Layout.preferredHeight: 40
                 radius: 20
-                color: huenicorn.manualColor(manualPage.mode, manualPage.hue, manualPage.saturation, manualPage.kelvin)
+                color: manualPage.currentColor
                 border.color: Qt.rgba(1, 1, 1, 0.18)
                 border.width: 1
+                // dim with brightness, hue untouched
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: 1
+                    radius: parent.radius - 1
+                    color: "black"
+                    opacity: 1.0 - manualPage.brightness / 100.0
+                }
             }
         }
 
@@ -100,23 +132,32 @@ Item {
                             width: 158
                             height: 158
                             radius: 79
-                            color: huenicorn.manualColor(manualPage.mode, manualPage.hue, manualPage.saturation, manualPage.kelvin)
-                            opacity: 0.16
+                            color: manualPage.currentColor
+                            opacity: 0.16 * manualPage.brightness / 100.0
                         }
                         Rectangle {
                             anchors.centerIn: parent
                             width: 144
                             height: 144
                             radius: 72
-                            color: huenicorn.manualColor(manualPage.mode, manualPage.hue, manualPage.saturation, manualPage.kelvin)
-                            opacity: 0.28
+                            color: manualPage.currentColor
+                            opacity: 0.28 * manualPage.brightness / 100.0
                         }
                         Rectangle {
+                            id: orb
                             anchors.fill: parent
                             radius: 65
-                            color: huenicorn.manualColor(manualPage.mode, manualPage.hue, manualPage.saturation, manualPage.kelvin)
+                            color: manualPage.currentColor
                             border.color: Qt.rgba(1, 1, 1, 0.18)
                             border.width: 1
+                        }
+                        // dim the orb with brightness, hue untouched
+                        Rectangle {
+                            anchors.fill: orb
+                            anchors.margins: 1
+                            radius: orb.radius - 1
+                            color: "black"
+                            opacity: 1.0 - manualPage.brightness / 100.0
                         }
                     }
 
@@ -127,6 +168,48 @@ Item {
                         text: manualPage.mode === "color"
                             ? manualPage.hue + "°  ·  " + manualPage.saturation + "% sat"
                             : manualPage.kelvin + " K"
+                    }
+
+                    // exact hex code of the current color, editable
+                    TextField {
+                        id: hexField
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.preferredWidth: 120
+                        implicitHeight: 34
+                        horizontalAlignment: Text.AlignHCenter
+                        font.family: "monospace"
+                        font.pixelSize: Theme.fontSmall
+                        color: Theme.text
+                        placeholderText: "#RRGGBB"
+                        placeholderTextColor: Theme.textFaint
+                        selectedTextColor: "#ffffff"
+                        selectionColor: Theme.accentA
+                        background: Rectangle {
+                            color: hexField.hovered || hexField.activeFocus
+                                ? Theme.surfaceHover : Theme.background
+                            border.color: hexField.activeFocus ? Theme.accentA : Theme.border
+                            border.width: hexField.activeFocus ? 1.5 : 1
+                            radius: Theme.radiusSmall
+                        }
+                        function refresh() {
+                            if(activeFocus) return;
+                            text = manualPage.hexColor !== ""
+                                ? manualPage.hexColor
+                                : huenicorn.manualColorHex(manualPage.mode, manualPage.hue,
+                                                            manualPage.saturation, manualPage.kelvin);
+                        }
+                        onAccepted: {
+                            var r = huenicorn.hexToHsl(text);
+                            if(r.valid){
+                                manualPage.mode = "color";
+                                manualPage.hue = r.hue;
+                                manualPage.saturation = r.saturation;
+                                manualPage.hexColor = r.hex;
+                                manualPage.applyNow();
+                            }
+                            refresh();
+                        }
+                        onEditingFinished: refresh()
                     }
 
                     Item { Layout.fillHeight: true }
@@ -145,7 +228,7 @@ Item {
                             onToggled: function(isChecked) {
                                 if(!manualPage.ready) return;
                                 manualPage.power = isChecked;
-                                huenicorn.setManualLight(manualPage.power, manualPage.brightness, manualPage.mode, manualPage.hue, manualPage.saturation, manualPage.kelvin);
+                                manualPage.applyNow();
                             }
                         }
                     }
@@ -158,7 +241,8 @@ Item {
                         onSelected: function(index) {
                             if(!manualPage.ready) return;
                             manualPage.mode = index === 0 ? "color" : "white";
-                            huenicorn.setManualLight(manualPage.power, manualPage.brightness, manualPage.mode, manualPage.hue, manualPage.saturation, manualPage.kelvin);
+                            if(manualPage.mode === "white") manualPage.hexColor = "";
+                            manualPage.applyNow();
                         }
                     }
                 }
@@ -229,6 +313,7 @@ Item {
                                     }
                                     onMoved: function(v) {
                                         manualPage.hue = Math.round(v);
+                                        manualPage.hexColor = ""; // slider takes over the exact value
                                         applyTimer.restart();
                                     }
                                 }
@@ -257,6 +342,7 @@ Item {
                                     }
                                     onMoved: function(v) {
                                         manualPage.saturation = Math.round(v);
+                                        manualPage.hexColor = ""; // slider takes over the exact value
                                         applyTimer.restart();
                                     }
                                 }

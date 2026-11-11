@@ -147,6 +147,33 @@ namespace Huenicorn
     Q_INVOKABLE QColor manualColor(const QString& mode, int hue, int saturation, int kelvin) const;
 
     /**
+     * @brief Same as setManualLight, but the color is given exactly as a hex
+     * string ("#RRGGBB"): the bridge payload uses its raw RGB and the stored
+     * hue/saturation are derived from it for state restore.
+     *
+     * @return true The hex string is a valid color and was accepted
+     */
+    Q_INVOKABLE bool setManualLightHex(bool on, int brightness, const QString& hex);
+
+    /**
+     * @brief Hex string ("#RRGGBB") of manualColor(), for display in the GUI
+     */
+    Q_INVOKABLE QString manualColorHex(const QString& mode, int hue, int saturation, int kelvin) const;
+
+    /**
+     * @brief Parses a hex color string ("#RRGGBB", also "#RGB", "#RRGGBBAA", names)
+     * @return QColor Invalid color if the string cannot be parsed
+     */
+    Q_INVOKABLE QColor colorFromHex(const QString& hex) const;
+
+    /**
+     * @brief Converts a hex color string to the hue/saturation pair used by the GUI
+     *
+     * @return QVariantMap {valid: bool, hue: 0-360, saturation: 0-100, hex: normalized "#RRGGBB"}
+     */
+    Q_INVOKABLE QVariantMap hexToHsl(const QString& hex) const;
+
+    /**
      * @brief Returns the last manual light state applied through setManualLight
      *
      * @return QVariantMap Last applied state, empty map if none was applied yet
