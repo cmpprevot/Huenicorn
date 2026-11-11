@@ -1,4 +1,8 @@
-# Huenicorn
+# Huenicorn — fork by Grit-peacekeeper
+
+> **This project is a modified fork of [Huenicorn](https://gitlab.com/openjewelsofts/huenicorn)**
+> Original copyright © OpenJewel. Modified by **Grit-peacekeeper** since 2025.
+> See the [License](#license) section below for details.
 
 A free Philips Hue™ screen synchronizer for Gnu/Linux
 
@@ -11,6 +15,7 @@ A free Philips Hue™ screen synchronizer for Gnu/Linux
 Huenicorn is a free ambilight driver for Gnu/Linux.
 In other words, Huenicorn allows you to extend the colorful atmosphere of your computer screen to your Hue light bulbs in real-time.
 Huenicorn provides a native Qt 6 graphical interface to assign specific portions of screen to the light bulbs you desire and save the settings for further entertainment sessions.
+The Qt interface also includes a "Manual control" tab to drive all the lights of an entertainment area by hand (power, brightness, color or color temperature).
 A legacy web interface is still available as an opt-in headless mode (see `--web` flag below).
 
 ### Screenshot
@@ -21,12 +26,12 @@ A legacy web interface is still available as an opt-in headless mode (see `--web
 
 ## Project status
 
-Huenicorn 1.0.11 is available.
+This fork is maintained by **Grit-peacekeeper** (since 2025), based on Huenicorn 1.0.11 by OpenJewel.
 
-### This revision brings
+### This fork brings
 
-* Webroot files are now embeded to binary to make installation easier
-* Initial setup now allows to select between multiple bridges if detected
+* Fork maintenance and modifications by Grit-peacekeeper (2025)
+* See upstream [Huenicorn changelog](#version-history) for the original 1.0.11 features
 
 ## Getting Started
 
@@ -150,10 +155,10 @@ Earlier versions of Ubuntu are not officially supported. Please refer to [This p
 
 </details>
 
-### Building Huenicorn
+### Building this fork
 
 ```bash
-git clone https://gitlab.com/openjowelsofts/huenicorn.git
+git clone https://github.com/cmpprevot/Huenicorn.git
 cd huenicorn
 mkdir build && cd build
 cmake ..
@@ -161,6 +166,8 @@ make
 ```
 
 The output is a standalone executable called "huenicorn".
+
+> **Note:** This fork is based on the original [Huenicorn](https://gitlab.com/openjewelsofts/huenicorn) by OpenJewel (GPLv3). To build the original upstream version, clone `https://gitlab.com/openjewelsofts/huenicorn.git` instead.
 
 ### Executing program
 
@@ -193,6 +200,8 @@ At startup, Huenicorn will look for a saved profile and start its color streamin
 In the main window, the left panel shows a preview of your screen with the zone allocated to each light. Select a light in the right-side list to edit its screen zone by dragging the corner handles, and adjust its gamma with the slider below the preview.
 
 Use the switch next to each light to enable or disable its synchronization, and the combo box at the top of the side panel to switch between entertainment areas.
+
+The "Manual control" tab lets you drive all the lights of the current entertainment area by hand: power on/off, brightness, and either a color (hue and saturation) or a white shade (color temperature). Applying a manual state pauses ambilight automatically, since the bridge ignores manual light commands while it is streaming; resume ambilight from the "Ambilight" tab when you are done.
 
 Once you are satisfied with the layout, click "Save profile" and it will be automatically reloaded for further executions.
 
@@ -343,12 +352,21 @@ Check the ```~/.config/huenicorn/config.json``` file and check the following pro
 
 ## Website
 
-Additionnal information and news can be found on [Huenicorn.org](http://huenicorn.org), the official website of the project.
+* Upstream project: [Huenicorn.org](http://huenicorn.org) — official website of the original project by OpenJewel
+* This fork: see the repository page of this fork for updates by Grit-peacekeeper
 
 ## Version history
 
-* 1.0.11 (latest)
+### Fork by Grit-peacekeeper
+
+* 2025 — Fork created by Grit-peacekeeper, based on Huenicorn 1.0.11 (GPLv3)
+  * README updated for GPLv3 fork compliance (attribution, license notices, Qt open source notice)
+
+### Upstream Huenicorn (OpenJewel)
+
+* 1.0.11 (latest upstream)
   * Embed webroot into binary, handle multiple bridges at setup
+  * Qt UI: "Manual control" tab to drive the lights manually (power, brightness, color, color temperature)
 * 1.0.10
   * Change default port, fix color computation, fix some minor bugs
 * 1.0.9
@@ -376,11 +394,24 @@ Additionnal information and news can be found on [Huenicorn.org](http://huenicor
 
 ## Authors
 
-OpenJowel
+* **Grit-peacekeeper** — modifications and maintenance of this fork (since 2025)
+* **OpenJewel** — original Huenicorn project
 
 ## License
 
-Huenicorn is licensed under the GNU GPLv3 License. See the [LICENSE.txt](LICENSE.txt) file for details.
+This fork is licensed under the **GNU General Public License v3.0 (GPLv3)** — the same license as the original Huenicorn project. See the [LICENSE.txt](LICENSE.txt) file for the full license text.
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU GPLv3 for more details.
+
+### Qt open source notice
+
+This project uses **Qt 6** in its open source edition, which is licensed under the **GNU Lesser General Public License v3 (LGPLv3)** (with Qt-specific exceptions). Qt is a trademark of The Qt Company Ltd. Linking this GPLv3-licensed program against Qt's LGPLv3 libraries is permitted and does not change the license of this project. For more information about Qt's licensing, see [qt.io/licensing](https://www.qt.io/licensing/).
+
+### Third-party libraries
+
+This project also links against other open source libraries (OpenCV, Crow, Mbed-TLS, GLM, nlohmann-json, Curl), each under their own respective open source licenses. See their respective projects for license details.
 
 ## Acknowledgments
 
