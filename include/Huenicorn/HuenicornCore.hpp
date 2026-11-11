@@ -86,6 +86,19 @@ namespace Huenicorn
 
 
     /**
+     * @brief Returns whether manual light control currently owns the stream.
+     * In manual mode the stream still runs (it is the only way to address
+     * gradient strip segments individually), but the channels are driven by
+     * the manual overrides instead of the screen content. Ambilight and
+     * manual mode are mutually exclusive.
+     *
+     * @return true Manual mode is active, ambilight following is suspended
+     * @return false Ambilight drives the channels (when streaming is active)
+     */
+    bool manualMode() const;
+
+
+    /**
      * @brief Returns whether the legacy web UI backend is enabled
      * 
      * @return true Web UI backend is enabled
@@ -338,7 +351,9 @@ namespace Huenicorn
     /**
      * @brief Activates or pauses ambilight streaming without stopping the application.
      * Pausing disables streaming on the bridge so lights leave entertainment mode;
-     * resuming re-enables it.
+     * resuming re-enables it. Any explicit streaming toggle ends manual mode and
+     * drops its per-channel colors: resuming ambilight is the way to leave manual
+     * mode.
      *
      * @param active true to stream colors, false to pause ambilight
      */
@@ -346,12 +361,22 @@ namespace Huenicorn
 
 
     /**
-     * @brief Applies a manual state (power, brightness, color or color temperature) to all
-     * lights of the current entertainment configuration. Ambilight is paused first if it is
-     * active, since the bridge ignores REST light commands while streaming.
+     * @brief Applies a manual state (power, brightness, color or color temperature) to
+     * the lights of the current entertainment configuration and enters manual mode:
+     * screen following stops and every channel freezes at its last streamed color,
+     * except the target channels which take the given state. In manual mode the
+     * fixed colors are driven on the DTLS stream, which is the only way to address
+     * gradient strip segments individually (the bridge maps channels to segments).
+     * Resuming ambilight (setStreamingActive(true)) exits manual mode.
      *
-     * @param state State to apply (see ApiTools::setLightsState for the expected format)
-     * @return true State was applied to all lights
+     * @param state State to apply: {"on": bool, "brightness": 0-100,
+     *              "r"/"g"/"b": 0-255; black when "on" is false},
+     *              plus optional targeting keys: "lightId" (string, light service ID)
+     *              targets a single light (all the channels holding it), otherwise
+     *              "channelId" (int) targets only the lights attached to that
+     *              channel, and when both are absent/empty all lights of the entertainment
+     *              configuration are targeted
+     * @return true State was applied to the target lights
      * @return false State could not be applied
      */
     bool setManualLightState(const nlohmann::json& state);
@@ -363,6 +388,20 @@ namespace Huenicorn
      * @return nlohmann::json Last applied state, empty object if none was applied yet
      */
     nlohmann::json manualLightState() const;
+
+
+    /**
+     * @brief Returns the individual lights (light services) of the current
+     * entertainment configuration, each listed once, with the lowest channel
+     * holding it ("channelId", also its only one when "channelCount" is 1) and
+     * the number of channels sharing it ("channelCount": e.g. 7 for a
+     * multi-segment gradient strip, whose segments are addressed through the
+     * channels - driving a single channel only matters when some light is
+     * held by several ones)
+     *
+     * @return nlohmann::json Array of {lightId, name, channelId, channelCount}
+     */
+    nlohmann::json manualLights() const;
 
 
     /**
@@ -464,7 +503,8 @@ namespace Huenicorn
 
 
     /**
-     * @brief Computes the channels colors from grabbed frames and streams them to the bridge
+     * @brief Computes the channels colors (from the grabbed frames, or from the
+     * manual overrides in manual mode) and streams them to the bridge
      * 
      */
     void _update();
@@ -511,6 +551,19 @@ namespace Huenicorn
     // Last manual light state applied through setManualLightState
     mutable std::mutex m_manualLightStateMutex;
     nlohmann::json m_manualLightState{nlohmann::json::object()};
+
+    // Manual mode: when set, the stream is driven by the per-channel fixed
+    // colors below instead of the grabbed screen content. Ambilight and manual
+    // mode are mutually exclusive; setStreamingActive(false or true) clears it.
+    std::atomic<bool> m_manualMode{false};
+
+    // Per-channel fixed colors sent on the DTLS stream in manual mode. This is
+    // the only way to address gradient strip segments individually: the bridge
+    // maps channels to segments. Channels without an entry keep their last
+    // streamed color (frozen). The values are sent as-is, without channel gamma.
+    // Resuming ambilight clears these overrides.
+    std::mutex m_manualOverrideMutex;
+    std::unordered_map<uint8_t, glm::vec3> m_manualOverrides;
 
     // Service and flags
     ThreadedRestService m_webUIService;

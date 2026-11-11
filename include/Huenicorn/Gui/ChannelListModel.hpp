@@ -18,6 +18,8 @@ namespace Huenicorn
   {
     Q_OBJECT
 
+    Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
+
   public:
     // Type definitions
     enum Roles
@@ -64,6 +66,13 @@ namespace Huenicorn
      * 
      */
     void reload();
+
+
+  signals:
+    /**
+     * @brief Emitted when the model content was reloaded
+     */
+    void countChanged();
 
 
   private:

@@ -149,5 +149,6 @@ namespace Huenicorn
     beginResetModel();
     m_entries = newEntries;
     endResetModel();
+    emit countChanged();
   }
 }

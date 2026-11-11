@@ -1,7 +1,9 @@
 #include <Huenicorn/HuenicornCore.hpp>
 
+#include <algorithm>
 #include <fstream>
 #include <chrono>
+#include <set>
 
 #include <glm/common.hpp>
 
@@ -49,6 +51,12 @@ namespace Huenicorn
   bool HuenicornCore::streamingActive() const
   {
     return m_streamingActive;
+  }
+
+
+  bool HuenicornCore::manualMode() const
+  {
+    return m_manualMode;
   }
 
 
@@ -373,8 +381,19 @@ namespace Huenicorn
 
   void HuenicornCore::setStreamingActive(bool active)
   {
-    if(m_streamingActive.exchange(active) == active){
-      return;
+    bool wasStreamingActive = m_streamingActive.exchange(active);
+
+    // Ambilight and manual mode are mutually exclusive: any explicit streaming
+    // toggle ends manual mode and drops its per-channel colors. Resuming
+    // ambilight is the way to leave manual mode.
+    m_manualMode = false;
+    {
+      std::lock_guard lock(m_manualOverrideMutex);
+      m_manualOverrides.clear();
+    }
+    {
+      std::lock_guard lock(m_manualLightStateMutex);
+      m_manualLightState = nlohmann::json::object();
     }
 
     if(!m_selector){
@@ -382,6 +401,13 @@ namespace Huenicorn
     }
 
     if(active){
+      if(wasStreamingActive){
+        // Stream already enabled (manual→ambilight handover): screen following
+        // resumes on the next update, nothing else to do on the bridge
+        Logger::log("Ambilight resumed");
+        return;
+      }
+
       m_selector->enableStreaming();
       // Do not recreate the streamer here: the bridge may still hold the previous
       // DTLS session (a new handshake would be rejected with a timeout). The
@@ -411,28 +437,99 @@ namespace Huenicorn
       return false;
     }
 
-    // While the bridge streams to the entertainment configuration, REST light
-    // commands are ignored: pause ambilight so the manual state takes effect
-    if(m_streamingActive){
-      setStreamingActive(false);
+    const std::string& username = m_config.credentials().value().username();
+    const std::string& bridgeAddress = m_config.bridgeAddress().value();
+
+    // Resolve the target channels first, so that an invalid command does not
+    // enter manual mode. A light (light service ID) belongs to the channels
+    // whose devices map to it: a multi-segment gradient strip is referenced
+    // by a single entertainment service held by as many channels (one per
+    // segment, assigned by the bridge in order), so driving "the light"
+    // targets all of its channels.
+    std::vector<uint8_t> targetChannelIds;
+    std::string lightId = state.value("lightId", std::string(""));
+    int channelId = state.value("channelId", -1);
+
+    if(!lightId.empty()){
+      // Channel devices are indexed by their entertainment service ID: load
+      // the mapping from entertainment service IDs to light service IDs
+      const auto entToLight = ApiTools::loadEntertainmentToLightIds(username, bridgeAddress);
+
+      for(const auto& [cid, channel] : m_channels){
+        for(const Device& device : channel.devices()){
+          bool match = (device.id == lightId);
+          if(!match){
+            auto it = entToLight.find(device.id);
+            if(it != entToLight.end()){
+              match = std::find(it->second.begin(), it->second.end(), lightId) != it->second.end();
+            }
+          }
+          if(match){
+            targetChannelIds.push_back(cid);
+            break;
+          }
+        }
+      }
+
+      if(targetChannelIds.empty()){
+        Logger::warn("Cannot set manual light state: unknown light ", lightId);
+        return false;
+      }
+    }
+    else if(channelId >= 0){
+      if(m_channels.find(static_cast<uint8_t>(channelId)) == m_channels.end()){
+        Logger::warn("Cannot set manual light state: unknown channel ", channelId);
+        return false;
+      }
+      targetChannelIds.push_back(static_cast<uint8_t>(channelId));
+    }
+    else{
+      for(const auto& [cid, channel] : m_channels){
+        targetChannelIds.push_back(cid);
+      }
     }
 
-    const Devices& devices = m_selector->currentEntertainmentConfiguration().devices;
-    MembersIds lightIds;
-    lightIds.reserve(devices.size());
-    for(const auto& [lightId, device] : devices){
-      lightIds.push_back(lightId);
+    // Manual control drives the target channels with fixed colors on the DTLS
+    // stream: this is the only way to address gradient strip segments
+    // individually (the bridge maps channels to segments). Entering manual
+    // mode suspends screen following: channels without an override freeze at
+    // their last streamed color. Resuming ambilight
+    // (setStreamingActive(true)) exits manual mode.
+    m_manualMode = true;
+
+    // Make sure the streaming session is enabled on the bridge, without
+    // touching the manual overrides (unlike setStreamingActive)
+    if(!m_streamingActive.exchange(true)){
+      m_selector->enableStreaming();
+      Logger::log("Streaming enabled for manual control");
     }
 
-    bool succeeded = ApiTools::setLightsState(m_config.credentials().value().username(), m_config.bridgeAddress().value(), lightIds, state);
+    // Fixed color of the override, brightness included; black when powered off
+    bool on = state.value("on", true);
+    double brightness = std::clamp(state.value("brightness", 100.0), 0.0, 100.0) / 100.0;
+    glm::vec3 overrideColor{0.f, 0.f, 0.f};
+    if(on && state.contains("r") && state.contains("g") && state.contains("b")){
+      overrideColor = glm::vec3(
+        std::clamp(state.at("r").get<int>(), 0, 255) / 255.0 * static_cast<float>(brightness),
+        std::clamp(state.at("g").get<int>(), 0, 255) / 255.0 * static_cast<float>(brightness),
+        std::clamp(state.at("b").get<int>(), 0, 255) / 255.0 * static_cast<float>(brightness)
+      );
+    }
 
-    if(succeeded){
+    {
+      std::lock_guard lock(m_manualOverrideMutex);
+      for(uint8_t cid : targetChannelIds){
+        m_manualOverrides[cid] = overrideColor;
+      }
+    }
+
+    {
       std::lock_guard lock(m_manualLightStateMutex);
       m_manualLightState = state;
-      Logger::log("Manual light state applied to ", lightIds.size(), " light(s)");
     }
 
-    return succeeded;
+    Logger::log("Manual override applied to ", targetChannelIds.size(), " channel(s)");
+    return true;
   }
 
 
@@ -440,6 +537,77 @@ namespace Huenicorn
   {
     std::lock_guard lock(m_manualLightStateMutex);
     return m_manualLightState;
+  }
+
+
+  nlohmann::json HuenicornCore::manualLights() const
+  {
+    nlohmann::json lights = nlohmann::json::array();
+
+    if(!m_selector || !m_selector->validSelection() || !m_config.credentials().has_value() || !m_config.bridgeAddress().has_value()){
+      return lights;
+    }
+
+    const std::string& username = m_config.credentials().value().username();
+    const std::string& bridgeAddress = m_config.bridgeAddress().value();
+
+    // Channel devices are indexed by their entertainment service ID: load
+    // the mapping from entertainment service IDs to light service IDs
+    const auto entToLight = ApiTools::loadEntertainmentToLightIds(username, bridgeAddress);
+
+    std::vector<uint8_t> ids;
+    ids.reserve(m_channels.size());
+    for(const auto& [channelId, channel] : m_channels){
+      ids.push_back(channelId);
+    }
+    std::sort(ids.begin(), ids.end());
+
+    // Count the channels held by each entertainment service (device): a
+    // multi-segment gradient strip is referenced by one channel per segment,
+    // other devices by a single one. Driving a single channel only makes
+    // sense above 1.
+    std::unordered_map<std::string, std::pair<int, uint8_t>> deviceChannels;
+    for(uint8_t channelId : ids){
+      for(const Device& device : m_channels.at(channelId).devices()){
+        auto [it, inserted] = deviceChannels.try_emplace(device.id, 1, channelId);
+        if(!inserted){
+          it->second.first++;
+        }
+      }
+    }
+
+    // A device may be exposed through several channels, and itself expose
+    // several light services: list each light service only once
+    std::set<std::string> listedLightIds;
+
+    for(uint8_t channelId : ids){
+      const Channel& channel = m_channels.at(channelId);
+
+      for(const Device& device : channel.devices()){
+        const auto& [channelCount, firstChannelId] = deviceChannels.at(device.id);
+
+        // Fall back to the device (entertainment service) ID when the bridge
+        // does not expose the light services of the device
+        std::vector<std::string> deviceLightIds{device.id};
+        auto it = entToLight.find(device.id);
+        if(it != entToLight.end() && !it->second.empty()){
+          deviceLightIds = it->second;
+        }
+
+        for(const std::string& lightId : deviceLightIds){
+          if(listedLightIds.insert(lightId).second){
+            lights.push_back({
+              {"lightId", lightId},
+              {"name", device.name},
+              {"channelId", firstChannelId},
+              {"channelCount", channelCount}
+            });
+          }
+        }
+      }
+    }
+
+    return lights;
   }
 
 
@@ -767,13 +935,26 @@ namespace Huenicorn
 
   void HuenicornCore::_update()
   {
-    m_grabber->grabFrameSubsample(m_cvImage);
-    if(!m_cvImage.data){
-      // Grabbers with asynchronous capture may produce slower than the core consumes
-      return;
+    const bool manualMode = m_manualMode.load();
+
+    // In manual mode the stream is driven by the manual overrides instead of
+    // the screen content: no frame is grabbed and no screen color is computed
+    if(!manualMode){
+      m_grabber->grabFrameSubsample(m_cvImage);
+      if(!m_cvImage.data){
+        // Grabbers with asynchronous capture may produce slower than the core consumes
+        return;
+      }
     }
 
     cv::Mat subframeImage;
+
+    // Hold the manual overrides once for the whole pass, so that overrides
+    // applied concurrently are seen consistently across channels
+    std::unique_lock overridesLock(m_manualOverrideMutex, std::defer_lock);
+    if(manualMode){
+      overridesLock.lock();
+    }
 
     for(auto& [channelId, channel] : m_channels){
       if(channel.state() == Channel::State::Inactive){
@@ -789,6 +970,19 @@ namespace Huenicorn
         channelStream.b = 0;
         channel.hasPreviousNormalized = false;
         channel.acknowledgeShutdown();
+      }
+      else if(manualMode){
+        // Manual mode: fixed color sent as-is (no channel gamma); channels
+        // without an override keep their last streamed color (frozen).
+        // channelStream.id is always refreshed: it is left unset by channels
+        // that never streamed before entering manual mode.
+        channelStream.id = channelId;
+        auto overrideIt = m_manualOverrides.find(channelId);
+        if(overrideIt != m_manualOverrides.end()){
+          channelStream.r = overrideIt->second.r;
+          channelStream.g = overrideIt->second.g;
+          channelStream.b = overrideIt->second.b;
+        }
       }
       else{
         const auto& uvs = channel.uvs();

@@ -131,7 +131,16 @@ namespace Huenicorn
 
   bool QtController::streamingActive() const
   {
-    return m_core->streamingActive();
+    // Expose the ambilight state, not the raw DTLS stream state: in manual
+    // mode the stream keeps running (driven by the manual overrides), but the
+    // ambilight is suspended
+    return m_core->streamingActive() && !m_core->manualMode();
+  }
+
+
+  bool QtController::manualMode() const
+  {
+    return m_core->manualMode();
   }
 
 
@@ -149,6 +158,40 @@ namespace Huenicorn
 
     m_selectedChannelId = channelId;
     emit selectedChannelIdChanged();
+  }
+
+
+  int QtController::manualTargetChannelId() const
+  {
+    return m_manualTargetChannelId;
+  }
+
+
+  void QtController::setManualTargetChannelId(int channelId)
+  {
+    if(m_manualTargetChannelId == channelId){
+      return;
+    }
+
+    m_manualTargetChannelId = channelId;
+    emit manualTargetChannelIdChanged();
+  }
+
+
+  QString QtController::manualTargetLightId() const
+  {
+    return m_manualTargetLightId;
+  }
+
+
+  void QtController::setManualTargetLightId(const QString& lightId)
+  {
+    if(m_manualTargetLightId == lightId){
+      return;
+    }
+
+    m_manualTargetLightId = lightId;
+    emit manualTargetLightIdChanged();
   }
 
 
@@ -424,17 +467,20 @@ namespace Huenicorn
       {"hue", hue},
       {"saturation", saturation},
       {"kelvin", kelvin},
+      {"channelId", m_manualTargetChannelId},
+      {"lightId", m_manualTargetLightId.toStdString()},
     };
 
     if(whiteMode){
       jsonState["mirek"] = std::clamp(static_cast<int>(std::lround(1000000.0 / std::max(kelvin, 1))), 153, 500);
     }
-    else{
-      const QColor color = manualColor(mode, hue, saturation, kelvin);
-      jsonState["r"] = color.red();
-      jsonState["g"] = color.green();
-      jsonState["b"] = color.blue();
-    }
+
+    // Always provide the RGB payload: manual states are driven as fixed colors
+    // on the DTLS stream (per-channel overrides in manual mode)
+    const QColor color = manualColor(mode, hue, saturation, kelvin);
+    jsonState["r"] = color.red();
+    jsonState["g"] = color.green();
+    jsonState["b"] = color.blue();
 
     applyManualStateAsync(m_core, std::move(jsonState));
     return true;
@@ -461,6 +507,8 @@ namespace Huenicorn
       {"r", color.red()},
       {"g", color.green()},
       {"b", color.blue()},
+      {"channelId", m_manualTargetChannelId},
+      {"lightId", m_manualTargetLightId.toStdString()},
     };
 
     applyManualStateAsync(m_core, std::move(jsonState));
@@ -520,6 +568,14 @@ namespace Huenicorn
   }
 
 
+  QVariantList QtController::manualLights() const
+  {
+    // Cached: the core rebuilds the list from a bridge request, and QML
+    // bindings read this property several times
+    return m_manualLights;
+  }
+
+
   QVariantMap QtController::channelData(int channelId) const
   {
     QVariantMap map;
@@ -561,6 +617,7 @@ namespace Huenicorn
     bool setupReq = setupRequired();
     bool isRunning = running();
     bool isStreamingActive = streamingActive();
+    bool isManualMode = manualMode();
 
     if(setupReq != m_wasSetupRequired){
       m_wasSetupRequired = setupReq;
@@ -582,6 +639,11 @@ namespace Huenicorn
     if(isStreamingActive != m_wasStreamingActive){
       m_wasStreamingActive = isStreamingActive;
       emit streamingActiveChanged();
+    }
+
+    if(isManualMode != m_wasManualMode){
+      m_wasManualMode = isManualMode;
+      emit manualModeChanged();
     }
   }
 
@@ -616,6 +678,7 @@ namespace Huenicorn
   void QtController::_reloadChannels()
   {
     m_channelsModel->reload();
+    m_manualLights = jsonToVariant(m_core->manualLights()).toList();
     ++m_channelsVersion;
     emit channelsChanged();
   }

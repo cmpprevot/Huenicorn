@@ -19,12 +19,91 @@ Item {
     // sliders so the precise RGB value is sent to the bridge
     property string hexColor: ""
 
+    // Target scope of the manual commands: 0 = all lights of the entertainment
+    // area, 1 = a single channel (the per-segment scope for gradient strips),
+    // 2 = a single light
+    property int targetScope: 0
+    property int targetChannelId: -1
+    property string targetLightId: ""
+
+    // The channel scope only matters when some light is held by several
+    // channels (e.g. one segment per channel of a gradient strip); when every
+    // light is 1:1 with its channel it is redundant with the light scope
+    readonly property bool channelScopeUseful: {
+        var lights = huenicorn.manualLights;
+        for(var i = 0; i < lights.length; ++i)
+            if(lights[i].channelCount > 1) return true;
+        return false;
+    }
+
+    // Map displayed segmented control indexes to target scope ids; display
+    // order is All lights, Light, Channel (Channel offered only when useful)
+    function scopeFromIndex(index) {
+        if(channelScopeUseful) return index === 1 ? 2 : (index === 2 ? 1 : 0);
+        return index === 1 ? 2 : 0;
+    }
+    function indexFromScope(scope) {
+        if(channelScopeUseful) return scope === 1 ? 2 : (scope === 2 ? 1 : 0);
+        return scope === 2 ? 1 : 0;
+    }
+
+    // Preselect the first channel / light - validated against the current
+    // entertainment area (switching areas may invalidate the previous choice) -
+    // so that the target of the manual commands is always meaningful
+    function ensureDefaultTargets() {
+        var channelCount = huenicorn.channels.count;
+        var foundChannel = false;
+        for(var c = 0; c < channelCount; ++c){
+            if(huenicorn.channels.get(c).channelId === targetChannelId){
+                foundChannel = true;
+                break;
+            }
+        }
+        if(!foundChannel && channelCount > 0)
+            targetChannelId = huenicorn.channels.get(0).channelId;
+
+        var lights = huenicorn.manualLights;
+        var foundLight = false;
+        for(var l = 0; l < lights.length; ++l){
+            if(lights[l].lightId === targetLightId){
+                foundLight = true;
+                break;
+            }
+        }
+        if(!foundLight && lights.length > 0)
+            targetLightId = lights[0].lightId;
+    }
+    Connections {
+        target: huenicorn
+        function onChannelsChanged() { manualPage.ensureDefaultTargets(); }
+    }
+
+    // The channel scope may not be offered in this entertainment area (every
+    // light is 1:1 with its channel): fall back to the equivalent light target
+    function demoteChannelScope() {
+        if(targetScope !== 1 || channelScopeUseful) return;
+        var lights = huenicorn.manualLights;
+        for(var i = 0; i < lights.length; ++i){
+            if(lights[i].channelId === targetChannelId){
+                targetScope = 2;
+                targetLightId = lights[i].lightId;
+                break;
+            }
+        }
+        if(targetScope === 1) targetScope = 0;
+        huenicorn.manualTargetChannelId = targetScope === 1 ? targetChannelId : -1;
+        huenicorn.manualTargetLightId = targetScope === 2 ? targetLightId : "";
+    }
+    onChannelScopeUsefulChanged: demoteChannelScope()
+
     readonly property color currentColor: hexColor !== ""
         ? huenicorn.colorFromHex(hexColor)
         : huenicorn.manualColor(mode, hue, saturation, kelvin)
 
     // Sends the current state to the bridge (hex value when one is set)
     function applyNow() {
+        huenicorn.manualTargetChannelId = manualPage.targetScope === 1 ? manualPage.targetChannelId : -1;
+        huenicorn.manualTargetLightId = manualPage.targetScope === 2 ? manualPage.targetLightId : "";
         if(hexColor !== "")
             huenicorn.setManualLightHex(power, brightness, hexColor);
         else
@@ -59,7 +138,21 @@ Item {
             if("hue" in s) hue = Math.round(s.hue);
             if("saturation" in s) saturation = Math.round(s.saturation);
             if("kelvin" in s) kelvin = Math.round(s.kelvin);
+            if("lightId" in s && s.lightId !== ""){
+                targetScope = 2;
+                targetLightId = s.lightId;
+            }
+            else if("channelId" in s && s.channelId >= 0){
+                targetScope = 1;
+                targetChannelId = Math.round(s.channelId);
+            }
         }
+        // The channel scope may not be offered in this entertainment area:
+        // fall back to the equivalent light target
+        ensureDefaultTargets();
+        demoteChannelScope();
+        huenicorn.manualTargetChannelId = targetScope === 1 ? targetChannelId : -1;
+        huenicorn.manualTargetLightId = targetScope === 2 ? targetLightId : "";
         ready = true;
         hexField.refresh();
     }
@@ -103,7 +196,101 @@ Item {
             wrapMode: Text.WordWrap
             color: Theme.textDim
             font.pixelSize: Theme.fontSmall
-            text: "Applies to all lights of the current entertainment area. Applying a manual state pauses ambilight; resume it from the Ambilight tab."
+            text: (manualPage.targetScope === 0
+                ? "Applies to all zones of the current entertainment area."
+                : manualPage.targetScope === 1
+                    ? "Applies to channel " + (manualPage.targetChannelId + 1) + " only."
+                    : "Applies to the selected light only.")
+                + (huenicorn.manualMode
+                    ? "  Manual mode active: ambilight is suspended; resume it from the Ambilight toggle."
+                    : "")
+        }
+
+        UiSectionLabel { text: "Target" }
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 12
+
+            SegmentedControl {
+                Layout.preferredWidth: 380
+                model: manualPage.channelScopeUseful
+                    ? ["All lights", "Light", "Channel"]
+                    : ["All lights", "Light"]
+                currentIndex: manualPage.indexFromScope(manualPage.targetScope)
+                onSelected: function(index) {
+                    if(!manualPage.ready) return;
+                    manualPage.targetScope = manualPage.scopeFromIndex(index);
+                    manualPage.ensureDefaultTargets();
+                    manualPage.applyNow();
+                }
+            }
+
+            UiComboBox {
+                id: lightCombo
+                Layout.fillWidth: true
+                visible: manualPage.targetScope === 2
+                model: huenicorn.manualLights
+                textRole: "name"
+                valueRole: "lightId"
+                currentIndex: indexOfValue(manualPage.targetLightId)
+                onActivated: {
+                    manualPage.targetLightId = currentValue;
+                    if(manualPage.ready) manualPage.applyNow();
+                }
+            }
+
+            UiComboBox {
+                id: channelCombo
+                Layout.fillWidth: true
+                visible: manualPage.targetScope === 1
+                model: huenicorn.channels
+                textRole: "label"
+                valueRole: "channelId"
+                currentIndex: indexOfValue(manualPage.targetChannelId)
+                onActivated: {
+                    manualPage.targetChannelId = currentValue;
+                    if(manualPage.ready) manualPage.applyNow();
+                }
+                // show the channel label followed by the names of its lights
+                contentItem: Label {
+                    text: channelCombo.currentIndex >= 0
+                        ? channelCombo.currentText + "  ·  " + huenicorn.channels.get(channelCombo.currentIndex).devices.join(", ")
+                        : ""
+                    color: Theme.text
+                    leftPadding: 12
+                    rightPadding: channelCombo.indicator.width + 12
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    font.pixelSize: Theme.fontBody
+                }
+                delegate: ItemDelegate {
+                    id: channelDelegate
+
+                    required property var model
+                    required property int index
+
+                    width: channelCombo.width
+                    hoverEnabled: true
+                    highlighted: channelCombo.highlightedIndex === index
+
+                    background: Rectangle {
+                        color: channelDelegate.highlighted ? Theme.surfaceActive
+                             : channelDelegate.hovered ? Theme.surfaceHover
+                             : "transparent"
+                        radius: Theme.radiusSmall - 2
+                    }
+                    contentItem: Label {
+                        text: model.label + "  ·  " + model.devices.join(", ")
+                        color: channelDelegate.highlighted ? "#ffffff" : Theme.text
+                        font.pixelSize: Theme.fontBody
+                        leftPadding: 10
+                        rightPadding: 10
+                        verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
+                    }
+                }
+            }
+
         }
 
         RowLayout {

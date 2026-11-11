@@ -29,6 +29,7 @@ namespace Huenicorn
     Q_PROPERTY(bool setupRequired READ setupRequired NOTIFY setupRequiredChanged)
     Q_PROPERTY(bool running READ running NOTIFY runningChanged)
     Q_PROPERTY(bool streamingActive READ streamingActive NOTIFY streamingActiveChanged)
+    Q_PROPERTY(bool manualMode READ manualMode NOTIFY manualModeChanged)
     Q_PROPERTY(int selectedChannelId READ selectedChannelId WRITE setSelectedChannelId NOTIFY selectedChannelIdChanged)
     Q_PROPERTY(ChannelListModel* channels READ channelsModel CONSTANT)
     Q_PROPERTY(EntertainmentConfigurationModel* entertainmentConfigurations READ entertainmentConfigurationsModel CONSTANT)
@@ -43,6 +44,9 @@ namespace Huenicorn
     Q_PROPERTY(int interpolation READ interpolation NOTIFY interpolationInfoChanged)
     Q_PROPERTY(QString currentEntertainmentConfigurationId READ currentEntertainmentConfigurationId NOTIFY entertainmentConfigurationsChanged)
     Q_PROPERTY(int channelsVersion READ channelsVersion NOTIFY channelsChanged)
+    Q_PROPERTY(int manualTargetChannelId READ manualTargetChannelId WRITE setManualTargetChannelId NOTIFY manualTargetChannelIdChanged)
+    Q_PROPERTY(QString manualTargetLightId READ manualTargetLightId WRITE setManualTargetLightId NOTIFY manualTargetLightIdChanged)
+    Q_PROPERTY(QVariantList manualLights READ manualLights NOTIFY channelsChanged)
 
   public:
     /**
@@ -60,6 +64,14 @@ namespace Huenicorn
     bool setupRequired() const;
     bool running() const;
     bool streamingActive() const;
+
+    /**
+     * @brief Returns whether manual light control currently owns the stream
+     * (ambilight following suspended)
+     *
+     * @return true Manual mode is active
+     */
+    bool manualMode() const;
     int selectedChannelId() const;
     ChannelListModel* channelsModel() const;
     EntertainmentConfigurationModel* entertainmentConfigurationsModel() const;
@@ -75,9 +87,51 @@ namespace Huenicorn
     QString currentEntertainmentConfigurationId() const;
     int channelsVersion() const;
 
+    /**
+     * @brief Returns the channel targeted by manual light commands
+     *
+     * @return int Channel ID, or -1 when all lights of the entertainment area are targeted
+     */
+    int manualTargetChannelId() const;
+
+    /**
+     * @brief Returns the light targeted by manual light commands
+     *
+     * @return QString Light service ID, or empty when no single light is targeted
+     */
+    QString manualTargetLightId() const;
+
+    /**
+     * @brief Returns the individual lights (light services) of the current
+     * entertainment area, for the "Light" target scope. Cached; refreshed
+     * whenever the channels change. Note: a multi-segment gradient strip
+     * exposes a single light (its segments are addressed through the
+     * "Channel" target scope)
+     *
+     * @return QVariantList Array of {lightId, name, channelId, channelCount},
+     *         where channelId is the lowest channel holding the light and
+     *         channelCount the number of channels sharing it
+     */
+    QVariantList manualLights() const;
+
 
     // Setter
     void setSelectedChannelId(int channelId);
+
+    /**
+     * @brief Sets the channel targeted by the next manual light commands
+     *
+     * @param channelId Channel ID, or -1 to target all lights of the entertainment area
+     */
+    void setManualTargetChannelId(int channelId);
+
+    /**
+     * @brief Sets the single light targeted by the next manual light commands.
+     * Takes precedence over manualTargetChannelId when not empty.
+     *
+     * @param lightId Light service ID, or empty to clear the single-light target
+     */
+    void setManualTargetLightId(const QString& lightId);
 
 
     // Setup invokables
@@ -118,9 +172,12 @@ namespace Huenicorn
     Q_INVOKABLE void quit();
 
     /**
-     * @brief Applies a manual state to all lights of the current entertainment area.
-     * Pauses ambilight first if it is active. The bridge payload (RGB for the
-     * color mode, mirek for the white mode) is computed here: the QML layer
+     * @brief Applies a manual state to the target of the manual panel (all
+     * lights, a single channel or a single light). Enters manual mode: the
+     * ambilight following is suspended while the manual mode is active, and
+     * non-targeted channels freeze at their last color. Resume ambilight from
+     * the Ambilight toggle to leave manual mode. The bridge payload (RGB for
+     * the color mode, mirek for the white mode) is computed here: the QML layer
      * only forwards raw UI fields.
      *
      * @param on Power state
@@ -193,11 +250,14 @@ namespace Huenicorn
     void setupRequiredChanged();
     void runningChanged();
     void streamingActiveChanged();
+    void manualModeChanged();
     void selectedChannelIdChanged();
     void displayInfoChanged();
     void interpolationInfoChanged();
     void entertainmentConfigurationsChanged();
     void channelsChanged();
+    void manualTargetChannelIdChanged();
+    void manualTargetLightIdChanged();
 
 
   private slots:
@@ -223,11 +283,15 @@ namespace Huenicorn
     QTimer m_pollTimer;
 
     int m_selectedChannelId{-1};
+    int m_manualTargetChannelId{-1};
+    QString m_manualTargetLightId;
     bool m_wasSetupRequired{true};
     bool m_wasRunning{false};
     bool m_wasStreamingActive{true};
+    bool m_wasManualMode{false};
     QString m_currentEntertainmentConfigurationId;
     int m_channelsVersion{0};
+    QVariantList m_manualLights;
 
     QVariantList m_subsampleCandidates;
     int m_subsampleWidth{0};
